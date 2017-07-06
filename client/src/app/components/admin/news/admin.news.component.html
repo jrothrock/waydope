@@ -1,0 +1,56 @@
+<h4>News Aricle list</h4>
+<hr>
+<div class='row col s12'>
+	<div class='col s1'>
+		Id
+	</div>
+	<div class='col s2'>
+		Title
+	</div>
+	<div class='col s2'>
+		Category
+	</div>
+	<div class='col s2'>
+		Link
+	</div>
+	<div class='col s2'>
+		Description
+	</div>
+	<div class='col s1'>
+		Submitted By
+	</div>
+	<div class='col s1'>
+		Likes
+	</div>
+	<div class='col s1'>
+		Actions
+	</div>
+</div>
+<div class='row col s12'>
+	<div *ngFor="let article of news; let i = index" id="article-{{article.id}}" style="overflow:hidden">
+		<div class='col s1'>
+			{{article.id}}
+		</div>
+		<div class='col s2'>
+			{{article.title}}
+		</div>
+		<div class='col s2'>
+			{{article.category}} 
+		</div>
+		<div class='col s2' style="overflow:hidden">
+			{{article.link}} 
+		</div>
+		<div class='col s2' style="overflow:hidden">
+			{{article.description}}
+		</div>
+		<div class='col s1' id="good-standing-text-{{article.id}}" style="overflow:hidden">
+			{{article.submitted_by}}
+		</div>
+		<div class='col s1'>
+		 Likes
+		</div>
+		<div class='col s1'>
+		 <a [routerLink]="['/admin','news',article.id]" style='cursor:pointer'>Edit</a>
+		</div>
+	</div>
+</div>

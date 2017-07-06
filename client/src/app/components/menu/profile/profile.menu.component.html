@@ -1,0 +1,8 @@
+<div [style.margin-left.px]='offset' class='row col s12 menu-drop-down profile-menu' id='profile-drop-down' (mouseenter)="mouseEnter()" (mouseleave)="mouseLeft()">
+	<h4 class='menu-titles' style='color:white;text-align:center' [routerLink]="['/user', currentUser]" (tap)='clickedLink()'>Profile</h4>
+	<hr class='menu-divider'>
+	<ul>
+		<li class="grey-text text-lighten-3 profile-list-items" (tap)="clickedLink()" [routerLink]="['/user', currentUser, 'settings']">Settings</li>
+		<li class="grey-text text-lighten-3 profile-list-items" (tap)="clickedLink()" [routerLink]="['/user', currentUser, 'orders']">Orders</li>
+	</ul>
+</div>

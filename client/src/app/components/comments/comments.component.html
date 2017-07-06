@@ -1,0 +1,128 @@
+<comments_admin [dataadmin]="dataadmin"></comments_admin>
+<comments_report [datareport]="datareport" (reportCommentOutput)="submitReport($event)"></comments_report>
+<comments_delete [datadelete]="datadelete" (deleteCommentOutput)="deleteComment($event)"></comments_delete>
+<div *ngIf="!addedComment">
+	<hr>
+	<h4>Comments</h4>
+	<comments_form [post]="coms" (submittedComment)="submitComment($event)"></comments_form>
+	<div *ngIf="specific" class='view-all-comments'>
+		You are currently viewing only a portion of the comments, <a (click)="allComments()" style='cursor:pointer;white-space: nowrap'>click here to view the rest.</a>
+	</div>
+	<div *ngIf="comments && comments[0]" class='comments-container'>
+		<div *ngFor="let comment of comments; let i = index" id="comment-{{comment.uuid}}" class='row col ps12 comment-container'>
+			<div class='col ps1 comment-vote-info'>
+				<div class='col ps8 comment-vote-actions'>
+					<div [ngClass]="{ 'vote' : comment.user_voted == 1}" class='comment-upvote'><i id='comment-upvote-{{comment.uuid}}' [ngClass]="{ 'clickable' : !comment.deleted && !comment.removed }" [style.color]="comment.user_voted === 1? '#ef6837' : 'black'" (click)="setVote(1,'comment', comment.uuid,comment.user_voted,comment.deleted)" class='fa fa-chevron-up' style='opacity:0.6' aria-hidden="true"></i></div><div [ngClass]="{ 'vote' : comment.user_voted == -1}" class='comment-downvote'><i [ngClass]="{ 'clickable' : !comment.deleted && !comment.removed }" [ngClass]="{ 'clickable' : !comment.deleted || !comment.removed }" [style.color]="comment.user_voted === -1? '#ef6837' : 'black'" id='comment-downvote-{{comment.uuid}}' (click)="setVote(-1,'comment', comment.uuid,comment.user_voted,comment.deleted)" style='opacity:0.6' class='fa fa-chevron-down' aria-hidden="true"></i></div>
+				</div>
+				<div *ngIf="comment.average_vote > -1" [style.left.px]="math.floor(math.log10(math.abs(comment.average_vote))) % 1 === 0 ? 0 - (4*math.floor(math.log10(math.abs(comment.average_vote)))) : 0" style='position:relative;margin-top:-47px;margin-left:3px' class='col ps4 comment-votes' id='comment-votes-{{comment.uuid}}'>
+					{{comment.average_vote}}
+				</div>
+				<div *ngIf="comment.average_vote <= -1" [style.left.px]="math.floor(math.log10(math.abs(comment.average_vote))) % 1 === 0 ? -4 - (4*math.floor(math.log10(math.abs(comment.average_vote)))) : 0" style='position:relative;margin-top:-47px;margin-left:3px' class='col ps4 comment-votes' id='comment-votes-{{comment.uuid}}'>
+					{{comment.average_vote}}
+				</div>
+			</div>
+			<div class='col ps11 comment-content'>
+				<div *ngIf="!comment.deleted && !comment.removed"  class='reply-author' id='comment-author-{{comment.uuid}}'>
+					<a [routerLink]="['/user', comment.submitted_by]" style='cursor:pointer'>{{comment.submitted_by}}</a>
+					<div style='display:inline;' *ngIf="comment.styled">[<span *ngIf="comment.admin" style='color:red;padding:1px' title='Admin'>A</span><span *ngIf="comment.submitter" style='color:blue;padding:1px' title='Submitter'>S</span>]</div>
+					<div *ngIf="comment.stickied" style='border:1px solid #11af11;border-radius:5px;display:inline;padding:1px'><i class='fa fa-thumb-tack'></i> Pinned</div>
+					<div style='display:inline'><span style='font-size:0.8em;color:grey;padding:5px' class='capitalize'>{{comment.time_ago}}</span></div>
+				</div>
+				<div *ngIf="comment.deleted || comment.removed"  class='deleted-comment-author'>
+				</div>
+				<div class='comment-body' id='comment-body-{{comment.uuid}}' [innerHTML]="comment.marked">
+				</div>
+				<div *ngIf="!comment.deleted && !comment.removed" class='comment-actions' id="comment-actions-{{comment.uuid}}" #replyLink>
+					<div class='comment-link-actions'>
+						<a (click)="commentReply(comment.uuid,comment.generation,i)">Reply</a>
+					</div>
+					<div *ngIf="comment.submitted_by === username && !comment.locked" class='comment-link-actions'>
+						<a (click)="edit(comment.uuid,comment.generation,i,comment.body)">Edit</a>
+					</div>
+					<div class='comment-link-actions'>
+						<a (click)="reportInit(comment.uuid,comment.user_flagged)">Report</a>
+					</div>
+					<div *ngIf="comment.submitted_by === username" class='comment-link-actions'>
+						<a (click)="deleteInit(comment.uuid,false)">Delete</a>
+					</div>
+					<div *ngIf="isAdmin" class='comment-link-actions'>
+						<a (click)="deleteInit(comment.uuid,true)">Remove</a>
+					</div>
+					<div *ngIf="isAdmin" class='comment-link-actions' id='comment-link-actions-sticky-{{comment.uuid}}' [attr.data-stickied]="comment.stickied">
+						<a (click)="stickyComment(comment.uuid)" [innerHTML]="comment.stickied ? 'Unsticky': 'Sticky'" id='comment-link-actions-sticky-text-{{comment.uuid}}'></a>
+					</div>
+					<div *ngIf="isAdmin" class='comment-link-actions'>
+							<a (tap)="adminInit(comment.uuid)">Admin</a>
+					</div>
+				</div>
+			</div>
+			<div *ngIf="comment && comment.children" id="comment-{{comment.uuid}}-children" style='position:relative;top:15px'>
+				<commentsLoop [childComments]="comment" [type]="type" [id]="id" [category]="category" [subcategory]="subcategory" [url]="url" [isAdmin]="isAdmin" class='reply-container' #replyChildren></commentsLoop>
+			</div>
+		</div>
+	</div>
+	<div *ngIf="loaded && (!comments || !comments[0])">
+		<div class='no-comments' #replyChildren><h6 class='center' id='no-comments'>No comments have been added, be the first to do so</h6></div>
+	</div>
+	<div *ngIf="!loaded">
+		<h4 class='center'>Loading Comments...</h4>
+		<div class="spinner">
+			<div class="rect1"></div>
+			<div class="rect2"></div>
+			<div class="rect3"></div>
+			<div class="rect4"></div>
+			<div class="rect5"></div>
+		</div>
+	</div>
+</div>
+<div *ngIf="addedComment">
+	<div *ngIf="comments">
+		<div *ngFor="let comment of comments; let i = index" id="comment-{{comment.uuid}}">
+			<div class='row col ps12' style='padding:0px'>
+				<div class='col ps1 comment-vote-info'>
+					<div class='col ps8 comment-vote-actions'>
+						<div [ngClass]="{ 'vote' : comment.user_voted == 1}" class='comment-upvote'><i id='comment-upvote-{{comment.uuid}}' [ngClass]="{ 'clickable' : !comment.deleted }" [style.color]="comment.user_voted === 1? '#ef6837' : 'black'" (click)="setVote(1,'comment', comment.uuid,comment.user_voted,comment.deleted)" class='fa fa-chevron-up' aria-hidden="true"></i></div><div [ngClass]="{ 'vote' : comment.user_voted == -1}" class='comment-downvote'><i [ngClass]="{ 'clickable' : !comment.deleted }" [style.color]="comment.user_voted === -1? '#ef6837' : 'black'" id='comment-downvote-{{comment.uuid}}' (click)="setVote(-1,'comment', comment.uuid,comment.user_voted,comment.deleted)" class='fa fa-chevron-down' aria-hidden="true"></i></div>
+					</div>
+					<div [style.left.px]="math.floor(math.log10(comment.average_vote)) % 1 === 0 ? 0 - (4*math.floor(math.log10(comment.average_vote))) : 0" style='position:relative;margin-top:-47px;margin-left:3px' class='col ps4 comment-votes' id='comment-votes-{{comment.uuid}}'>
+						{{comment.average_vote}}
+					</div>
+				</div>
+				<div class='col ps11 comment-content'>
+					<div class='comment-author' id='comment-author-{{comment.uuid}}'>
+						<a [routerLink]="['/user', comment.submitted_by]" style='cursor:pointer'>{{comment.submitted_by}}</a>
+						<div style='display:inline;' *ngIf="comment.styled">[<span *ngIf="comment.admin" style='color:red;padding:1px' title='Admin'>A</span><span *ngIf="comment.submitter" style='color:blue;padding:1px' title='Submitter'>S</span>]</div>
+						<div style='display:inline'><span style='font-size:0.8em;color:grey;padding:5px' class='capitalize'>{{comment.time_ago}}</span></div>
+					</div>
+					<div class='comment-body' id='comment-body-{{comment.uuid}}' [innerHTML]="comment.marked">
+					</div>
+					<div class='comment-actions' id="comment-actions-{{comment.uuid}}" #replyLink>
+						<div class='comment-link-actions'>
+							<a (click)="commentReply(comment.uuid,comment.generation,i)">Reply</a>
+						</div>
+						<div *ngIf="comment.submitted_by === username" class='comment-link-actions'>
+							<a (click)="edit(comment.uuid,comment.generation,i,comment.body)">Edit</a>
+						</div>
+						<div class='comment-link-actions'>
+							<a (click)="reportInit(comment.uuid,comment.user_flagged)">Report</a>
+						</div>
+						<div *ngIf="comment.submitted_by === username" class='comment-link-actions'>
+							<a (click)="deleteInit(comment.uuid,false)">Delete</a>
+						</div>
+						<div *ngIf="isAdmin" class='comment-link-actions'>
+							<a (click)="deleteInit(comment.uuid,true)">Remove</a>
+						</div>
+						<div *ngIf="isAdmin && !comment.stickied" class='comment-link-actions' id='comment-link-actions-sticky-{{comment.uuid}}' [attr.stickied]="comment.stickied">
+							<a (click)="stickyComment(comment.uuid)" [innerHTML]="comment.stickied ? 'Unsticky': 'Sticky'" id='comment-link-actions-sticky-text-{{comment.uuid}}'></a>
+						</div>
+						<div *ngIf="isAdmin" class='comment-link-actions'>
+							<a (tap)="adminInit(comment.uuid)">Admin</a>
+					</div>
+					</div>
+				</div>
+			</div>
+			<div *ngIf="(comment && comment.children) || addedComment" id="comment-{{comment.uuid}}-children">
+				<commentsLoop [childComments]="comment" [type]="type" [id]="id" [category]="category" [subcategory]="subcategory" [url]="url" [isAdmin]="isAdmin" class='reply-container' #replyChildren></commentsLoop>
+			</div>
+		</div>
+	</div>
+</div>

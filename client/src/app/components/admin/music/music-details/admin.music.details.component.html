@@ -1,0 +1,72 @@
+<div class='row col s12'>  
+  <h4>Music Details</h4>
+  <hr>
+  	<h5 class='center'>Current Song Details</h5>
+  	<div class="row">
+  		<span>Song ID: {{id}}</span>
+  	</div>
+  	<div class="row">
+  		<span>Song Title: {{title}}</span>
+  	</div>
+  	<div class="row">
+  		<span>Song Artist: {{artist}}</span>
+  	</div>
+  	<div class="row">
+  		<span>Song Genre: {{genre}}</span>
+  	</div>
+  	<div class="row">
+  		<span>Song Description: {{description}}</span>
+  	</div>
+  	<div class="row">
+  		<span>Song Link: {{link}}</span>
+  	</div>
+  	<div class="row">
+  		<span>Submitted By: {{submitted_by}}</span>
+  	</div>
+  	<hr>
+  	<h5 class='center'>Update Song Details</h5>
+  <div class="row">
+    <form [formGroup]="updateMusic" (ngSubmit)="submitMusic(updateMusic.value)" class="col s12">
+    	<div class="row">
+        <div class="input-field col s12 m6">
+          <input [ngClass]="{ 'has-error-input' : updateMusic.controls.title.errors?.pattern && updateMusic.controls.title.touched}" [formControl]="updateMusic.controls['title']" [value]="title"  id="title-input" type="text" class="validate">
+          <label for="title" id="title-label">Title</label>
+          <em *ngIf="updateMusic.controls.title.errors?.pattern && updateMusic.controls.title.touched" class='has-error'> Enter a valid title </em>
+        </div>
+        <div class="input-field col s12 m6">
+          <input [ngClass]="{ 'has-error-input' : updateMusic.controls.artist.errors?.pattern && updateMusic.controls.artist.touched}" [formControl]="updateMusic.controls['artist']" id="artist-input" type="text" [value]="artist" class="validate">
+          <label for="artist" id='artist-label'>Artists</label>
+          <em *ngIf="updateMusic.controls.artist.errors?.pattern && updateMusic.controls.artist.touched" class='has-error'> Enter a valid name </em>
+        </div>
+      </div>
+      <div class="row">
+        <div class='select-field col s12 m6'>
+          <div class="form-group">
+            <label for="power">Genre</label>
+            <select class="form-control" id="power" required [formControl]="updateMusic.controls['genre']" name="power" style='display:block !important'>
+              <option *ngFor="let p of powers" [value]="p">{{p}}</option>
+            </select>
+          </div>
+        </div>
+        <div class="input-field col s12 m6">
+            <input [ngClass]="{ 'has-error-input' : ((updateMusic.controls.link.errors?.required || updateMusic.controls.link.errors?.pattern  )&& updateMusic.controls.link.touched) }" [formControl]="updateMusic.controls['link']" id="link-input" type="text" [value]="link" class="validate">
+            <label for="link" id='link-label'>link</label>
+            <em *ngIf="updateMusic.controls.link.errors?.pattern && updateMusic.controls.link.touched" class='has-error'> Enter a valid link </em>
+        </div>
+      </div>
+      <div class='row'>
+        <div class='text-box col s12'>
+          <textarea [formControl]="updateMusic.controls['description']" [value]="description" type='text'></textarea>
+          <label for='link' id='song-description'>Description</label>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="row">
+    <div class="center-align">
+      <button class="waves-effect waves-light btn" [routerLink]="['/admin','music']">Go Back</button>
+      <button type="submit" class="waves-effect waves-light btn" (tap)="submitMusic(updateMusic.value)">Submit Song</button>
+    </div>
+  </div>
+</div>

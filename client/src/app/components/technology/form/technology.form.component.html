@@ -1,0 +1,327 @@
+<h1>Technology Form</h1>
+<div class="row">
+    <div class="col s12">
+        <div class="row">
+          <form [formGroup]="uploadTechnology" (ngSubmit)="submitTechnology(uploadTechnology.value)" class="col s12" id='technology-upload-form'>
+          	<div class="row">
+              <div class="input-field col s12 m6">
+                <input [ngClass]="{ 'has-error-input' : uploadTechnology.controls.title.errors?.required && uploadTechnology.controls.title.touched}" [formControl]="uploadTechnology.controls['title']" id="title" type="text" class="validate">
+                <label for="title" id='song-title'>Title</label>
+                <em *ngIf="uploadTechnology.controls.title.errors?.required && uploadTechnology.controls.title.touched" class='has-error'> A title is required </em>
+              </div>
+              <div class="input-field col s12 m6">
+                <input [ngClass]="{ 'has-error-input' : uploadTechnology.controls.creator.errors?.required && uploadTechnology.controls.creator.touched}" [formControl]="uploadTechnology.controls['creator']" id="creator" type="text" class="validate">
+                <label for="creator" id='song-creator'>Brand</label>
+                <em *ngIf="uploadTechnology.controls.creator.errors?.required && uploadTechnology.controls.creator.touched" class='has-error'> A brand name is required </em>
+              </div>
+            </div>
+            <div class='row'>
+                <div class="input-field col s12 m6">   
+                    <span>Do you, or your company, have a website?</span>
+                    <div>
+                        <p style='display:inline-block;margin-left:-15px'>
+                            <input class="with-gap has-site" type="radio" [formControl]="uploadTechnology.controls['has_site']" name="has_site" id="site-yes" [value]="1">
+                            <label for="site-yes">Yes</label>
+                        </p>
+                        <p style='display:inline-block;margin-left:20px'>
+                            <input class="with-gap has-site" type="radio" [formControl]="uploadTechnology.controls['has_site']" name="has_site" id="site-no" [value]="0">
+                            <label for="site-no">No</label>
+                        </p>
+                    </div>
+                </div>
+                <div class="input-field col s12 m6">
+                    <input autocomplete="off" [ngClass]="{ 'has-error-input' : ((uploadTechnology.controls.link.errors?.required || uploadTechnology.controls.link.errors?.pattern  )&& uploadTechnology.controls.link.touched) }" [formControl]="uploadTechnology.controls['link']" id="link" type="text" class="validate form-link">
+                    <label for="link" id='site-link' class='form-link-label'>Site URL</label>
+                    <em *ngIf="uploadTechnology.controls.link.errors?.required && uploadTechnology.controls.link.touched" class='has-error'> A link is required </em>
+                    <em *ngIf="uploadTechnology.controls.link.errors?.pattern" class='has-error'> Enter a valid link </em>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s12 m6">
+                    <input [ngClass]="{ 'has-error-input' : uploadTechnology.controls.zip.errors?.required && uploadTechnology.controls.zip.touched}" [formControl]="uploadTechnology.controls['zip']" id="zip" type="number" class="validate">
+                    <label for="zip" id='song-zip'>Zip Code</label>
+                    <em *ngIf="uploadTechnology.controls.zip.errors?.required && uploadTechnology.controls.zip.touched" class='has-error'> A zip code is required </em>
+                </div>
+                <div class="input-field col s12 m6" style='margin-top:16px'>
+                    <select id="condition" required [formControl]="uploadTechnology.controls['condition']" style='display:block' class='enabled'>
+					    <option *ngFor="let condition of conditions; let i = index" [value]="conditionValues[i]" [disabled]='conditionValues[i] !== "nwb"' >{{condition}}</option>
+				    </select>
+                    <span style='font-size:0.8em;color:gray'>Condition:</span>
+                </div>
+            </div>
+            <div class="row">
+              <div class='input-field col s12 m6'>
+                <div class="form-group">
+                  <input  id="category-link" [formControl]="uploadTechnology.controls['category']" name="category" class="validate category" style='display:block !important'>
+
+                  <label for="category" id='song-link'>category</label>
+                  <span class='main-category' for="category" id='song-link2'>Main Category: {{mainCategory}}</span>
+                   <em *ngIf="uploadTechnology.controls.category.errors?.required && uploadTechnology.controls.category.touched" class='has-error'> Category is required </em>
+                </div>
+              </div>
+              <div class='input-field col s12 m6'>
+                <div class="form-group">
+                  <input  id="sub-category-input" [formControl]="uploadTechnology.controls['sub_category']" name="sub_category" class="validate sub_category" style='display:block !important'>
+                  <span class='main-category' for="category" id='song-link2'>Sub Category: {{subCategory}}</span>
+                   <em *ngIf="uploadTechnology.controls.sub_category.errors?.required && uploadTechnology.controls.sub_category.touched" class='has-error'> Category is required </em>
+                </div>
+              </div>
+            </div>
+            <div class='row' id='has-sizes'>
+                <div class="input-field col s12 m6">   
+                    <span id='has-sizes-text'>Does your product contain different sizes?</span>
+                    <div>
+                        <p style='display:inline-block;margin-left:-15px'>
+                            <input class="with-gap has-sizes" type="radio" id="sizes-yes" name="has_sizes" [value]="1" disabled>
+                            <label for="sizes-yes">Yes</label>
+                        </p>
+                        <p style='display:inline-block;margin-left:20px'>
+                            <input class="with-gap has-sizes" type="radio" id="sizes-no" name="has_sizes" [value]="0" disabled>
+                            <label for="sizes-no">No</label>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class='row' id='has-colors'>
+                <div class="input-field col s12 m6">   
+                    <span id='has-colors-text'>Does your product contain different colors?</span>
+                    <div>
+                        <p style='display:inline-block;margin-left:-15px'>
+                            <input class="with-gap has-colors" type="radio" name="has_colors" id="colors-yes" [value]="1" disabled>
+                            <label for="colors-yes">Yes</label>
+                        </p>
+                        <p style='display:inline-block;margin-left:20px'>
+                            <input class="with-gap has-colors" type="radio" name="has_colors" id="colors-no" [value]="0" disabled>
+                            <label for="colors-no">No</label>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class='row' id='has-dimensions'>
+                <div class="input-field col s12 m6">   
+                    <span id='has-dimensions-text'>Do you want to list your products dimensions?</span>
+                    <div>
+                        <p style='display:inline-block;margin-left:-15px'>
+                            <input class="with-gap has-dimensions" type="radio" name="has_dimensions" id="dimensions-yes" [value]="1" disabled>
+                            <label for="dimensions-yes">Yes</label>
+                        </p>
+                        <p style='display:inline-block;margin-left:20px'>
+                            <input class="with-gap has-dimensions" type="radio" name="has_dimensions" id="dimensions-no" [value]="0" disabled>
+                            <label for="dimensions-no">No</label>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div id='no-sizes-no-colors-no-dimensions-selections' class='row no-sizes-no-colors-no-dimensions-containers' data-hidden='false' style='display:none'>
+                <div id='no-sizes-no-colors-no-dimensions-sizes' class='col m12'>
+                    <div class='col m3'>
+                        <label style='white-space:nowrap'>Size: (put 'default' if not applicable)</label>
+                        <input  class='no-sizes-no-colors-no-dimensions-inputs' id='no-sizes-no-colors-no-dimensions-size' type='text'/>
+                    </div>
+                    <div class='col m3'>
+                        <label style='white-space:nowrap'>Color: (put 'default' if not applicable)</label>
+                        <input  class='no-sizes-no-colors-no-dimensions-inputs' id='no-sizes-no-colors-no-dimensions-color' type='text'/>
+                    </div>
+                    <div class='col m3'>
+                        <label>Quantity:</label>
+                        <input class='no-sizes-no-colors-no-dimensions-inputs' id='no-sizes-no-colors-no-dimensions-quantity' type='number' min="0"/>
+                    </div>
+                    <div class='col m3'>
+                        <label>Price: ($)</label>
+                        <input class='no-sizes-no-colors-no-dimensions-inputs' id='no-sizes-no-colors-no-dimensions-price' type='number' min="0"/>
+                    </div>
+                </div>
+            </div>
+            <div id='no-sizes-no-colors-yes-dimensions-selections' class='row no-sizes-no-colors-yes-dimensions-containers' style='display:none' data-hidden='true'>
+                <div id='no-sizes-no-colors-yes-dimensions' class='row'>
+                    <div class='row col m12' style='border:1px solid rgba(0,0,0,0.1)'>
+                        <div class='col m12'>
+                            <div class='col m4'>
+                                <label>Quantity:</label>
+                                <input class='no-sizes-no-colors-yes-dimensions-inputs' id='no-sizes-no-colors-yes-dimensions-quantity' type='number' min="0"/>
+                            </div>
+                            <div class='col m4'>
+                                <label style='white-space:nowrap'>Color: (put 'default' if not applicable)</label>
+                                <input class='no-sizes-no-colors-yes-dimensions-inputs' id='no-sizes-no-colors-yes-dimensions-color' type='text'/>
+                            </div>
+                            <div class='col m4'>
+                                <label style='white-space:nowrap'>Price: ($)</label>
+                                <input class='no-sizes-no-colors-yes-dimensions-inputs' id='no-sizes-no-colors-yes-dimensions-price' type='text'/>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class='col m12'>
+                            <div class='col m4'>
+                                <label>Height:</label>
+                                <input class='no-sizes-no-colors-yes-dimensions-inputs' id='no-sizes-no-colors-yes-dimensions-height' type='number' min="0"/>
+                            </div>
+                            <div class='col m4'>
+                                <label>Width:</label>
+                                <input class='no-sizes-no-colors-yes-dimensions-inputs' id='no-sizes-no-colors-yes-dimensions-width' type='number' min="0"/>
+                            </div>
+                            <div class='col m4'>
+                                <label>Depth:</label>
+                                <input class='no-sizes-no-colors-yes-dimensions-inputs' id='no-sizes-no-colors-yes-dimensions-depth' type='number' min="0"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id='yes-sizes-yes-colors-yes-dimensions-selections' class='row yes-sizes-yes-colors-yes-dimensions-containers' style='display:none' data-hidden='true'>
+                <div id='yes-sizes-yes-colors-yes-dimensions' class='row'>
+                    <div class='col m12'>
+                        <div class='col m4'>
+                            <label>How many sizes:</label>
+                            <input class='yes-sizes-yes-colors-yes-dimensions-inputs' id='yes-sizes-yes-colors-yes-dimensions-size-count' type='number' value="0" min="0" data-amount='0'/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+             <div id='yes-sizes-yes-colors-no-dimensions-selections' class='row yes-sizes-yes-colors-no-dimensions-containers' style='display:none' data-hidden='true'>
+                <div id='yes-sizes-yes-colors-no-dimensions' class='row'>
+                    <div class='col m12'>
+                        <div class='col m4'>
+                            <label>How many sizes:</label>
+                            <input class='yes-sizes-yes-colors-no-dimensions-inputs' id='yes-sizes-yes-colors-no-dimensions-size-count' type='number' value="0" min="0" data-amount='0'/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id='yes-sizes-no-colors-yes-dimensions-selections' class='row yes-sizes-no-colors-yes-dimensions-containers' style='display:none' data-hidden='true'>
+                <div id='yes-sizes-no-colors-yes-dimensions' class='row'>
+                    <div class='col m12'>
+                        <div class='col m4'>
+                            <label>How many sizes:</label>
+                            <input class='yes-sizes-no-colors-yes-dimensions-inputs' id='yes-sizes-no-colors-yes-dimensions-size-count' type='number' value="0" min="0" data-amount='0'/>
+                        </div>
+                        <div class='col m4'>
+                            <label>Color: (put 'default' if not applicable)</label>
+                            <input class='yes-sizes-no-colors-yes-dimensions-color-inputs' id='yes-sizes-no-colors-yes-dimensions-color' type='text'/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+             <div id='yes-sizes-no-colors-no-dimensions-selections' class='row yes-sizes-no-colors-no-dimensions-containers' style='display:none' data-hidden='true'>
+                <div id='yes-sizes-no-colors-no-dimensions' class='row'>
+                    <div class='col m12'>
+                        <div class='col m4'>
+                            <label>How many sizes:</label>
+                            <input class='yes-sizes-no-colors-no-dimensions-inputs' id='yes-sizes-no-colors-no-dimensions-size-count' type='number' value="0" min="0" data-amount='0'/>
+                        </div>
+                        <div class='col m4'>
+                            <label>Color: (put 'default' if not applicable)</label>
+                            <input class='yes-sizes-no-colors-no-dimensions-color-inputs' id='yes-sizes-no-colors-no-dimensions-color' type='text'/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id='no-sizes-yes-colors-yes-dimensions-selections' class='row no-sizes-yes-colors-yes-dimensions-containers' style='display:none' data-hidden='true'>
+                <div id='no-sizes-yes-colors-yes-dimensions' class='row'>
+                    <div class='col m12'>
+                        <div class='col m3'>
+                            <label>How many colors:</label>
+                            <input class='no-sizes-yes-colors-yes-dimensions-inputs' id='no-sizes-yes-colors-yes-dimensions-color-count' type='number' value="0" min="0" data-amount='0'/>
+                        </div>
+                        <div class='col m9' style='border: 1px solid rgba(0,0,0,0.1)'>
+                           <div class='col m4'>
+                            <label>Height:</label>
+                            <input class='no-sizes-yes-colors-yes-dimensions-color-input' id='no-sizes-yes-colors-yes-dimensions-height' type='number' min='0' step="any"/>
+                            </div>
+                            <div class='col m4'>
+                                <label>Width:</label>
+                                <input class='no-sizes-yes-colors-yes-dimensions-color-input' id='no-sizes-yes-colors-yes-dimensions-width' type='number' min='0' step="any"/>
+                            </div>
+                            <div class='col m4'>
+                                <label>Depth:</label>
+                                <input class='no-sizes-yes-colors-yes-dimensions-color-input' id='no-sizes-yes-colors-yes-dimensions-depth' type='number' min='0' step="any"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+             <div id='no-sizes-yes-colors-no-dimensions-selections' class='row no-sizes-yes-colors-no-dimensions-containers' style='display:none' data-hidden='true'>
+                <div id='no-sizes-yes-colors-no-dimensions' class='row'>
+                    <div class='col m12'>
+                        <div class='col m4'>
+                            <label>How many colors:</label>
+                            <input class='no-sizes-yes-colors-no-dimensions-inputs' id='no-sizes-yes-colors-no-dimensions-color-count' type='number' value="0" min="0" data-amount='0'/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id='sub-category-selected' style='display:none'>
+            </div>
+            <div id='sub-category-selected-shoes' style='display:none'>
+            </div>
+            <hr>
+            <div id='sub-category-selected' style='display:none'>
+            </div>
+            <div id='sub-category-selected-shoes' style='display:none'>
+            </div>
+            <div class='row' style='min-height:250px;text-align:center'>
+                <span style='font-size:0.8em;color:red;font-style:italic;text-align: center'>An image is required.</span>
+                <div style='border: 1px solid rgba(0,0,0,0.25);width: 25%;padding: 10px;margin: auto;margin-bottom:10px'>
+                    <span>Upload up to four photos of your product.</span>
+                    <div style='width:200px;text-align:center;margin:auto;'>
+                    <input type='file' name='file' accept="image/png, image/jpeg, image/gif" id='photo-upload' class='inputfile' multiple='true'/>
+                    <label for="photo-upload" class='btn photo-upload-button active'><i class='fa fa-camera' aria-hidden="true"></i> Upload Photos</label>
+                    </div>
+                </div>
+                <div id='photos-technology-form' class='grabbable'>
+                </div>
+            </div>
+            <div class='row'>
+                <div class="input-field col s12 m6">
+                    <input [ngClass]="{ 'has-error-input' : ((uploadTechnology.controls.shipping.errors?.required || uploadTechnology.controls.shipping.errors?.pattern  )&& uploadTechnology.controls.shipping.touched) }" [formControl]="uploadTechnology.controls['shipping']" id="shipping" type="number" class="validate form-shipping" step="any">
+                    <label for="shipping" id='song-shipping' class='form-shipping-label'>Shipping Cost: ($)</label>
+                    <em *ngIf="uploadTechnology.controls.shipping.errors?.required && uploadTechnology.controls.shipping.touched" class='has-error'> A shipping cost is required </em>
+                    <em *ngIf="uploadTechnology.controls.shipping.errors?.pattern" class='has-error'> Enter a valid shipping cost </em>
+                </div>
+                <div class="input-field col s12 m6">
+                    <input [ngClass]="{ 'has-error-input' : ((uploadTechnology.controls.shipping_type.errors?.required || uploadTechnology.controls.shipping_type.errors?.pattern  )&& uploadTechnology.controls.shipping_type.touched) }" [formControl]="uploadTechnology.controls['shipping_type']" id="shipping-type" type="text" class="validate form-shipping">
+                    <label for="shipping-type" id='song-shipping' class='form-shipping-label'>Shipping Type: (ex. USPS Priority Mail 1 - 3 days.)</label>
+                    <em *ngIf="uploadTechnology.controls.shipping.errors?.required && uploadTechnology.controls.shipping_type.touched" class='has-error'> A shipping cost is required </em>
+                    <em *ngIf="uploadTechnology.controls.shipping_type.errors?.pattern" class='has-error'> Enter a valid shipping cost </em>
+                </div>
+            </div>
+            <div class='row'>
+                <div class="input-field col s12 m6">
+                    <input [ngClass]="{ 'has-error-input' : ((uploadTechnology.controls.turnaround_time.errors?.required || uploadTechnology.controls.turnaround_time.errors?.pattern  )&& uploadTechnology.controls.turnaround_time.touched) }" [formControl]="uploadTechnology.controls['turnaround_time']" id="turnaround_time" type="number" class="validate form-turnaround_time">
+                    <label for="turnaround_time" id='song-turnaround_time' class='form-turnaround_time-label'>Turnaround Time: (Days)</label>
+                    <em *ngIf="uploadTechnology.controls.turnaround_time.errors?.required && uploadTechnology.controls.turnaround_time.touched" class='has-error'>A turnaround time is required </em>
+                </div>
+                <div class="input-field col s12 m6" style='margin-top:16px'>
+                   <select id="return" required [formControl]="uploadTechnology.controls['returns']" style='display:block' class='enabled'>
+					    <option *ngFor="let return of returns; let i = index" [value]="returnValues[i]">{{return}}</option>
+				    </select>
+                    <span style='font-size:0.8em;color:gray'>Returns:</span>
+                </div>
+            </div>
+            <div class='row'>
+              <div class='text-box col s12'>
+                <label for='link' id='song-description'>Description - (Markdown and HTML; styling enabled)</label>
+                <textarea [formControl]="uploadTechnology.controls['description']" id='description' class="validate" type='text'></textarea>
+                <a style='font-size:0.9em' class='btn formatting-button' id='formatting-guide-link' style='color:black !important'>Formatting Guide</a>
+                <div id='add-formatting-guide' data-open='false'>
+                </div>
+              </div>
+            </div>
+          </form>
+          <div id='output-container' style='display:none'>
+            <h5>Output:</h5>
+            <div id='post-output' style='border: 1px solid rgba(0,0,0,0.1);padding:3px'>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="center-align">
+            <button type="submit" class="waves-effect waves-light btn" (tap)="cancelUpload()">Cancel</button>
+            <button type="submit" [disabled]='!uploadTechnology.valid || !subCategory || !imageCount || (photoIds.length != imageCount) || insubmit || !(Object.keys(dimensionsJsonObject).length || Object.keys(JSONObject).length)' class="waves-effect waves-light btn" (tap)="submitTechnology(uploadTechnology.value)">Submit Technology</button>
+            <svg class="spinner-circle" id='submit-technology' viewBox="0 0 50 50">
+                <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+            </svg>
+          </div>
+        </div>
+    </div>
+</div>
+    

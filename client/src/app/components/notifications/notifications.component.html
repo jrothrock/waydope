@@ -1,0 +1,50 @@
+<div id='lightbox-notifications' class='notification-box' style='display:none;'>
+    <div style='border-bottom:1px solid white'>
+        <div class='center' style='color:white'><h5>Notifications</h5></div>
+    </div>
+    <div (tap)="notificationsClose()" class='notification-close-button-container'>
+        <div class='notification-close-button-first'></div>
+        <div class='notification-close-button-second'></div>
+    </div>
+    <div style='font-size:0.8em;color:#ababab;text-align:center;height:20px;padding:5px' *ngIf="notifications.length">
+        {{unread}} unread of {{total}} notifications
+    </div>
+    <div style='margin-top:5px;padding-bottom:15px;height:82vh; overflow: scroll;padding-right: 10px;padding-left: 0px;position: relative;left: -10px;' id='notifications-outer-container'>
+        <div *ngIf="loaded" style='background-color: #262626 !important;border-radius: 2px;min-height:82vh' id='notifications-inner-container'>
+            <div *ngFor="let notification of notifications; let i = index" [ngClass]="{'unread-notification' : !notification.read }" class='col m3 notification-containers' [attr.data-index]="i">
+                <div *ngIf="notification.notice_type === 'comment'">
+                    <div style='color:white' class='menu-links'> <a (tap)="exitLink('user', notification.notified_by )"> {{notification.notified_by}}</a> has responded to your comment on <a (tap)="exitLink(notification.post_type, notification.category, notification.subcategory, notification.url,notification.notified_by_id )"  style='cursor:pointer'>{{notification.title}}</a></div>
+                    <div style='color:white'>"{{notification.body}}"</div>
+                </div>
+                 <div *ngIf="notification.notice_type === 'new_sale'">
+                    <div style='color:white' class='menu-links'>A new sale was made on <a (tap)="exitLink(notification.post_type,notification.category, notification.subcategory, notification.url)">{{notification.title}}</a></div>
+                </div>
+                <div *ngIf="notification.notice_type === 'upload'">
+                    <div style='color:white' class='menu-links' *ngIf="notification.post_type === 'videos'">Your video has finished uploading, and can be viewed <a (tap)="exitLink(notification.post_type, notification.category, notification.subcategory, notification.url )">here.</a></div>
+                    <div style='color:white' class='menu-links' *ngIf="notification.post_type === 'music'">Your song has finished uploading, and can be viewed <a (tap)="exitLink(notification.post_type, notification.category, notification.subcategory, notification.url )">here.</a></div>
+                    <div style='color:white' class='menu-links' *ngIf="notification.post_type === 'apparel' || notification.post_type === 'technology'">Your product has finished uploading, and can be viewed <a (tap)="exitLink(notification.post_type, notification.category, notification.subcategory, notification.url )">here.</a></div>
+                </div>
+                <div *ngIf="notification.notice_type === 'new_shipment'">
+                    <div style='color:white' class='menu-links' *ngIf="notification.post_type === 'apparel' || notification.post_type === 'technology'">Your order for {{notification.quantity}} <a (tap)="exitLink(notification.post_type, notification.category, notification.subcategory, notification.url )">{{notification.title}}</a> has shipped. Check your email for more information.</div>
+                </div>
+                <div *ngIf="notification.notice_type === 'SSN'">
+                    <div style='color:white' class='menu-links'>You have passed $1000 in sales. Congrats!</div>
+                    <div style='color:white' class='menu-links'>Unforunately, to continue selling we need more personal information. Update your info <a (tap)="exitLink('ssn')">here.</a></div>
+                </div>
+            </div>
+            <div *ngIf="!notifications.length">
+                <div class='center' style='padding-top:10px; color:white'><h6>You haven't received any notifications.</h6></div>
+            </div>
+        </div>
+        <div id='loading-spinner-notifications' style='display:none'>
+            <h4 class='center'>Loading Notifications...</h4>
+            <div class="spinner">
+                <div class="rect1"></div>
+                <div class="rect2"></div>
+                <div class="rect3"></div>
+                <div class="rect4"></div>
+                <div class="rect5"></div>
+            </div>
+        </div>
+    </div>
+</div>

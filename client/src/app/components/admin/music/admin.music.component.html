@@ -1,0 +1,62 @@
+<h4>Music list</h4>
+<hr>
+<div class='row col s12'>
+	<div class='col s1'>
+		Id
+	</div>
+	<div class='col s2'>
+		Title
+	</div>
+	<div class='col s2'>
+		Artist
+	</div>
+	<div class='col s1'>
+		Genre
+	</div>
+	<div class='col s1'>
+		Link
+	</div>
+	<div class='col s2'>
+		Description
+	</div>
+	<div class='col s1'>
+		Submitted By
+	</div>
+	<div class='col s1'>
+		Likes
+	</div>
+	<div class='col s1'>
+		Actions
+	</div>
+</div>
+<div class='row col s12'>
+	<div *ngFor="let song of songs; let i = index" id="song-{{song.id}}" style="overflow:hidden">
+		<div class='col s1'>
+			{{song.id}}
+		</div>
+		<div class='col s2'>
+			{{song.title}}
+		</div>
+		<div class='col s2'>
+			{{song.artist}} 
+		</div>
+		<div class='col s1'>
+			{{song.genre}}
+		</div>
+		<div class='col s1' style="overflow:hidden">
+			{{song.link}} 
+		</div>
+		<div class='col s2' style="overflow:hidden">
+			{{song.description}}
+		</div>
+		<div class='col s1' id="good-standing-text-{{song.id}}" style="overflow:hidden">
+			{{song.submitted_by}}
+		</div>
+		<div class='col s1'>
+		 Likes
+		</div>
+		<div class='col s1'>
+		 <a [routerLink]="['/admin','music',song.id]" style='cursor:pointer'>Edit</a>
+		</div>
+	</div>
+</div>

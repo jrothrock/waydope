@@ -1,0 +1,27 @@
+<div id="modal-notify" class="modal notification">
+	<div class="modal-content" id='modal-lock-check' style='display: none;text-align: center'>
+			<h5>Are you sure you want to lock this post?</h5>
+			<button class='btn' (tap)='closeModal()'>Cancel</button>
+			<button class='btn' (tap)='lockPost()'>Lock</button>
+	</div>
+	<div class="modal-content" id='modal-remove-check' style='display: none;text-align: center'>
+			<h5>Are you sure you want to remove this post?</h5>
+			<button class='btn' (tap)='closeModal()'>Cancel</button>
+			<button class='btn' (tap)='removePost()'>remove</button>
+	</div>
+    <div class="modal-content" id='modal-locked' style='display: none'>
+			<h3>This post has been locked.</h3>
+			<h5>Votes, like, ratings, and comments have been disabled.</h5>
+            <button class='btn' (tap)='closeModal()'>Okay</button>
+	</div>
+    <div class="modal-content" id='modal-archived' style='display: none'>
+            <h3>This post has been archived.</h3>
+			<h5>Votes, like, ratings, and comments have been disabled.</h5>
+            <button class='btn' (tap)='closeModal()'>Okay</button>
+	</div>
+	<div class="modal-content" id='modal-flagged' style='display: none'>
+            <h3>This post has been flagged.</h3>
+			<h5>Votes, like, ratings, and comments have been disabled.</h5>
+            <button class='btn' (tap)='closeModal()'>Okay</button>
+	</div>
+</div>

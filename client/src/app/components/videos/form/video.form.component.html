@@ -1,0 +1,148 @@
+<h1>Video Form</h1>
+<div class="row">
+    <div class="col s12 video-form-tabs">
+      <ul class="tabs" materialize="tabs">
+        <li class="tab col s6"><a class="active" href="#link">Link</a></li>
+        <li class="tab col s6"><a href="#upload">Upload</a></li>
+      </ul>
+    </div>
+    <div id='link' class='row col s12'>
+      <div class="row">
+        <h3>Link To Video</h3>
+        <form [formGroup]="uploadLink" (ngSubmit)="submitVideo(uploadLink.value)" class="col s12">
+        	<div class="row">
+            <div class="input-field col s12 m6">
+              <input [ngClass]="{ 'has-error-input' : uploadLink.controls.title.errors?.required && uploadLink.controls.title.touched}" [formControl]="uploadLink.controls['title']" id="title" type="text" class="validate">
+              <label for="title" id='video-title'>Title</label>
+              <em *ngIf="uploadLink.controls.title.errors?.required && uploadLink.controls.title.touched" class='has-error'> A title is required </em>
+            </div>
+          </div>
+          <div class="row">
+            <div class='select-field col s12 m6'>
+              <div class="form-group">
+                <label for="power">Category</label>
+                <input class="form-control selectize-select" id="category" required [formControl]="uploadLink.controls['category']" [ngClass]="{ 'has-error-select' : uploadLink.controls.category.errors?.required && uploadLink.controls.category.touched}" name="power" style='display:block !important'>
+                <span class='main-category' for="category" id='video-link2'>Main Category: {{mainCategory}}</span>
+                <em *ngIf="uploadLink.controls.category.errors?.required && uploadLink.controls.category.touched" class='has-error'> A category is required </em>
+              </div>
+            </div>
+            <div class="input-field col s12 m6">
+                <input [ngClass]="{ 'has-error-input' : unsupported || (uploadLink.controls.link.errors?.required && uploadLink.controls.link.touched) }" [formControl]="uploadLink.controls['link']" id="link" type="text" class="validate form-link">
+                <label for="link" id='video-link' class='form-link-label'>link</label>
+                <em *ngIf="uploadLink.controls.link.errors?.required && uploadLink.controls.link.touched" class='has-error'> A link is required </em>
+                <em *ngIf="unsupported" class='has-error'> Unsupported media type </em>
+            </div>
+          </div>
+          <div class='row'>
+            <div class='text-box col s12'>
+              <label for='link' id='song-description'>Description - (Markdown and HTML; styling disabled)</label>
+              <textarea [formControl]="uploadLink.controls['description']" id='description-link' class="validate" type='text' data-type='link'></textarea>
+              <a style='font-size:0.9em' class='btn formatting-button' id='formatting-guide-link' style='color:black !important' data-type='link'>Formatting Guide</a>
+              <div id='add-formatting-guide-link' data-open='false'>
+              </div>
+            </div>
+          </div>
+        </form>
+        <div id='output-container-link' style='display:none;'>
+          <h5>Output:</h5>
+          <div id='post-output-link' style='border: 1px solid rgba(0,0,0,0.1);padding:3px'>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="center-align">
+          <button type="submit" [disabled]='!uploadLink.valid && !mainCategory || insubmit'  class="waves-effect waves-light btn" (tap)="submitVideo(uploadLink.value)">Submit Video</button>
+          <svg class="spinner-circle" id='submit-video-link' viewBox="0 0 50 50">
+            <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+          </svg>
+        </div>
+      </div>
+    </div>
+    <div id="upload" class="col s12">
+      <div class='row'>
+        <div class='video-upload-container active'>
+          <h5 class='form-headers center'>Upload Video To Way Dope</h5>
+          <div class='center'>
+               <input type='file' name='file' accept="video/quicktime,video/x-msvideo,video/x-ms-wmv,video/ogg,video/mpeg,video/mp4,video/avi,video/H264,video/m4v,video/x-m4v,video/divx" id='video-upload' class='inputfile'/>
+               <label for="video-upload" class='btn video-upload-label active'><i class="fa fa-upload" aria-hidden="true"></i> Choose A Video</label>
+          </div>
+        </div>
+      </div>
+      <div class='video-upload-form' *ngIf="upload">
+        <form [formGroup]="uploadVideo" (ngSubmit)="submitVideo(uploadVideo.value)" class="col s12">
+          <div class='progress-container'>
+            <div class='progress-bar' id="progress">
+              <div class='inner-progress-bar' id='inner-progress'></div>
+            </div>
+            <span class='progress-text-container'><span id='progress-text'>0</span>/100</span>
+          </div>
+            <div class="row">
+              <div class='col s12 m6'>
+                <div class="input-field col s12">
+                  <input [ngClass]="{ 'has-error-input' : uploadVideo.controls.title.errors?.required && uploadVideo.controls.title.touched}" [formControl]="uploadVideo.controls['title']" id="title-upload" type="text" class="validate">
+                  <label for="title" id='video-title-upload'>Title</label>
+                  <em *ngIf="uploadVideo.controls.title.errors?.required && uploadVideo.controls.title.touched" class='has-error'> A title is required </em>
+                </div>
+                <div class='select-field col s12'>
+                  <div class="form-group">
+                    <label for="power">Category</label>
+                    <input class="form-control" [ngClass]="{ 'has-error-select' : uploadVideo.controls.category.errors?.required && uploadVideo.controls.category.touched}" id="category" required [formControl]="uploadVideo.controls['category']" class='validate selectize-select' name="power" style='display:block !important'>
+                    <span class='main-category' for="Category" id='video-link2'>Main category: {{mainCategory}}</span>
+                    <em *ngIf="uploadVideo.controls.category.errors?.required && uploadVideo.controls.category.touched" class='has-error'> A category is required </em>
+                  </div>
+                </div>
+              </div>
+              <div class='col s12 m6' id='photo-upload-container-video'>
+                <div class='photo-container'>
+                  <div class='progress-container photo-progress-container video' id='progress-photo-container' style='visibility:hidden'>
+                    <div class='progress-bar' id="progress-photo">
+                      <div class='inner-progress-bar' id='inner-progress-photo'></div>
+                    </div>
+                    <span class='progress-text-container'><span id='progress-text-photo'>0</span>/100</span>
+                  </div>
+                  <div class='photo-upload'>
+                    <input type='file' name='file' accept="image/png, image/jpeg" id='photo-upload' class='inputfile'/>
+                    <label for="photo-upload" class='btn photo-upload-button-video active'><i class='fa fa-camera' aria-hidden="true"></i> Upload Artwork</label>
+                  </div>
+                  <video controls autoplay muted class='video-form-container' style='display:none' id='video'></video>
+                  <canvas id='blank-canvas' style='display:none'></canvas>
+                  <canvas id="canvas" class='video-canvas'>
+                  </canvas>
+                  <div class="thumbnail video" id='thumbnail' style='display:none'>
+                     <img [src]="image | safeurl" height="100%" width="100%" id='thumbnail-src-img'/>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class='row'>
+              <div class='text-box col s12'>
+                <label for='link' id='song-description'>Description - (Markdown and HTML; styling disabled)</label>
+                <textarea [formControl]="uploadVideo.controls['description']" class="validate" id='description-upload' type='text' data-type='upload'></textarea>
+                <a style='font-size:0.9em' class='btn formatting-button' id='formatting-guide-upload' style='color:black !important' data-type='upload'>Formatting Guide</a>
+                <div id='add-formatting-guide-upload' data-open='false'>
+                </div>
+              </div>
+            </div>
+          </form>
+          <div id='output-container-upload' style='display:none'>
+            <h5>Output:</h5>
+            <div id='post-output-upload' style='border: 1px solid rgba(0,0,0,0.1);padding:3px'>
+            </div>
+          </div>
+          <div class="row">
+            <div class="center-align">
+              <button type="submit" class="waves-effect waves-light btn" (tap)="cancelUpload()">Cancel</button>
+              <button type="submit" [disabled]='!fileName  || !mainCategory || !videoId || !uploadComplete || insubmit' class="waves-effect waves-light btn" (tap)="submitVideo(uploadVideo.value)">Submit video</button>
+              <svg class="spinner-circle" id='submit-video-upload' viewBox="0 0 50 50">
+                <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div style='width:51%; color:#666;border:1px solid rgba(0,0,0,0.2);padding:5px;font-size:0.85em;margin:auto;border-radius:2px;line-height:16px;margin-top:20px'>
+            <div>Maximum file size: 2GB.</div>
+            <div style='padding-top:10px'><span style='font-weight:500;color:#333'>Important:</span> By uploading, you acknowledge that your video abides by our <a [routerLink]="['/terms']">terms and conditions</a>, and doesn't infringe on other's copyrights. </div>
+          </div>
+      </div>
+</div>

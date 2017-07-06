@@ -1,0 +1,65 @@
+<div *ngIf='success' class="card-panel center-align new-green">
+	<em style='color:white'>Successfully accepted the application.</em>
+</div>
+<div *ngIf='nouser' class="card-panel center-align red darken-1">
+	<em style='color:white'>Could not update the user, please try again.</em>
+</div>
+<div *ngIf='nouserfind' class="card-panel center-align red darken-1">
+	<em style='color:white'>Could not find that user, please try again.</em>
+</div>
+<h4>Application list</h4>
+<hr>
+<div class='row col s12'>
+	<div class='col s1'>
+		Id
+	</div>
+	<div class='col s2'>
+		Company Name
+	</div>
+	<div class='col s2'>
+		Email
+	</div>
+	<div class='col s1'>
+		Contact's Name
+	</div>
+	<div class='col s1'>
+		Contact's Number
+	</div>
+	<div class='col s3'>
+		Message
+	</div>
+	<div class='col s1'>
+		Read?
+	</div>
+	<div class='col s1'>
+		Actions
+	</div>
+</div>
+<div class='row col s12'>
+	<div *ngFor="let application of applications; let i = index" id="application-{{application.id}}" style="overflow:hidden">
+		<div class='col s1'>
+			{{application.id}}
+		</div>
+		<div class='col s2'>
+			{{application.name}}
+		</div>
+		<div class='col s2'>
+			{{application.email}}
+		</div>
+		<div class='col s1'>
+			{{application.contact_name}}
+		</div>
+		<div class='col s1' style="overflow:hidden">
+			{{application.phone}}
+		</div>
+		<div class='col s3' id="good-standing-text-{{application.id}}" style="overflow:hidden">
+			{{application.information}}
+		</div>
+		<div class='col s1'>
+			{{application.read}}
+		</div>
+		<div class='col s1'>
+			<a [routerLink]="['/admin','applications',application.id]" style='cursor:pointer'>Read</a>
+		</div>
+	</div>
+</div>

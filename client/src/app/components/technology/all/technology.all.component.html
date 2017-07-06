@@ -1,0 +1,101 @@
+<div class='row col s12 technology-container'>
+	<h1>Technology</h1>
+</div>
+<div class='rest-music-divider'>
+	<hr>
+	<div class='music-category-sorting row'>
+		<div class='col m1 ps2' style='margin-top:19px'><h5>Sort:</h5>
+		</div>
+		<form [formGroup]="sortPosts" (ngSubmit)="getSorting(sortPosts.value)" class="col m9 ps10">
+			<div class='col ps4 sort'> 
+				<label for="options">Order</label>
+				<select (change)="onOptionsChange($event.target.value)" id="options" required [formControl]="sortPosts.controls['options']" style='display:block'>
+					<option *ngFor="let option of options" [value]="option">{{option}}</option>
+				</select>
+			</div>
+			<div class='col ps4 sort'>
+				<label for="time">Time</label>
+				<select id="time" required [formControl]="sortPosts.controls['time']" style='display:block'>
+					<option *ngFor="let times of timings" [value]="times">{{times}}</option>
+				</select>
+			</div> 
+			<div class='col ps4 sort'>
+				<label for="type">Type</label>
+				<select id="type" required [formControl]="sortPosts.controls['type']" style='display:block'>
+					<option *ngFor="let type of types; let i = index" [value]="typeValues[i]">{{type}}</option>
+				</select>
+			</div>
+		</form>
+		<div class='col m2 ps12 sort-button'>
+			<button style='margin-top:25px' type="submit" [disabled]='!sortPosts.valid || !technology.length' class="waves-effect waves-light btn" (tap)="getSorting(sortPosts.value)">Sort Posts</button>
+		</div>
+	</div>
+	<hr>
+</div>
+<div *ngIf="loaded" class="row" id='technology-posts-container' style='display:none'>
+		<div *ngIf="technology && technology.length" class='row col m12'>
+		<div class="col m3 ps6 technology-content-container" *ngFor="let post of technology; let ic = index" id="{{ic}}-technology">
+			<div class='technology-info'>
+				<div id='' class='col ps9' style='padding:0px !important'>
+					<div class='link-title' (mouseenter)="marqueeToggle(1,ic)" (mouseleave)="marqueeToggle(0,ic)"><a id='technology-title-link-{{ic}}' [routerLink]="['/technology', post.main_category, post.sub_category, post.url]">{{post.title}}</a></div>
+					<div>{{post.creator}}</div>
+				</div>
+				<div class='col ps3'>
+					<div>{{post.sale_price ? post.sale_price : post.price}}</div>
+				</div>
+				<div class='col ps12 apparel-info' style='color:grey;font-size:0.7em;margin-left:0px !important;margin-top:0px'>
+					Posted by <a [routerLink]="['/user',post.submitted_by]">{{post.submitted_by}}</a>
+					in <a [routerLink]="['/technology',post.main_category]" class='capitalize'>{{post.main_category}}</a> - <a [routerLink]="['/technology',post.main_category, post.sub_category]" class='capitalize'>{{post.sub_category}}</a> 
+				</div>
+			</div>
+			<div *ngIf="post.upload_urls.length" class='main-image col ps12' id='main-photo-technology-container-{{ic}}' style='text-align:center;margin-top:10px;height:100%;width:100%'>
+				<img id='main-photo-technology-{{ic}}' class="cloudzoom" (mouseenter)="photoZoom(ic)" src='{{post.upload_urls[0]}}' height="100%" width="100%" style='cursor:zoom-in;margin:auto'/>
+			</div>
+			<div class='all-images col ps12' style='margin-bottom:10px'>
+				<div class='col ps3' *ngFor="let photo of post.upload_urls; let ip = index" style='cursor:pointer;margin-top:10px' id>
+						<img id='rest-photos-technology-{{ic}}-{{ip}}' class='rest-photos rest-photos-{{ic}}' (tap)="changePhoto(ic,ip)" src='{{photo}}' [ngClass]="{ 'active-photo' : ip === 0 }" height="100%" width="100%" style='margin:auto'/>
+				</div>
+			</div>
+			<div class='row col ps12 technology-info' style='margin-top:-10px'>
+				<div class='col ps3' style='padding:0px'>
+					<div class='home-music-vote-actions-container' style='margin-top:-13px'>
+						<i [style.color]="post.user_voted === 1? '#ef6837' : 'black'" class='fa fa-chevron-up' id='post-technology-upvote-{{post.uuid}}' (tap)="setVote(1, post.uuid,'post-technology', post.average_vote, post.user_voted)" style='cursor:pointer'></i>
+						<div class='home-music-average-vote' id='post-technology-vote-{{post.uuid}}' [style.margin-left.px]="math.floor(math.log10(post.average_vote)) % 1 === 0 ? 4 - (4*math.floor(math.log10(post.average_vote))) : 4">{{post.average_vote}}</div>
+						<i [style.color]="post.user_voted === -1? '#ef6837' : 'black'" class='fa fa-chevron-down' id='post-technology-downvote-{{post.uuid}}' (tap)="setVote(-1, post.uuid,'post-technology', post.average_vote, post.user_voted)" style='position:absolute;cursor:pointer'></i>
+					</div>
+					<button (tap)="like(post.uuid, post.user_liked, post.post_type,post.likes_count,ic  )" [ngClass]="{ 'liked' : post.user_liked }" id='likes-button-{{post.uuid}}' class="btn btn-like">
+						<div class='row' style='margin-top:-5px;white-space: nowrap' [style.font-size.pct]="math.floor(math.log10(post.likes_count)) === 2 ? 0.95 : -1" [style.margin-left.px]="math.floor(math.log10(post.likes_count)) === 2 ? -17 : null">
+							<i id='icon-likes-{{post.uuid}}' [ngClass]="{ 'liked-icon fa-heart' : post.user_liked, 'fa-heart-o' : !post.user_liked }" class="fa" style='float:left;width:100%' aria-hidden="true">
+								<span class='btn-like-text' id='likes-{{post.uuid}}' style='font-size:0.9em;margin:4px;font-family: "Roboto", sans-serif;font-weight:500;color:#111' [style.margin-left.px]="math.floor(math.log10(post.likes_count)) === 2 ? -2 : 0">{{post.likes_count}}</span>
+							</i>
+						</div>
+					</button>
+				</div>
+				<div class="col ps6 average-rating-container"><span class='average-rating'>Rating: [{{post.ratings_count}}]</span><div style='margin-left:8px;margin-top:-11px' class='star-ratings-css col ps10'><div [style.transform]="transformRating(post.average_rating)" class="inner-star-ratings-css" ></div></div><div class='col ps2' style='float:right;margin-top:-5px;white-space: nowrap;'>{{post.average_rating}}</div></div>
+				<div class='col ps3 comment-count-container'><i class="fa fa-comment-o comment-count-icon" aria-hidden="true"><span class='comment-count-span'>{{post.comment_count}}</span></i></div>
+			</div>
+		</div>
+	</div>
+	<div *ngIf="!technology || !technology.length" style='text-align:center'>
+        <span>Hmm. No tech has been added. I guess the future isn't now. Be the first to do so</span>
+    </div>
+	<div *ngIf="pages >= 2" class='row col ps12 center pagination-container' style='position:relative;bottom:50px;height: 20px;'>
+		<div class='pages-text'>Page {{currentPage}} of {{pages}}</div>
+		<button (tap)="changePage('start',1)" *ngIf="pages > 2" [disabled]='currentPage == 1' class='btn btn-pagination' style='display:inline'><i class='fa fa-angle-double-left'></i></button>
+		<button (tap)="changePage('back',currentPage - 1)" *ngIf="pages > 1" [disabled]='currentPage == 1' class='btn btn-pagination' style='display:inline'><i class='fa fa-angle-left'></i></button>
+		<div *ngFor="let number of numbers;let i = index" style='display:inline'>
+			<button (tap)="changePage('page',i+1)" [style.display]="pages < 6 || (currentPage < 4 && i < 5) || (pages - currentPage < 3 && pages - i < 6) || (currentPage - 4 < i && i < currentPage) || (i-2 < currentPage && currentPage < (i+1)) ? 'inline':'none'" class='btn btn-pagination' [ngClass]="{ 'active' : i + 1 == currentPage }"><div [style.margin-left.px]="math.floor(math.log10(i+1)) % 1 === 0 ? -1 - (5*math.floor(math.log10(i+1))) : 1">{{i + 1}}</div></button>
+		</div>
+		<button (tap)="changePage('next',currentPage + 1)" *ngIf="pages > 1" class='btn btn-pagination' [disabled]='currentPage == pages' style='display:inline'><i class='fa fa-angle-right'></i></button>
+		<button (tap)="changePage('end',pages)" *ngIf="pages > 2" [disabled]='currentPage == pages' class='btn btn-pagination' style='display:inline'><i class='fa fa-angle-double-right'></i></button>
+	</div>
+</div>
+<div id='loading-spinner-technology-all'>
+	<h4 class='center'>Loading Products...</h4>
+	<div class="spinner">
+		<div class="rect1"></div>
+		<div class="rect2"></div>
+		<div class="rect3"></div>
+		<div class="rect4"></div>
+		<div class="rect5"></div>
+</div>

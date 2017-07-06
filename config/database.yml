@@ -1,0 +1,19 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: 100
+  host: localhost
+  #username: username
+  #password: password
+
+development:
+  <<: *default
+  database: waydope_development
+
+test:
+  <<: *default
+  database: waydope_test
+
+production:
+  <<: *default
+  database: waydope_production

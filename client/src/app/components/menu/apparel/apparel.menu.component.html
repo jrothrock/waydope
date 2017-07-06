@@ -1,0 +1,58 @@
+<div [style.margin-left.px]='offset' class='row col s12 menu-drop-down' id='apparel-drop-down' (mouseenter)="mouseEnter()" (mouseleave)="mouseLeft()">
+	<h4 class='menu-titles' style='color:white' (tap)="clickedLink('header')">Apparel</h4>
+	<hr class='menu-divider'>
+	<div class="row">
+	    <div class="tabs-vertical">
+	        <div class="col s4 m3 l3 xl2">
+	            <ul class="menu-tabs" id='apparel-menu-tabs'>
+	                <div *ngFor="let name of names; let i = index" class='menu-tab-container' id="menu-tab-name-apparel-{{name}}" [attr.data-name]="giveDataName(name)" [attr.data-type]="'apparel'" (mouseenter)="hoveringItem(name)">
+		                <li class="menu-tab" id='menu-tab-apparel-{{name}}' (dblclick)="menuClick(name)" [ngClass]="{'active-tab':i===0}">
+		                    <a id='menu-tab-link' style='text-transform:capitalize' [ngClass] = "{active: i == 0}" href="#menu-{{name}}-apparel">{{name}}</a>
+		                </li>
+		            </div>
+	            </ul>
+	        </div>
+	        <div class="col s8 m9 l8 xl6 menu-tab-output" id='menu-tab-output-apparel' style='min-height:300px'>
+	            <div *ngFor="let name of names; let i = index" id="menu-{{name}}-apparel" class='menu-tab-content' [style.display]="i === 0 ? 'block' : 'none'">
+					<div class='row col m12' style='border-bottom:1px solid white'><h4 class='center capitalize link' (tap)="clickedLink('category', name)">{{name}}</h4></div>
+					<div *ngIf="apparel && apparel[i] && initiated" id="menu-{{name}}-apparel-container" class='row col m12 menu-apparel-container' style='margin-top:-10px;opacity:0;transition: all 125ms'>
+						<div class="col m4" *ngFor="let apparel_post of apparel[i]; let ic = index" id="menu-{{name}}-apparel" style='height:0px'>
+							<div class='menu-apparel-info row'>
+								<div class="col m{{apparel_post.sale_price ? 12 - (3 + apparel_post.sale_price.toString().slice(1).replace('.','').length % 3) : 12 - (3 + apparel_post.price.toString().slice(1).replace('.','').length % 3)}}" style='padding:0px'>
+								<div class='link-title' (mouseenter)="marqueeToggle(1,name,ic)" (mouseleave)="marqueeToggle(0,name,ic)" style='cursor:pointer;z-index:10;position:relative'><a id='apparel-menu-title-link-{{name}}-{{ic}}' (tap)="clickedLink('title',apparel_post.main_category, apparel_post.url, apparel_post.sub_category)">{{apparel_post.title}}</a></div>
+								</div>
+								<div class="col m{{apparel_post.sale_price ? 3 + apparel_post.sale_price.toString().slice(1).replace('.','').length % 3 : 3 + apparel_post.price.toString().slice(1).replace('.','').length % 3}}" style='padding:0px;color:grey'>
+									{{apparel_post.sale_price ? apparel_post.sale_price : apparel_post.price}}
+								</div>
+								<div style='color:grey;font-size:0.7em;margin-left:0px !important;margin-top:0px;z-index:1'>
+									<div *ngIf="apparel_post.nsfw" style="display:inline;border:1px solid #ff4040;padding:2px;border-radius:2px;font-size:0.88em">NSFW</div>
+									Posted by <a (tap)="clickedLink('user', apparel_post.submitted_by)" style='cursor:pointer'>{{apparel_post.submitted_by}}</a> <br>
+									in <a (tap)="clickedLink('category', apparel_post.main_category)" class='capitalize'  style='cursor:pointer'>{{apparel_post.main_category}}</a> - <a (tap)="clickedLink('subcategory', apparel_post.main_category,apparel_post.sub_category)" class='capitalize' style='cursor:pointer'>{{apparel_post.sub_category}}</a> 
+								</div>
+							</div>
+							<div id='apparel-menu-images-container-{{i}}-{{ic}}' class='apparel-menu-photo-container' style='background-color:transparent'>
+								<div *ngIf='!apparel_post.nsfw' id='apparel-menu-sfw-container-{{i}}-{{ic}}'> 
+									<div *ngIf="apparel_post.upload_urls.length" class='main-image-menu' id='main-photo-apparel-menu-container-{{i}}-{{ic}}' style='text-align:center;margin-top:-10px;height:150px;border:1px solid #ff8000;width:100%'>
+										<img height="100%" width="100%" class="cloudzoom" id='main-photo-apparel-menu-{{i}}-{{ic}}' (mouseenter)="photoZoom(i,ic)" src='{{apparel_post.upload_urls[0]}}' style='position:relative;cursor:zoom-in;display:none;right:-50%;bottom:-50%;transform:translate(-50%,-50%)'/>
+									</div>
+								</div>
+								<div *ngIf='apparel_post.nsfw' id='apparel-menu-nsfw-container-{{i}}-{{ic}}'> 
+									<div *ngIf="apparel_post.upload_urls_nsfw.length" class='main-image-menu' id='main-photo-apparel-menu-container-{{i}}-{{ic}}' style='text-align:center;margin-top:-10px;height:150px;border:1px solid #ff8000;width:100%'>
+										<img height="100%" width="100%" class="cloudzoom" id='main-photo-apparel-menu-{{i}}-{{ic}}' (mouseenter)="photoZoom(i,ic)" src='{{apparel_post.upload_urls_nsfw[0]}}' style='position:relative;cursor:zoom-in;display:none;right:-50%;bottom:-50%;transform:translate(-50%,-50%)'/>
+									</div>
+								</div>
+							</div>
+							<div class='menu-vote-actions-apparel' id='menu-vote-actions-apparel-{{name}}-{{ic}}'>
+				              <div class='menu-upvote-apparel'><i [ngClass]="{ 'active' : apparel_post.user_voted === 1}" (tap)="setVote(1, apparel_post.uuid,name,apparel_post.average_vote, apparel_post.user_voted)" id='{{name}}-upvote-{{apparel_post.uuid}}' class='fa fa-chevron-up' style='cursor:pointer' aria-hidden="true"></i></div><div class='menu-downvote-apparel'><i [ngClass]="{ 'active' : apparel_post.user_voted === -1}" (tap)="setVote(-1, apparel_post.uuid,name, apparel_post.average_vote, apparel_post.user_voted)" class='fa fa-chevron-down' style='cursor:pointer' id='{{name}}-downvote-{{apparel_post.uuid}}' aria-hidden="true"></i></div>
+				              <div [style.margin-left.px]="math.floor(math.log10(apparel_post.average_vote)) % 1 === 0 ? 0 - (4*math.floor(math.log10(apparel_post.average_vote))) : 0" class='menu-average-votes-apparel' id='{{name}}-vote-{{apparel_post.uuid}}'>{{apparel_post.average_vote}}</div>
+				            </div>
+						</div>
+					</div>
+	            </div>
+	        </div>
+			<div *ngIf="loaded" class="col s8 m9 l8 xl6 menu-tab-output" id='menu-tab-output-apparel' style='display:none'>
+				<p>Loading</p>
+	        </div>
+	    </div>
+	</div>
+</div>

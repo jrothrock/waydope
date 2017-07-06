@@ -1,0 +1,11 @@
+<h2>Messages</h2>
+<div class="row">
+    <div>
+        <ul class="tabs message-tabs" materialize="tabs">
+            <li *ngFor="let name of names; let i = index" class="tab col ps3 tab-output-messages" (dblclick)="tabClick(name)">
+                <a id='messages-tab-{{name}}' href="#{{name}}-messages" (click)="changeRoute(name)" class='capitalize'>{{name}}</a>
+            </li>
+        </ul>
+    </div>
+</div>
+<router-outlet></router-outlet>

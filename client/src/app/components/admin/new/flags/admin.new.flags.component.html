@@ -1,0 +1,65 @@
+<h3 style='text-align:center'>New flags</h3>
+<div style='border:1px solid rgba(0,0,0,0.1);margin-bottom:10px;padding:0px' class='row col ps12'>
+    <div *ngFor='let name of names; let i = index' style='border-right:1px solid rgba(0,0,0,0.1)' class='col ps2'>
+        {{name}}: {{count[i]}}
+    </div>
+</div>
+<div class="row">
+    <div class='col ps12'>
+        <ul class="tabs" materialize="tabs">
+            <li *ngFor="let name of names; let i = index" class="tab col ps2" id='tabs-home-boards'>
+                <a id='admin-flags-tab-link' href="#{{name}}-admin-flags" [ngClass]="{'active':i==0}">{{name}}</a>
+            </li>
+        </ul>
+    </div>
+</div>
+<div id='tab-output-admin-flags-container'>
+    <div *ngFor="let name of names; let i = index" id='{{name}}-admin-flags'>
+        <div *ngIf="flags && flags.length && flags[i].length">
+            <div *ngFor="let flag of flags[i]; let ic = index" class='row col ps12' style='border-bottom:1px solid rgba(0,0,0,0.5)'>
+                <div class='row col ps12'>
+                    <div class='row col ps12' style='border-bottom:1px solid rgba(0,0,0,0.1)'>
+                        <div class='col ps{{i > 3 || i === 0 ? 8 : 9}}'>
+                            title: <a (tap)="titleLink()" style='cursor:pointer'>{{flag.title}}</a>
+                        </div>
+                        <div *ngIf='i != 0' class='col ps{{i > 3 || i === 0 ? 2 : 3}}'>
+                            {{i != 2 ? "category:" : "genre:"}} {{i != 2 ? flag.main_category : flag.main_genre}}
+                        </div>
+                        <div *ngIf="i === 0" class='col ps2'>
+                            category: {{flag.category}}
+                        </div>
+                        <div *ngIf="i > 3 || i === 0" class='col ps2'>
+                           sub category: {{i === 0 ? flag.subcategory : flag.sub_category}}
+                        </div>
+                    </div>
+                    <div class='col ps12' style='border-bottom:1px solid rgba(0,0,0,0.1)'>
+                        <div class='col ps3'>
+                            submitted by: <a [routerLink]="['/user',flag.submitted_by]">{{flag.submitted_by}}</a>
+                        </div>
+                        <div class='col ps3'>
+                            votes: {{flag.votes_count}}
+                        </div>
+                        <div *ngIf="i != 0">
+                            <div class='col ps3'>
+                                comments: {{flag.comment_count}}
+                            </div>
+                        </div>
+                        <div *ngIf="i === 0">
+                            <div class='col ps3'>
+                                comment id: <a (tap)="commentLink()" style='cursor:pointer'>{{flag.uid}}</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div *ngIf='i === 0' class='col ps12'>
+                        <div class='col ps12' style='margin-top:10px'>
+                            body: {{flag.body}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div *ngIf="!flags || !flags.length || !flags[i].length">
+            <div>No recent flags for {{name}}</div>
+        </div>
+    </div>
+</div>

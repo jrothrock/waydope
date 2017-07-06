@@ -1,0 +1,3 @@
+clone this into this folder
+https://github.com/jrothrock/commonusernames
+tax rate CSVs for colorado and california from taxrates.com

@@ -1,0 +1,64 @@
+<div class='row col s12'>  
+  <h4>Video Details</h4>
+  <hr>
+  	<h5 class='center'>Current Video Details</h5>
+  	<div class="row">
+  		<span>Video ID: {{id}}</span>
+  	</div>
+  	<div class="row">
+  		<span>Video Title: {{title}}</span>
+  	</div>
+  	<div class="row">
+  		<span>Video Category: {{category}}</span>
+  	</div>
+  	<div class="row">
+  		<span>Video Description: {{description}}</span>
+  	</div>
+  	<div class="row">
+  		<span>Video Link: {{link}}</span>
+  	</div>
+  	<div class="row">
+  		<span>Submitted By: {{submitted_by}}</span>
+  	</div>
+  	<hr>
+  	<h5 class='center'>Update Video Details</h5>
+  <div class="row">
+  <form [formGroup]="updateVideo" (ngSubmit)="submitVideo(updateVideo.value)" class="col s12">
+  	<div class="row">
+      <div class="input-field col s12 m6">
+        <input [ngClass]="{ 'has-error-input' : updateVideo.controls.title.errors?.required && updateVideo.controls.title.touched}" [formControl]="updateVideo.controls['title']" id="title-input" type="text" [value]="title" class="validate">
+        <label for="title" id='title-label'>Title</label>
+        <em *ngIf="updateVideo.controls.title.errors?.required && updateVideo.controls.title.touched" class='has-error'> A title is required </em>
+      </div>
+    </div>
+    <div class="row">
+      <div class='select-field col s12 m6'>
+        <div class="form-group">
+          <label for="power">Category</label>
+          <select class="form-control" id="power" [ngClass]="{ 'has-error-select' : updateVideo.controls.category.errors?.required && updateVideo.controls.category.touched}"  required [formControl]="updateVideo.controls['category']" name="power" class="validate" style='display:block !important'>
+            <option *ngFor="let p of powers" [value]="p">{{p}}</option>
+          </select>
+           <em *ngIf="updateVideo.controls.category.errors?.required && updateVideo.controls.category.touched" class='has-error'> Category is required </em>
+        </div>
+      </div>
+      <div class="input-field col s12 m6">
+          <input [ngClass]="{ 'has-error-input' : ((updateVideo.controls.link.errors?.required || updateVideo.controls.link.errors?.pattern  )&& updateVideo.controls.link.touched) }" [formControl]="updateVideo.controls['link']" [value]="link" id="link-input" type="text" class="validate">
+          <label for="link" id='link-label'>link</label>
+          <em *ngIf="updateVideo.controls.link.errors?.required && updateVideo.controls.link.touched" class='has-error'> A link is required </em>
+      </div>
+    </div>
+    <div class='row'>
+      <div class='text-box col s12'>
+        <textarea [formControl]="updateVideo.controls['description']" type='text'></textarea>
+        <label for='link' id='song-description'>Description</label>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="row">
+  <div class="center-align">
+  	<button class="waves-effect waves-light btn" [routerLink]="['/admin','videos']">Go Back</button>
+    <button type="submit" [disabled]='!updateVideo.valid' class="waves-effect waves-light btn" (tap)="submitVideo(updateVideo.value)">Update Video</button>
+  </div>
+</div>

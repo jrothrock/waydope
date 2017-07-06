@@ -1,0 +1,95 @@
+  <div id="modal1" class="modal modal-fixed-footer">
+  	<ul class="tabs row" materialize="tabs">
+  		<li class="tab col ps6"><a href="#signin" id='sign-in-link'>Sign In</a></li>
+      <li class="tab col ps6"><a href="#signup">Sign Up</a></li>
+    </ul>
+    	<div id='signin'>
+		    <div class="modal-content">
+		    	<h4>Sign In</h4>
+		    	<hr>
+		         <form [formGroup]="signInForm" (ngSubmit)="logIn(signInForm.value)" class="col s12">
+			      <div class="row">
+			        <div class="input-field col s12 m6">
+			          <input [ngClass]="{ 'has-error-input' : error || banned || ((signInForm.get('username').hasError('required') || signInForm.get('username').hasError('pattern') )&& signInForm.get('username').touched) }" [formControl]="signInForm.controls['username']" id="modal-sigin-username" type="text" class="validate">
+			          <label for="username">Username</label>
+			          <em *ngIf="signInForm.get('username').hasError('required') && signInForm.get('username').touched" class='has-error'> Required </em>
+			          <em *ngIf="signInForm.get('username').hasError('pattern') && signInForm.get('username').touched" class='has-error'> Enter a valid username </em>
+			        </div>
+			        <div class="input-field col s12 m6">
+			          <input [ngClass]="{ 'has-error-input' : error || banned || ((signInForm.get('password').hasError('required') || signInForm.get('password').hasError('pattern')  )&& signInForm.get('password').touched) }" [formControl]="signInForm.controls['password']" id="modal-signin-password" type="password" class="validate">
+			          <label for="password">Password</label>
+			          <em *ngIf="signInForm.get('password').hasError('required') && signInForm.get('password').touched" class='has-error'> Required </em>
+			          <em *ngIf="signInForm.get('password').hasError('pattern') && signInForm.get('password').touched" class='has-error'> Enter a valid password </em>
+			        </div>
+			      </div>
+			      <div *ngIf="error">
+			        <em class='has-error'> Incorrect username and password </em>
+			      </div>
+			    </form>
+		    </div>
+		    <div class="modal-footer">
+					<button (tap)="closeModal()" class="waves-effect waves-blue btn-flat link close-modal" style='float:left;border: 1px solid rgba(0,0,0,0.1)'>Close</button>
+					<button (tap)="guestCheckout()" class="waves-effect waves-blue btn-flat link guest-continue" style='float:left;display:none;border: 1px solid rgba(0,0,0,0.1)'>Guest Continue</button>
+		      <button [disabled]='!signInForm.valid || submitted' (tap)="logIn(signInForm.value)" class="waves-effect waves-blue btn-flat link" style='border: 1px solid rgba(16, 64, 141, 0.3)'>Sign In</button>
+					<svg class="spinner-circle" id='submit-modal-login' viewBox="0 0 50 50">
+            <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+  				</svg>
+		    </div>
+		</div>
+
+
+
+
+		<div id='signup'>
+			<div class="modal-content">
+		      <h4>Sign Up</h4>
+		      <hr>
+		      <form [formGroup]="signUpForm" (ngSubmit)="signUp(signUpForm.value)" class="col s12">
+			      <div class="row">
+			        <div class="input-field col s12">
+			          <input [ngClass]="{ 'has-error-input' : (((signUpForm.get('username').hasError('pattern') && signUpForm.get('username').dirty) || signUpForm.get('username').hasError('required')) && signUpForm.get('username').touched) || usernameError}"  formControlName="username" id="modal-signup-username" type="text" class="validate">
+			          <label for="username">username</label>
+			          <em class='has-error' *ngIf="signUpForm.get('username').hasError('required')  && signUpForm.get('username').touched">Required</em>
+			          <em class='has-error' *ngIf="signUpForm.get('username').hasError('pattern') && signUpForm.get('username').touched && signUpForm.get('username').dirty">Enter a valid username</em>
+			          <em class='has-error' *ngIf="usernameError">Username already in use</em>
+			        </div>
+			      </div>
+			      <div formGroupName="passwords">
+			        <div class='row'>
+			          <div class="input-field col s12 m6">
+			            <input [ngClass]="{ 'has-error-input' : ((signUpForm.get('passwords').errors?.areEqual && signUpForm.get('passwords').get('confirmPassword').dirty && signUpForm.get('passwords').get('confirmPassword').touched) || (signUpForm.get('passwords').get('password').errors && signUpForm.get('passwords').get('password').touched && signUpForm.get('passwords').get('password').dirty))  }" formControlName="password" id="password" type="password" class="validate">
+			            <label for="password">Password</label>
+			            <em class='has-error' *ngIf="(signUpForm.get('passwords').get('password').hasError('required') && signUpForm.get('passwords').get('password').touched)"> Required </em>
+			             <em class='has-error' *ngIf="(signUpForm.get('passwords').get('password').hasError('minlength') && signUpForm.get('passwords').get('password').touched && signUpForm.get('password').dirty)"> Needs to be atleast 6 characters </em>
+			             <em class='has-error' *ngIf="(signUpForm.get('passwords').get('password').hasError('pattern') && signUpForm.get('passwords').get('password').touched && signUpForm.get('password').dirty)"> Can only use letters, numbers, and special characters. </em>
+			          </div>
+			          <div class="input-field col s12 m6">
+			            <input [ngClass]="{ 'has-error-input' : (signUpForm.get('passwords').get('confirmPassword').errors ||  (signUpForm.get('passwords').errors?.areEqual && signUpForm.get('passwords').get('confirmPassword').dirty))  && signUpForm.get('passwords').get('confirmPassword').touched}" formControlName="confirmPassword" id="password" type="password" class="validate">
+			            <label for="confirmPassword">Confirm Password</label>
+			            <em class='has-error' *ngIf="(signUpForm.get('passwords').get('confirmPassword').hasError('required') && signUpForm.get('passwords').get('confirmPassword').touched)"> Required </em>
+			            <em class='has-error' *ngIf="signUpForm.get('passwords').errors?.areEqual && signUpForm.get('passwords').get('confirmPassword').touched && signUpForm.get('passwords').get('confirmPassword').dirty"> Passwords must match </em>
+			          </div>
+			        </div>
+			      </div>
+			      <div class='row'>
+			        <div class="input-field col s12">
+			          <input [ngClass]="{ 'has-error-input' : (signUpForm.get('email').hasError('pattern') && signUpForm.get('email').dirty && signUpForm.get('email').touched) || emailError}" formControlName="email" id="modal-signup-email" type="text" class="validate" ngControl="username">
+			          <label for="email">Email</label>
+			          <p class='email-label' *ngIf="!signUpForm.get('email').hasError('pattern') && signUpForm.get('email').pristine">Not required, but recommended for account recovery.</p>
+			          <em class='has-error' *ngIf="signUpForm.get('email').hasError('pattern') && signUpForm.get('email').touched && signUpForm.get('email').dirty">Enter a valid email address</em>
+			          <em class='has-error' *ngIf="emailError">Email already in use, try resetting your password.</em>
+			        </div>
+			      </div>
+			    </form>
+		    </div>
+		    <div class="modal-footer">
+						<button (tap)="closeModal()" class="waves-effect waves-blue btn-flat link close-modal" style='float:left;border: 1px solid rgba(0,0,0,0.1)'>Close</button>
+						<button (tap)="guestCheckout()" class="waves-effect waves-blue btn-flat link guest-continue" style='float:left;display:none;border: 1px solid rgba(0,0,0,0.3)'>Guest Continue</button>
+		       	<button type="submit" class="waves-effect waves-green btn-flat link" [disabled]='!signUpForm.valid && (signUpForm.get("email").touched ||signUpForm.get("email").pristine) || submitted' (tap)="signUp(signUpForm.value)" style='border: 1px solid rgba(66, 172, 13, 0.3);'>Create Account</button>
+						 <svg class="spinner-circle" id='submit-modal-signup' viewBox="0 0 50 50">
+            	<circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+        		</svg>
+		    </div>
+		</div>
+
+  </div>

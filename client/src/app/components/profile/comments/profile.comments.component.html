@@ -1,0 +1,80 @@
+<div class='row' style='margin-top:40px;'>
+	<h2 class='username' style='font-size:2.5em !important' [routerLink]="['/user', user]"><a style='cursor:pointer;color: rgba(23, 56, 231, 0.92) !important;'>{{user}}</a></h2>
+</div>
+<div class='rest-technology-divider'>
+    <hr>
+    <div class='technology-category-sorting row'>
+        <div class='col m1 ps2' style='margin-top:19px'><h5>Sort:</h5>
+        </div>
+        <form [formGroup]="sortComments" (ngSubmit)="getSorting(sortComments.value)" class="col m9">
+            <div class='col m4 ps4 sort'> 
+                <label for="options">Order</label>
+                <select (change)="onOptionsChange($event.target.value)" id="options" required [formControl]="sortComments.controls['options']" style='display:block'>
+                    <option *ngFor="let option of options" [value]="option">{{option}}</option>
+                </select>
+            </div>
+            <div class='col m4 ps4 sort'>
+                <label for="time">Time</label>
+                <select id="time" required [formControl]="sortComments.controls['time']" style='display:block'>
+                    <option *ngFor="let times of timings" [value]="times">{{times}}</option>
+                </select>
+            </div> 
+            <div class='col m4 ps4 sort'>
+                <label for="type">Type</label>
+                <select id="type" required [formControl]="sortComments.controls['type']" style='display:block'>
+                    <option *ngFor="let type of types; let i = index" [value]="typeValues[i]">{{type}}</option>
+                </select>
+            </div>
+        </form>
+        <div class='col m2 ps12 sort-button'>
+            <button style='margin-top:25px' type="submit" [disabled]='!sortComments.valid || comments.length < 2' class="waves-effect waves-light btn" (tap)="getSorting(sortComments.value)">Sort Posts</button>
+        </div>
+    </div>
+    <hr>
+</div>
+<div *ngIf="comments && comments.length" class='row col m12'>
+	<h3 class='center profile-links' [routerLink]="['/user', user,'comments']">Comments</h3>
+	<div class="col ps12" *ngFor="let comment of comments; let i = index" style='border-bottom:1px solid rgba(0,0,0,0.1)'>
+		<div class='col s1 comment-vote-info'>
+			<div class='col s8 comment-vote-actions'>
+				<div [ngClass]="{ 'vote' : comment.user_voted == 1}" class='comment-upvote'><i id='comment-upvote-{{comment.uuid}}' [ngClass]="{ 'clickable' : !comment.deleted }" [ngClass]="{ 'clickable' : !comment.deleted }" [style.color]="comment.user_voted === 1? '#ef6837' : 'black'" (tap)="setVote(1,comment.uuid, 'comment', comment.user_voted,comment.deleted)" class='fa fa-chevron-up' aria-hidden="true"></i></div><div [ngClass]="{ 'vote' : comment.user_voted == -1}" class='comment-downvote'><i [ngClass]="{ 'clickable' : !comment.deleted }" [ngClass]="{ 'clickable' : !comment.deleted }" [style.color]="comment.user_voted === -1? '#ef6837' : 'black'" id='comment-downvote-{{comment.uuid}}' (tap)="setVote(-1,comment.uuid,'comment',comment.user_voted,comment.deleted)" class='fa fa-chevron-down' aria-hidden="true"></i></div>
+			</div>
+			<div [style.margin-left.%] = "comment.average_vote > 9 ? '-68' : '-62'" class='col s4 comment-votes' id='comment-vote-{{comment.uuid}}'>
+				{{comment.average_vote}}
+			</div>
+		</div>
+		<div class='col s11 comment-content'>
+			<div>
+				<a *ngIf="!subcategory" [routerLink]="['/' + comment.post_type,comment.category, comment.url]">{{comment.title}}</a>
+				<a *ngIf="subcategory" [routerLink]="['/' + comment.post_type,comment.category, comment.subcategory, comment.url]">Title</a>
+			</div>
+			<div class='comment-body' id='comment-body-{{comment.uuid}}' [innerHTML]="comment.marked">
+			</div>
+		</div>
+	</div>
+    <div *ngIf="!comments || !comments.length">
+        <span>{{user}} hasn't added any comments</span>
+    </div>
+</div>
+<div *ngIf="pages >= 2" class='row col ps12 center pagination-container' style='position:relative;bottom:50px;'>
+    <div class='pages-text'>Page {{currentPage}} of {{pages}}</div>
+    <button (tap)="changePage('start',1)" *ngIf="pages > 2" [disabled]='currentPage == 1' class='btn btn-pagination' style='display:inline'><i class='fa fa-angle-double-left'></i></button>
+    <button (tap)="changePage('back',currentPage - 1)" *ngIf="pages > 1" [disabled]='currentPage == 1' class='btn btn-pagination' style='display:inline'><i class='fa fa-angle-left'></i></button>
+    <div *ngFor="let number of numbers;let i = index" style='display:inline'>
+        <button (tap)="changePage('page',i+1)" [style.display]="pages < 6 || (currentPage < 4 && i < 5) || (pages - currentPage < 3 && pages - i < 6) || (currentPage - 4 < i && i < currentPage) || (i-2 < currentPage && currentPage < (i+1)) ? 'inline':'none'" class='btn btn-pagination' [ngClass]="{ 'active' : i + 1 == currentPage }">
+            <div [style.margin-left.px]="math.floor(math.log10(i+1)) % 1 === 0 ? -1 - (5*math.floor(math.log10(i+1))) : 1">{{i + 1}}</div>
+        </button>
+    </div>
+    <button (tap)="changePage('next',currentPage + 1)" *ngIf="pages > 1" class='btn btn-pagination' [disabled]='currentPage == pages' style='display:inline'><i class='fa fa-angle-right'></i></button>
+    <button (tap)="changePage('end',pages)" *ngIf="pages > 2" [disabled]='currentPage == pages' class='btn btn-pagination' style='display:inline'><i class='fa fa-angle-double-right'></i></button>
+</div>
+<div id='loading-spinner-comments'>
+	<h4 class='center'>Loading Comments...</h4>
+	<div class="spinner">
+		<div class="rect1"></div>
+		<div class="rect2"></div>
+		<div class="rect3"></div>
+		<div class="rect4"></div>
+		<div class="rect5"></div>
+    </div>
+<div>

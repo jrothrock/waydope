@@ -1,0 +1,8 @@
+Feature List - ideas for the future
+** - completed
+## - being worked on
+--------------------------------------
+On the home and categories, when someone hovers over the rating it will create a small pop up showing all ratings for the item. 
+    -ex. hover over the song rating on home and it will show the upvote/downvote rating, advanced rating, message rating, etc.
+
+Work on the hater fan ratings in the admin bots.

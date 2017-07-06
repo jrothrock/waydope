@@ -1,0 +1,155 @@
+<h3>Settings</h3>
+<div class="row">
+    <div>
+      	<ul class="tabs" materialize="tabs">
+			<li *ngFor="let setting of settings; let i = index" class="tab col ps{{12/settings.length}}" id='setting-tabs' id="tab-name-{{setting}}">
+				<a id='setting-tab-link' href="#{{setting}}-settings" style='text-transform:capitalize' [ngClass]="{'active':i==0}">{{setting}}</a>
+			</li>
+		</ul>
+    </div>
+</div>
+<div class="row" id="info-settings">
+  <form [formGroup]="updateSettingsForm" (ngSubmit)="updateInfo(updateSettingsForm.value)" class="col s12">
+	<h4 class='row'>Info:</h4>
+    <div class="row">
+      <div class="input-field col s12 m6">
+        <input [ngClass]="{ 'has-error-input' : updateSettingsForm.controls.firstname.hasError('pattern') && updateSettingsForm.controls.firstname.touched}" [formControl]="updateSettingsForm.controls['firstname']" id="firstname-settings" type="text" class="validate">
+        <label for="firstname" id='profile-firstname-settings'>First Name</label>
+        <em *ngIf="updateSettingsForm.controls.firstname.hasError('pattern') && updateSettingsForm.controls.firstname.touched" class='has-error'> Enter a valid name </em>
+      </div>
+      <div class="input-field col s12 m6">
+        <input [ngClass]="{ 'has-error-input' : updateSettingsForm.controls.lastname.hasError('pattern') && updateSettingsForm.controls.lastname.touched}" [formControl]="updateSettingsForm.controls['lastname']" id="lastname-settings" type="text" class="validate">
+        <label for="lastname" id='profile-lastname-settings'>Last Name</label>
+        <em *ngIf="updateSettingsForm.controls.lastname.hasError('pattern') && updateSettingsForm.controls.lastname.touched" class='has-error'> Enter a valid name </em>
+      </div>
+    </div>
+	<div class="row">
+	    <div class="input-field col s12">
+	        <input [ngClass]="{ 'has-error-input' : ((updateSettingsForm.controls.email.hasError('required') || updateSettingsForm.controls.email.hasError('pattern')  )&& updateSettingsForm.controls.email.touched) }" [formControl]="updateSettingsForm.controls['email']" id="email-settings" type="text" class="validate">
+	        <label for="email" id='profile-email-settings'>Email</label>
+	        <em *ngIf="updateSettingsForm.controls.email.hasError('pattern') && updateSettingsForm.controls.email.touched" class='has-error'> Enter a valid email </em>
+	    </div>
+	</div>
+    <div class="row">
+	    <div class="input-field col s12">
+	        <input [ngClass]="{ 'has-error-input' : ((updateSettingsForm.controls.address.hasError('required') || updateSettingsForm.controls.address.hasError('pattern')  )&& updateSettingsForm.controls.address.touched) }" [formControl]="updateSettingsForm.controls['address']" id="address-settings" type="text" class="validate">
+	        <label for="profileaddress" id='profile-address'>Address</label>
+	    </div>
+	</div>
+    <div class="row">
+	    <div class="input-field col s12 m4">
+	        <input [ngClass]="{ 'has-error-input' : ((updateSettingsForm.controls.zipcode.hasError('required') || updateSettingsForm.controls.zipcode.hasError('pattern')  )&& updateSettingsForm.controls.zipcode.touched) }" [formControl]="updateSettingsForm.controls['zipcode']" id="zipcode-settings" type="text" class="validate">
+	        <label for="profile-zipcode" id='profile-zipcode'>Zip Code</label>
+	    </div>
+		<div class="input-field col s12 m4">
+	        <input [ngClass]="{ 'has-error-input' : ((updateSettingsForm.controls.city.hasError('required') || updateSettingsForm.controls.city.hasError('pattern')  )&& updateSettingsForm.controls.city.touched) }" [formControl]="updateSettingsForm.controls['city']" id="city-settings" type="text" class="validate">
+	        <label for="profile-city" id='profile-city'>City</label>
+	    </div>
+		<div class="input-field col s12 m4">
+	        <input [ngClass]="{ 'has-error-input' : ((updateSettingsForm.controls.state.hasError('required') || updateSettingsForm.controls.state.hasError('pattern')  )&& updateSettingsForm.controls.state.touched) }" [formControl]="updateSettingsForm.controls['state']" maxlength='2' id="state-settings" type="text" class="validate">
+	        <label for="profile-state" id='profile-state'>State</label>
+	    </div>
+	</div>
+     <div class="row">
+	    <div class="input-field col s12">
+	        <input [ngClass]="{ 'has-error-input' : ((updateSettingsForm.controls.phone_number.hasError('required') || updateSettingsForm.controls.phone_number.hasError('pattern')  )&& updateSettingsForm.controls.phone_number.touched) }" [formControl]="updateSettingsForm.controls['phone_number']" id="phone_number-settings" type="text" class="validate">
+	        <label for="phone_number" id='profile-phone_number'>Phone Number</label>
+	    </div>
+	</div>
+  </form>
+  <div class="row">
+	<div class="center-align">
+		<button type="submit" [disabled]='!updateSettingsForm.valid || submitted' class="waves-effect waves-light btn" (tap)="updateInfo(updateSettingsForm.value)">Update Settings</button>
+		<svg class="spinner-circle" id='submit-settings' viewBox="0 0 50 50">
+			<circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+		</svg>
+	</div>
+  </div>
+</div>   
+<div class='row' id="options-settings">
+	<h4 class='row'>Options:</h4>
+	<div class="row">
+		<div class='row'>
+			<h5>Hide NSFW <span style='font-size:0.7em;color:grey'>(this will show nsfw posts with no inital blurring)</span></h5>
+			<div class="input-field col ps12" style='position: relative;top: -15px;'>
+				<input type="radio" class="with-gap" [formControl]="updateSettingsForm.controls['show_nsfw']" value="false" id='show-nsfw-false'>
+				<label for="show-nsfw-false">Hide</label>
+				<input type="radio" class="with-gap" [formControl]="updateSettingsForm.controls['show_nsfw']" value="true" id='show-nsfw-true'>
+				<label for="show-nsfw-true">Show</label>
+			</div>
+		</div>
+		<div class='row'>
+			<h5 style='margin-top:5px'>Allow NSFW <span style='font-size:0.7em;color:grey'>(this will remove all nsfw posts form your feed)</span></h5>
+			<div class="input-field col ps12" style='position: relative;top: -15px;'>
+				<input type="radio" class="with-gap" [formControl]="updateSettingsForm.controls['hide_nsfw']" value="false" id='hide-nsfw-false'>
+				<label for="hide-nsfw-false">Disallow</label>
+				<input type="radio" class="with-gap" [formControl]="updateSettingsForm.controls['hide_nsfw']" value="true" id='hide-nsfw-true'>
+				<label for="hide-nsfw-true">Allow</label>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="center-align">
+			<button type="submit" [disabled]='!updateSettingsForm.valid || submitted' class="waves-effect waves-light btn" (tap)="updateOptions(updateSettingsForm.value)">Update Settings</button>
+			<svg class="spinner-circle" id='submit-settings' viewBox="0 0 50 50">
+				<circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+			</svg>
+		</div>
+	</div>
+</div>   
+<div [formGroup]="updatePasswordForm" class='row' id="password-settings">
+	<h4 class='row'>Password:</h4>
+	<div class='row col ps6 offset-ps3' style='border:1px solid rgba(0,0,0,0.2)'>
+		<div class="row">
+			<div class="input-field col s12">
+			<input [ngClass]="{ 'has-error-input' : passwordError }" formControlName="current" id="password-signup-page" type="password" class="validate">
+			<label for="password-signup-page" id='current-password-settings'>Current Password</label>
+			<em class='has-error' *ngIf="passwordError">incorrect password</em>
+			</div>
+		</div>
+		<div formGroupName="passwords">
+			<div class='row'>
+			<div class="input-field col s12 m6">
+				<input [ngClass]="{ 'has-error-input' : ((updatePasswordForm.get('passwords').errors?.areEqual && updatePasswordForm.get('passwords').get('confirmPassword').dirty && updatePasswordForm.get('passwords').get('confirmPassword').touched) || (updatePasswordForm.get('passwords').get('password').hasError('required') && updatePasswordForm.get('passwords').get('password').touched))  }" formControlName="password" id="new-password" type="password" class="validate">
+				<label for="password" id='new-password-settings'>New Password</label>
+				<em class='has-error' *ngIf="(updatePasswordForm.get('passwords').get('password').hasError('required') && updatePasswordForm.get('passwords').get('password').touched)"> Required </em>
+				<em class='has-error' *ngIf="(updatePasswordForm.get('passwords').get('password').hasError('minlength') && updatePasswordForm.get('passwords').get('password').touched && updatePasswordForm.get('passwords').get('password').dirty)"> Needs to be atleast 6 characters </em>
+				<em class='has-error' *ngIf="(updatePasswordForm.get('passwords').get('password').hasError('pattern') && updatePasswordForm.get('passwords').get('password').touched && updatePasswordForm.get('passwords').get('password').dirty)"> Can only use letters, numbers, and special characters. </em>
+			</div>
+			<div class="input-field col s12 m6">
+				<input [ngClass]="{ 'has-error-input' : (updatePasswordForm.get('passwords').get('confirmPassword').errors ||  (updatePasswordForm.get('passwords').errors?.areEqual && updatePasswordForm.get('passwords').get('confirmPassword').dirty))  && updatePasswordForm.get('passwords').get('confirmPassword').touched}" formControlName="confirmPassword" id="current-password" type="password" class="validate">
+				<label for="confirmPassword" id='confirm-password-settings'>Confirm Password</label>
+				<em class='has-error' *ngIf="(updatePasswordForm.get('passwords').get('confirmPassword').hasError('required') && updatePasswordForm.get('passwords').get('confirmPassword').touched)"> Required </em>
+				<em class='has-error' *ngIf="updatePasswordForm.get('passwords').errors?.areEqual && updatePasswordForm.get('passwords').get('confirmPassword').touched && updatePasswordForm.get('passwords').get('confirmPassword').dirty"> Passwords must match </em>
+			</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="center-align">
+				<button type="submit" [disabled]='!updatePasswordForm.valid || submitted' class="waves-effect waves-light btn" (tap)="updatePassword(updatePasswordForm.value)">Update Password</button>
+				<svg class="spinner-circle" id='submit-settings' viewBox="0 0 50 50">
+					<circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+				</svg>
+			</div>
+		</div>
+	</div>
+</div>
+<div *ngIf="settings.length === 4" class='row' id="seller-settings">
+	<form [formGroup]="updateSSNForm" (ngSubmit)="updateInfo(updateSSNForm.value)" class="col s12">
+		<h4 class='row'>SSN:</h4>
+		<div class="input-field col ps12">
+			<div style='font-size:0.9em;color:grey;position: relative;top: -5px;white-space:nowrap'>SSN: <span style='font-size:0.88em;color:red'>(SSN isn't stored)</span></div>
+			<input [ngClass]="{ 'has-error-input' : (updateSSNForm.get('ssn').hasError('required') && updateSSNForm.get('ssn').touched) || (updateSSNForm.get('ssn').hasError('required') && updateSSNForm.get('ssn').dirty && updateSSNForm.get('ssn').touched)}" formControlName="ssn" id="ssn-settings-input" type="text" maxlength="11" class="validate update-info-modal-contact-form-input" ngControl="username" style='position:relative;top:-15px;'>
+			<em *ngIf="updateSSNForm.get('ssn').hasError('required') && updateSSNForm.get('ssn').touched" class='has-error'> Required </em>
+			<em class='has-error' *ngIf="updateSSNForm.get('ssn').hasError('required') && updateSSNForm.get('ssn').touched && updateSSNForm.get('ssn').dirty">Enter a valid ssn</em>
+		</div>
+	</form>
+	<div class="row">
+		<div class="center-align">
+			<button type="submit" [disabled]='!updateSSNForm.valid || submitted' class="waves-effect waves-light btn" (tap)="updateSSN(updateSSNForm.value)">Update</button>
+			<svg class="spinner-circle" id='submit-settings' viewBox="0 0 50 50">
+				<circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+			</svg>
+		</div>
+	</div>
+</div>

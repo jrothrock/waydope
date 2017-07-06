@@ -1,0 +1,55 @@
+<div [style.margin-left.px]='offset' class='row col s12 menu-drop-down' id='technology-drop-down' (mouseenter)="mouseEnter()" (mouseleave)="mouseLeft()">
+	<h4 class='menu-titles' style='color:white' (tap)="clickedLink('header')">Technology</h4>
+	<hr class='menu-divider'>
+	<div class="row">
+	    <div class="tabs-vertical">
+	        <div class="col s4 m3 l3 xl2">
+	            <ul class="menu-tabs" id='technology-menu-tabs'>
+	                <div *ngFor="let name of names; let i = index" class='menu-tab-container' id="menu-tab-name-technology-{{name}}" [attr.data-name]="giveDataName(name)" [attr.data-type]="'technology'" (mouseenter)="hoveringItem(name)">
+		                <li class="menu-tab" id='menu-tab-technology-{{name}}' (dblclick)="menuClick(name)" [ngClass]="{'active-tab':i===0}">
+		                    <a id='menu-tab-link' [ngClass] = "{active: i == 0}" href="#menu-{{name}}-technology" style='text-transform:capitalize'>{{name}}</a>
+		                </li>
+		            </div>
+	            </ul>
+	        </div>
+	        <div class="col s8 m9 l8 xl6 menu-tab-output" id='menu-tab-output-technology' style='min-height:300px'>
+	            <div *ngFor="let name of names; let i = index" id="menu-{{name}}-technology" class='menu-tab-content' [style.display]="i === 0 ? 'block' : 'none'">
+					<div class='row col m12' style='border-bottom:1px solid white'><h4 class='center capitalize link' (tap)="clickedLink('category', name)">{{name}}</h4></div>
+					<div *ngIf="technology && technology[i] && initiated" id="menu-{{name}}-technology-container" class='row col m12 menu-technology-container' style='margin-top:-10px;opacity:0;transition: all 125ms'>
+						<div class="col m4" *ngFor="let technology_post of technology[i]; let ic = index" id="menu-{{name}}-technology" style='height:0px'>
+							<div class='menu-technology-info row'>
+								<div class="col m{{technology_post.sale_price ? 12 - (3 + technology_post.sale_price.toString().slice(1).replace('.','').length % 3) : 12 - (3 + technology_post.price.toString().slice(1).replace('.','').length % 3)}}" style='padding:0px'>
+								<div class='link-title' (mouseenter)="marqueeToggle(1,name,ic)" (mouseleave)="marqueeToggle(0,name,ic)" style='cursor:pointer;z-index:10;position:relative'><a id='technology-menu-title-link-{{name}}-{{ic}}' (tap)="clickedLink('title',technology_post.main_category, technology_post.url, technology_post.sub_category)">{{technology_post.title}}</a></div>
+								</div>
+								<div class="col m{{technology_post.sale_price ? 3 + technology_post.sale_price.toString().slice(1).replace('.','').length % 3 : 3 + technology_post.price.toString().slice(1).replace('.','').length % 3}}" style='padding:0px;color:grey'>
+									{{technology_post.sale_price ? technology_post.sale_price : technology_post.price}}
+								</div>
+								<div style='color:grey;font-size:0.7em;margin-left:0px !important;margin-top:0px;z-index:1'>
+									<div *ngIf="technology_post.nsfw" style="display:inline;border:1px solid #ff4040;padding:2px;border-radius:2px;font-size:0.88em">NSFW</div>
+									Posted by <a (tap)="clickedLink('user', technology_post.submitted_by)" style='cursor:pointer'>{{technology_post.submitted_by}}</a> <br>
+									in <a (tap)="clickedLink('category', technology_post.main_category)" class='capitalize'  style='cursor:pointer'>{{technology_post.main_category}}</a> - <a (tap)="clickedLink('subcategory', technology_post.category, technology_post.subcategory)" class='capitalize'>{{technology_post.sub_category}}</a> 
+								</div>
+							</div>
+							<div id='technology-menu-images-container-{{i}}-{{ic}}'>
+								<div *ngIf="!technology_post.nsfw" id='technology-menu-sfw-container-{{i}}-{{ic}}'>
+									<div *ngIf="technology_post.upload_urls.length" class='main-image-menu' id='main-photo-technology-menu-container-{{i}}-{{ic}}' style='text-align:center;margin-top:-10px;height:150px;border:1px solid #ff8000;width:100%'>
+										<img height="100%" width="100%" class="cloudzoom" id='main-photo-technology-menu-{{i}}-{{ic}}' (mouseenter)="photoZoom(i,ic)" src='{{technology_post.upload_urls[0]}}' style='position:relative;cursor:zoom-in;display:none;right:-50%;bottom:-50%;transform:translate(-50%,-50%)'/>
+									</div>
+								</div>
+								<div *ngIf="technology_post.nsfw" id='technology-menu-nsfw-container-{{i}}-{{ic}}'>
+									<div *ngIf="technology_post.upload_urls_nsfw.length" class='main-image-menu' id='main-photo-technology-menu-container-{{i}}-{{ic}}' style='text-align:center;margin-top:-10px;height:150px;border:1px solid #ff8000;width:100%'>
+										<img height="100%" width="100%" class="cloudzoom" id='main-photo-technology-menu-{{i}}-{{ic}}' (mouseenter)="photoZoom(i,ic)" src='{{technology_post.upload_urls_nsfw[0]}}' style='position:relative;cursor:zoom-in;display:none;right:-50%;bottom:-50%;transform:translate(-50%,-50%)'/>
+									</div>
+								</div>
+							</div>
+							<div class='menu-vote-actions-technology' id='menu-vote-actions-technology-{{name}}-{{ic}}'>
+				              <div class='menu-upvote-technology'><i [ngClass]="{ 'active' : technology_post.user_voted === 1}" (tap)="setVote(1, technology_post.uuid,name, technology_post.average_vote, technology_post.user_voted)" id='{{name}}-upvote-{{technology_post.uuid}}' class='fa fa-chevron-up' style='cursor:pointer' aria-hidden="true"></i></div><div class='menu-downvote-technology'><i [ngClass]="{ 'active' : technology_post.user_voted === -1}" (tap)="setVote(-1, technology_post.uuid,name, technology_post.average_vote, technology_post.user_voted)" class='fa fa-chevron-down' style='cursor:pointer' id='{{name}}-downvote-{{technology_post.uuid}}' aria-hidden="true"></i></div>
+				              <div [style.margin-left.px]="math.floor(math.log10(technology_post.average_vote)) % 1 === 0 ? 0 - (4*math.floor(math.log10(technology_post.average_vote))) : 0" class='menu-average-votes-technology' id='{{name}}-vote-{{technology_post.uuid}}'>{{technology_post.average_vote}}</div>
+				            </div>
+						</div>
+					</div>
+	            </div>
+	        </div>
+	    </div>
+	</div>
+</div>

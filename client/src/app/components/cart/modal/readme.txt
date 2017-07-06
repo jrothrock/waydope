@@ -1,0 +1,1 @@
+The cart modal component is not part of the cart module and is a "global component" like the lightbox and notifications component. It's just stored in the carts folder for organization/simplicity.

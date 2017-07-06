@@ -1,0 +1,51 @@
+<h1 class='home-links' [routerLink]="['/boards']">Boards</h1>
+<div class="row">
+    <div>
+        <ul class="tabs" materialize="tabs">
+            <li *ngFor="let name of names; let i = index" class="tab col ps4" id='tabs-home-boards' (dblclick)="tabClick(name)">
+                <a id='boards-tab-link' href="#{{name}}-boards" [ngClass]="{'active':i==0}">{{name}}</a>
+            </li>
+        </ul>
+    </div>
+</div>
+<div id='tab-output-boards-container' style='min-height:400px'>
+    <div id='tab-output-boards' style='opacity:0;transition:all 200ms'>
+        <div *ngFor="let name of names; let i = index" id="{{name}}-boards">
+            <div class='center pagination-container' id='boards-home-pagination-{{i}}' [attr.data-count]="count[i]" [attr.data-pages]="count[i] % 5" [attr.data-currentPage]="0">
+                    <div *ngIf="count[i] > 5 && currentPage[i] > 0"><i class='fa fa-chevron-up' (tap)="paginate('back',i)" style='text-align:center;font-size:2em;color:#ff6100;cursor:pointer'></i></div>           
+            </div>
+            <hr class='menu-divider'>
+            <div class='row col ps12' style='min-height:445px'>
+                <div *ngIf="posts && posts[i]">
+                    <div class="col ps12 home-board-post" *ngFor="let post of currentPosts[i]; let ic = index" id="{{name}}-boards">
+                        <div class='vote-actions'>
+                        <div class='home-upvote'><i [style.color]="post.user_voted === 1? '#ef6837' : 'black'" (tap)="setVote(1, post.uuid,'post',post.average_vote, post.user_voted)" id='post-upvote-{{post.uuid}}' class='fa fa-chevron-up' style='cursor:pointer' aria-hidden="true"></i></div><div class='home-downvote'><i [style.color]="post.user_voted === -1? '#ef6837' : 'black'" (tap)="setVote(-1, post.uuid,'post',post.average_vote, post.user_voted)" class='fa fa-chevron-down' style='cursor:pointer' id='post-downvote-{{post.uuid}}' aria-hidden="true"></i></div>
+                        </div>
+                        <div [style.margin-left.px]="math.floor(math.log10(post.average_vote)) % 1 === 0 ? -27 - (4*math.floor(math.log10(post.average_vote))) : -27" class='average_votes' id='post-vote-{{post.uuid}}'>{{post.average_vote}}</div>
+                        <div class='home-news-content'>
+                            <div class='row'>
+                                <a *ngIf="post.form == 1" href='{{post.link}}' style='font-size:1.1em' target="_blank" rel="noopener">{{post.title}}</a>
+                                <a *ngIf="post.form == 0" [routerLink]="['/boards',post.main_category, post.url]" style='font-size:1.1em' target="_blank" rel="noopener">{{post.title}}</a>
+                                <div *ngIf="post.title" style='color:grey;font-size:0.8em;display:inline-flex'>(<span style='padding: 0 1px 0 1px'>{{post.hostname != 'waydope.com' ? post.hostname : "text." + post.main_category }}</span>)</div>
+                            </div>
+                            <div class='row description-boards-container'><div class='description-boards' style='font-size:0.97em'>{{post.teaser}}</div></div>
+                        </div>
+                        <div class='row col ps12'>
+                            <div class='comment_count'><a [routerLink]="['/boards',post.main_category, post.url]"><i class="fa fa-comment-o" aria-hidden="true"><span style='margin-left:2px;font-family: "Roboto", sans-serif;font-size:0.9em'>{{post.comment_count}} comments</span></i></a></div>
+                        </div>
+                        <div class='row col ps12' style='color:grey;font-size:0.7em;margin-top:-20px;margin-left: -12px;'>
+                                <div *ngIf="post.nsfw" style="display:inline;border:1px solid #ff4040;padding:2px;border-radius:2px;font-size:0.88em">NSFW</div>
+                                Posted <span>{{post.time_ago}}</span>
+                                by <a [routerLink]="['/user',post.submitted_by]">{{post.submitted_by}}</a>
+                                in <a [routerLink]="['/boards',post.main_category]" class='capitalize'>{{post.main_category}}</a>
+                        </div>
+                    </div>
+                </div>
+                <div class='center pagination-container' id='boards-home-pagination-{{i}}' [attr.data-count]="count[i]" [attr.data-pages]="count[i] % 5" [attr.data-currentPage]="0" style='float:left;width:100%;margin-bottom:10px'>
+                    <div *ngIf="count[i] > 5 && ((currentPage[i]*5) + currentPosts[i].length) != count[i]"><i class='fa fa-chevron-down' (tap)="paginate('next',i)" style='text-align:center;font-size:2em;color:#ff6100;cursor:pointer'></i></div>           
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<hr>

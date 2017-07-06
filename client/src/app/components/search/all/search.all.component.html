@@ -1,0 +1,291 @@
+<h3>Search</h3>
+<div>
+    <div style='margin-top:50px'>
+	  <form [formGroup]="searchForm" (keydown)="checkEnter($event)">
+        <div class="input-group" style='white-space:nowrap'>
+            <!--<select id="rank" (change)="onOptionsChange($event.target.value)" required [formControl]="sortCategories.controls['options']" style='display:block'>-->
+			<div style='width:50px' id='search-form'>
+                <select id="search-category" class='search-select' [formControl]="searchForm.controls['category']" required style='display:inline;outline:none !important'>
+                    <option *ngFor="let option of options;let i = index" [value]="option">{{option}}</option>
+				</select>
+            </div>
+            <input type="text" class="search" [formControl]="searchForm.controls['search']" id="search" style='box-shadow: none !important;'/>
+            <span class="input-group-addon">
+                <i class="fa fa-search" style='cursor:pointer;margin-left: -25px;' (tap)="submitSearch(searchForm.value,0)"></i>
+            </span>
+          </div>
+	  </form>
+    </div>
+    <hr>
+	<div id='results-container' style='display:none'>
+		<h5 class='center'>{{quantity}} {{quantity === 1 ? 'Result' : 'Results'}} For: "{{search}}"</h5>
+		<div *ngFor="let result of results; let i = index" class='row col ps12'>
+				<div *ngIf="result.post_type === 'music'" class='col ps6 m3'>
+					<div class="row music-title-info-container">
+						<div (mouseenter)="marqueeToggle(1,i)" (mouseleave)="marqueeToggle(0,i)" class='title link-title'>
+							<div class='col ps1' id='inner-link-span'>Title:</div><div class='col ps11' id='inner-link-title'><a id='search-title-link-{{i}}' [routerLink]="['/music',result.main_genre, result.url]">{{result.title}}</a></div>
+						</div>
+						<div class='artist'>
+							Artist: <span style='color: #4c03db;cursor:pointer' (tap)="searchArtist(result.artist)">{{result.artist}}</span>
+						</div>
+						<div class='song-info' style='color:grey;font-size:0.7em;margin-left: 12px;'>
+								Posted <span>{{result.time_ago}}</span>
+								by <a [routerLink]="['/user',result.submitted_by]">{{result.submitted_by}}</a>
+								in <a [routerLink]="['/music',result.main_genre]" class='capitalize'>{{result.main_genre}}</a>
+						</div>
+					</div>
+					<div *ngIf="!result.clicked" class='music-home-photo-container' (mouseenter)="photoHover(1,result.uuid,'music')" (mouseleave)="photoHover(0,result.uuid,'music')" (tap)="photoClicked(i,result.uuid,'music')">
+						<img class='play-button-home' id='play-button-home-music-{{result.uuid}}' style='opacity:0.8' src="/assets/images/blackbutton.svg" alt="Play Button">
+						<img *ngIf="result.form == 0 && result.link_artwork" style='opacity:0.6;cursor:pointer' id='music-artwork-home-{{result.uuid}}' src='{{result.link_artwork}}' height="100%" width="100%"/>
+						<img *ngIf="result.form == 1 && !result.nsfw && result.upload_artwork_url" style='opacity:0.6;cursor:pointer' id='music-artwork-home-{{result.uuid}}' [src]="result.upload_artwork_url | safeurl" height="100%" width="100%"/>
+						<img *ngIf="result.form == 1 && result.nsfw && result.upload_artwork_url_nsfw" style='opacity:0.6;cursor:pointer' id='music-artwork-home-{{result.uuid}}' [src]="result.upload_artwork_url_nsfw | safeurl" height="100%" width="100%"/>
+						<img *ngIf="(result.form == 0 && !result.link_artwork) || (result.form == 1 && !result.upload_artwork_url)" style='opacity:0.6;cursor:pointer' id='music-artwork-home-{{i}}-{{result.uuid}}' class='music-featured-artwork-default-container' src="/assets/images/background-music.png" height="100%" width="100%"/>
+					</div>
+					<div *ngIf="result.clicked && result.form == 0" class='music-home-frame-container' [innerHTML]="result.link | safe"></div>
+					<div *ngIf="result.clicked && result.form == 1" class='music-home-frame-container'>
+						<div class='music-home-photo-container gradient-wrap' style='cursor: initial;'>
+							<img src="{{result.upload_artwork_url}}" cross-origin="anonymous" style='height: 100%;width: 100%;background-size: 100% 100%;background-repeat: no-repeat;opacity:0.350;'>
+							<a rel='nofollow' id="song-{{result.uuid}}-download-link" download="{{result.upload_url}}"><audio id='song-{{result.uuid}}' [src]="result.song && result.upload_url ? result.upload_url : null | safeurl" [attr.data-value]="0"></audio></a>
+							<button id="genres-play-{{result.uuid}}" class='btn song-music-frame-button' (tap)="playAudio(result.uuid,result.upload_url)"><i class='fa fa-play' id='song-play-icon-{{result.uuid}}' style='opacity:1'></i></button>
+							<div id="song-waveform-{{result.uuid}}" class='song-music-frame' style='border-bottom:0;top:-85%'></div>
+							<div id='song-playing-time-{{result.uuid}}' style='height:0px;color:white;position:relative;top:-220px;font-size:0.9em;display:none'><span id='current-time-{{result.uuid}}'>0:00</span>/<span id='duration-{{result.uuid}}'></span></div>
+							<div id='song-{{result.uuid}}-actions' class='row col ps12 song-music-frame-actions' style='border-top:1px solid white;padding:0px'>
+								<div class='col ps4' style='padding:0px'>
+									<div id='genres-{{result.uuid}}-volumne' style='display:inline;position:relative;'><i class='fa fa-volume-up fa-song-actions'></i></div>
+									<div id='genres-{{result.uuid}}-volumn-range' style='margin-top:-35px'><p style='height: 3px;padding: 0px;margin: 0px; margin-left: 5px;' class='volume'><input (mousedown)="checkVolume(1,result.uuid,'genres')" (mouseup)="checkVolume(0,result.uuid,'genres')" (click)="checkVolume(1,result.uuid,'genres',true)" type="range" id="{{result.uuid}}-volume-range" min="0" max="100" style='width: 85%;left: 20px;top: -2px;' value="100" /></p></div>
+								</div>
+								<div class='col ps4' style='padding:0px;text-align:center'>
+									<div id='song-{{result.uuid}}-repeat' style='display:inline;position:relative;' class='repeat-icon' [attr.data-loop]="0" (tap)="loop(result.uuid)"><i class='fa fa-refresh fa-song-actions'></i></div>
+								</div>
+								<div class='col ps4' style='padding:0px;text-align:right;white-space:nowrap'>
+									<div *ngIf="result.download === 1" id='song{{result.uuid}}-download' style='display:inline;position:relative;cursor:pointer' (tap)="download(result.uuid,result.title, result.download)"><i class='fa fa-cloud-download fa-song-actions'></i></div>
+									<div *ngIf="result.download === 2" id='song{{result.uuid}}-download' style='display:inline;position:relative;top:-5px;' (tap)="download(result.uuid,result.title, result.download)"><a href='{{result.download_url}}' target="_blank" rel="noopener" style="font-size: 1rem;color: white !important;">{{result.download_text}}</a></div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div></div>
+					<div class='row col ps12 music-info'>
+						<div class='col ps3' style='padding:0px'>
+							<div class='home-music-vote-actions-container' style='margin-top:-13px'>
+								<i [style.color]="result.user_voted === 1? '#ef6837' : 'black'" class='fa fa-chevron-up' id='music-upvote-{{result.uuid}}' (tap)="setVote(1, result.uuid,'music', result.average_vote, result.user_voted)" style='cursor:pointer'></i>
+								<div class='home-music-average-vote' id='music-vote-{{result.uuid}}' [style.margin-left.px]="math.floor(math.log10(result.average_vote)) % 1 === 0 ? 4 - (4*math.floor(math.log10(result.average_vote))) : 4">{{result.average_vote}}</div>
+								<i [style.color]="result.user_voted === -1? '#ef6837' : 'black'" class='fa fa-chevron-down' id='music-downvote-{{result.uuid}}' (tap)="setVote(-1, result.uuid,'music', result.average_vote, result.user_voted)" style='position:absolute;cursor:pointer'></i>
+							</div>
+							<button (tap)="like(result.uuid, result.user_liked,result.likes_count,i,result.post_type )" [ngClass]="{ 'liked' : result.user_liked }" id='likes-button-{{result.uuid}}' class="btn btn-like">
+								<div class='row' style='margin-top:-5px;white-space: nowrap' [style.font-size.pct]="math.floor(math.log10(result.likes_count)) === 2 ? 0.95 : -1" [style.margin-left.px]="math.floor(math.log10(result.likes_count)) === 2 ? -17 : null">
+									<i id='icon-likes-{{result.uuid}}' [ngClass]="{ 'liked-icon fa-heart' : result.user_liked, 'fa-heart-o' : !result.user_liked }" class="fa" style='float:left;width:100%' aria-hidden="true">
+										<span class='btn-like-text' id='likes-{{result.uuid}}' style='font-size:0.9em;margin:4px;font-family: "Roboto", sans-serif;font-weight:500;color:#111' [style.margin-left.px]="math.floor(math.log10(result.likes_count)) === 2 ? -2 : 0">{{result.likes_count}}</span>
+									</i>
+								</div>
+							</button>
+						</div>
+						<div class="col ps6 average-rating-container"><span class='average-rating'>Rating: [{{result.ratings_count}}]</span><div style='margin-left:8px;margin-top:-11px' class='star-ratings-css col ps10'><div [style.transform]="transformRating(result.average_rating)" class="inner-star-ratings-css" ></div></div><div class='col ps2' style='float:right;margin-top:-5px;white-space: nowrap;'>{{result.average_rating}}</div></div>
+						<div class='col ps3 comment-count-container'><i class="fa fa-comment-o comment-count-icon" aria-hidden="true"><span class='comment-count-span'>{{result.comment_count}}</span></i></div>
+					</div>
+				</div>
+				<div *ngIf="result.post_type === 'videos'" class='col ps6 m3'>
+					<div class="row video-title-info-container">
+						<div (mouseenter)="marqueeToggle(1,i)" (mouseleave)="marqueeToggle(0,i)" class='title link-title'>
+							<div class='col ps1' id='inner-link-span'>Title:</div><div class='col ps11' id='inner-link-title'><a id='search-title-link-{{i}}' [routerLink]="['/videos',result.main_category, result.url]">{{result.title}}</a></div>
+						</div>
+						<div class='video-info' style='color:grey;font-size:0.7em;margin-left: 12px !important;margin-top:0px'>
+								<div *ngIf="result.nsfw" style="display:inline;border:1px solid #ff4040;padding:2px;border-radius:2px;font-size:0.88em">NSFW</div>
+								Posted <span>{{result.time_ago}}</span>
+								by <a [routerLink]="['/user',result.submitted_by]">{{result.submitted_by}}</a>
+								in <a [routerLink]="['/videos',result.main_category]" class='capitalize'>{{result.main_category}}</a>
+						</div>
+					</div>
+					<div *ngIf="!result.clicked" class='video-home-photo-container' (mouseenter)="photoHover(1,result.uuid,'videos')" (mouseleave)="photoHover(0,result.uuid,'videos')" (tap)="photoClicked(i,result.uuid,'videos')">
+						<img class='play-button-home' id='play-button-home-videos-{{result.uuid}}' style='opacity:0.8' src="/assets/images/blackbutton.svg" alt="Play Button">
+						<img *ngIf="result.form == 0 && result.link_artwork" style='opacity:0.6;cursor:pointer' id='videos-artwork-home-{{result.uuid}}' src='{{result.link_artwork}}' height="100%" width="100%"/>
+						<img *ngIf="result.form == 1 && !result.nsfw && result.upload_artwork_url" style='opacity:0.6;cursor:pointer' id='videos-artwork-home-{{result.uuid}}' [src]="result.upload_artwork_url ? result.upload_artwork_url : null | safeurl" height="100%" width="100%"/>
+						<img *ngIf="result.form == 1 && result.nsfw && result.upload_artwork_url" style='opacity:0.6;cursor:pointer' id='videos-artwork-home-{{result.uuid}}' [src]="result.upload_artwork_url_nsfw ? result.upload_artwork_url_nsfw : null | safeurl" height="100%" width="100%"/>
+						<img *ngIf="(result.form == 0 && !result.link_artwork) || (result.form == 1 && !result.upload_artwork_url)" style='opacity:0.7;cursor:pointer' id='videos-artwork-home-{{result.uuid}}' class='video-featured-artwork-default-container' src="/assets/images/background-video.png" height="100%" width="100%"/>
+					</div>
+					<div *ngIf="result.clicked && result.form == 0">
+						<img *ngIf="result.link_type === 2" [src]="result.link | safeurl">
+						<div class='videos-home-video-container' *ngIf="result.link_type === 1" [innerHTML]="result.link | safe"></div>
+					</div>
+					<div *ngIf="result.clicked && result.form == 1">
+						<video id="video-{{result.uuid}}" class="video-js vjs-default-skin vjs-big-play-centered home-video-category-{{result.uuid}} video-js-thumbnail" data-setup='{"fluid": true, "playbackRates": [0.5, 1, 1.5, 2], "autoplay":true}' controls preload="auto">
+							<source [src]="result.upload_url ? result.upload_url : null | safeurl" type="video/mp4" />
+							<p class="vjs-no-js">To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="http://videojs.com/html5-video-support/" target="_blank" rel="noopener">supports HTML5 video</a></p>
+						</video>
+					</div>
+					<div class='row col ps12 video-info'>
+						<div class='col ps3' style='padding:0px'>
+							<div class='home-videos-vote-actions-container' style='margin-top:-13px'><i [style.color]="result.user_voted === 1? '#ef6837' : 'black'" class='fa fa-chevron-up' id='videos-upvote-{{result.uuid}}' (tap)="setVote(1, result.uuid,'videos', result.average_vote, result.user_voted)" style='cursor:pointer'></i><div class='home-video-average-vote' id='videos-vote-{{result.uuid}}' [style.margin-left.px]="math.floor(math.log10(result.average_vote)) % 1 === 0 ? 4 - (4*math.floor(math.log10(result.average_vote))) : 4">{{result.average_vote}}</div><i [style.color]="result.user_voted === -1? '#ef6837' : 'black'" class='fa fa-chevron-down' id='videos-downvote-{{result.uuid}}' (tap)="setVote(-1, result.uuid,'videos', result.average_vote, result.user_voted)" style='position:absolute;cursor:pointer'></i></div>
+							<button id='likes-button-category-{{result.uuid}}' class='btn btn-like' [ngClass]="{ 'liked' : result.user_liked }" (tap)="like(result.uuid, result.user_liked,result.likes_count,i,result.post_type )"  style="float:left;margin-top:-25px">
+								<div class='row' style='margin-top:-5px;white-space: nowrap' [style.font-size.pct]="math.floor(math.log10(result.likes_count)) === 2 ? 0.95 : -1" [style.margin-left.px]="math.floor(math.log10(result.likes_count)) === 2 ? -17 : null">
+									<i [ngClass]="{ 'liked-icon fa-heart' : result.user_liked, 'fa-heart-o' : !result.user_liked  }" class='fa' id='icon-likes-category-{{result.uuid}}' style='float:left;width:100%' aria-hidden="true">
+										<span class='btn-like-text' id='likes-category-{{result.uuid}}' style='font-size:0.9em;margin:4px;font-family: "Roboto", sans-serif;font-weight:500;color:#111' [style.margin-left.px]="math.floor(math.log10(result.likes_count)) === 2 ? -2 : 2">{{result.likes_count}}</span>
+									</i>
+								</div>
+							</button>
+						</div>
+						<div class="col ps6 average-rating-container"><span class='average-rating'>Rating: [{{result.ratings_count}}]</span><div style='margin-left:8px;margin-top:-11px' class='star-ratings-css col ps10'><div [style.transform]="transformRating(result.average_rating)" class="inner-star-ratings-css" ></div></div><div class='col ps2' style='float:right;margin-top:-5px;white-space: nowrap;'>{{result.average_rating}}</div></div>
+						<div class='col ps3 comment-count-container'><i class="fa fa-comment-o comment-count-icon" aria-hidden="true"><span class='comment-count-span'>{{result.comment_count}}</span></i></div>
+					</div>
+				</div>
+				<div *ngIf="result.post_type === 'news'" class='col ps12'>
+					<div class='vote-actions'>
+						<div class='home-upvote'><i [style.color]="result.user_voted === 1? '#ef6837' : 'black'" (tap)="setVote(1, result.uuid,'news', result.average_vote, result.user_voted)" id='news-upvote-{{result.uuid}}' class='fa fa-chevron-up' style='cursor:pointer' aria-hidden="true"></i></div><div class='home-downvote'><i [style.color]="result.user_voted === -1? '#ef6837' : 'black'" (tap)="setVote(-1, result.uuid,'news', result.average_vote, result.user_voted)" class='fa fa-chevron-down' style='cursor:pointer' id='news-downvote-{{result.uuid}}' aria-hidden="true"></i></div>
+					</div>
+					<div [style.margin-left.px]="math.floor(math.log10(result.average_vote)) % 1 === 0 ? -27 - (4*math.floor(math.log10(result.average_vote))) : -27" class='average_votes' id='news-vote-{{result.uuid}}'>{{result.average_vote}}</div>
+					<div class='home-news-content'>
+						<div class='row'>
+							<a *ngIf="result.form == 1" href='{{result.link}}' style='font-size:1.1em' target="_blank" rel="noopener">{{result.title}}</a>
+							<a *ngIf="result.form == 0" [routerLink]="['/boards',result.main_category, result.url]" style='font-size:1.1em' target="_blank" rel="noopener">{{result.title}}</a>
+							<div *ngIf="result.title" style='color:grey;font-size:0.8em;display:inline-flex'>(<span style='padding: 0 1px 0 1px'>{{result.hostname != 'waydope.com' ? result.hostname : "text." + result.main_category }}</span>)</div>
+						</div>
+						<div class='row description-boards-container'><div class='description-boards' style='font-size:0.97em'>{{result.teaser}}</div></div>
+					</div>
+					<div class='row col ps12'>
+						<div class='comment_count'><a [routerLink]="['/boards',result.main_category, result.url]"><i class="fa fa-comment-o" aria-hidden="true"><span style='margin-left:2px;font-family: "Roboto", sans-serif;font-size:0.9em'>{{result.comment_count}} comments</span></i></a></div>
+					</div>
+					<div class='row col ps12' style='color:grey;font-size:0.7em;margin-top:-20px;margin-left: -12px;'>
+							<div *ngIf="result.nsfw" style="display:inline;border:1px solid #ff4040;padding:2px;border-radius:2px;font-size:0.88em">NSFW</div>
+							Posted <span>{{result.time_ago}}</span>
+							by <a [routerLink]="['/user',result.submitted_by]">{{result.submitted_by}}</a>
+							in <a [routerLink]="['/boards',result.main_category]" class='capitalize'>{{result.main_category}}</a>
+					</div>
+				</div>
+				<div *ngIf="result.post_type === 'technology'" class='col ps6 m3'>
+					<div class='technology-info'>
+						<div id='' class='col ps9' style='padding:0px !important'>
+							<div class='link-title' (mouseenter)="marqueeToggle(1,i)" (mouseleave)="marqueeToggle(0,i)"><a id='search-title-link-{{i}}' [routerLink]="['/apparel', result.main_category, result.sub_category, result.url]">{{result.title}}</a></div>
+							<div>{{result.creator}}</div>
+						</div>
+						<div class='col ps3'>
+							<div>{{result.sale_price ? result.sale_price : result.price}}</div>
+						</div>
+						<div class='col ps12 apparel-info' style='color:grey;font-size:0.7em;margin-left:0px !important;margin-top:0px'>
+							<div *ngIf="result.nsfw" style="display:inline;border:1px solid #ff4040;padding:2px;border-radius:2px;font-size:0.88em">NSFW</div>
+							Posted by <a [routerLink]="['/user',result.submitted_by]">{{result.submitted_by}}</a>
+							in <a [routerLink]="['/technology',result.main_category]" class='capitalize'>{{result.main_category}}</a> - <a [routerLink]="['/apparel',result.main_category, result.sub_category]" class='capitalize'>{{result.sub_category}}</a> 
+						</div>
+					</div>
+					<div id='technology-images-container-{{i}}'>
+						<div *ngIf="!result.nsfw" id='technology-sfw-container-{{i}}'>
+							<div *ngIf="result.upload_urls.length" class='main-image col ps12' id='main-photo-apparel-container-{{i}}' style='text-align:center;margin-top:10px;height:100%;width:100%'>
+								<img id='main-photo-technology-{{i}}' class="cloudzoom" (mouseenter)="photoZoom('technology',i)" src='{{result.upload_urls[0]}}' height="100%" width="100%" style='cursor:zoom-in;margin:auto'/>
+							</div>
+							<div class='all-images col ps12' style='margin-bottom:10px;min-height: 71px;'>
+								<div class='col ps3' *ngFor="let photo of result.upload_urls; let ip = index" style='cursor:pointer;margin-top:10px' id>
+										<img id='rest-photos-technology-{{i}}-{{ip}}' class='rest-photos rest-photos-technology-{{i}}' (tap)="changePhoto('apparel',i,ip)" src='{{photo}}' [ngClass]="{ 'active-photo' : ip === 0 }" height="100%" width="100%" style='margin:auto'/>
+								</div>
+							</div>
+						</div>
+						<div *ngIf="result.nsfw" id='technology-nsfw-container-{{i}}'>
+							<div *ngIf="result.upload_urls_nsfw.length" class='main-image col ps12' id='main-photo-apparel-container-{{i}}' style='text-align:center;margin-top:10px;height:100%;width:100%'>
+								<img id='main-photo-technology-{{i}}' class="cloudzoom" (mouseenter)="photoZoom('technology',i)" src='{{result.upload_urls_nsfw[0]}}' height="100%" width="100%" style='cursor:zoom-in;margin:auto'/>
+							</div>
+							<div class='all-images col ps12' style='margin-bottom:10px;min-height: 71px;'>
+								<div class='col ps3' *ngFor="let photo of result.upload_urls_nsfw; let ip = index" style='cursor:pointer;margin-top:10px' id>
+										<img id='rest-photos-technology-{{i}}-{{ip}}' class='rest-photos rest-photos-technology-{{i}}' (tap)="changePhoto('apparel',i,ip)" src='{{photo}}' [ngClass]="{ 'active-photo' : ip === 0 }" height="100%" width="100%" style='margin:auto'/>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class='row col ps12 apparel-info' style='margin-top:-10px'>
+						<div class='col ps3' style='padding:0px'>
+							<div class='home-music-vote-actions-container' style='margin-top:-13px'>
+								<i [style.color]="result.user_voted === 1? '#ef6837' : 'black'" class='fa fa-chevron-up' id='apparel-upvote-{{result.uuid}}' (tap)="setVote(1, result.uuid,'apparel', result.average_vote, result.user_voted)" style='cursor:pointer'></i>
+								<div class='home-music-average-vote' id='apparel-vote-{{result.uuid}}' [style.margin-left.px]="math.floor(math.log10(result.average_vote)) % 1 === 0 ? 4 - (4*math.floor(math.log10(result.average_vote))) : 4">{{result.average_vote}}</div>
+								<i [style.color]="result.user_voted === -1? '#ef6837' : 'black'" class='fa fa-chevron-down' id='apparel-downvote-{{result.uuid}}' (tap)="setVote(-1, result.uuid,'apparel', result.average_vote, result.user_voted)" style='position:absolute;cursor:pointer'></i>
+							</div>
+							<button (tap)="like(result.uuid, result.user_liked,result.likes_count,i,result.post_type )" [ngClass]="{ 'liked' : result.user_liked }" id='likes-button-{{result.uuid}}' class="btn btn-like">
+								<div class='row' style='margin-top:-5px;white-space: nowrap' [style.font-size.pct]="math.floor(math.log10(result.likes_count)) === 2 ? 0.95 : -1" [style.margin-left.px]="math.floor(math.log10(result.likes_count)) === 2 ? -17 : null">
+									<i id='icon-likes-{{result.uuid}}' [ngClass]="{ 'liked-icon fa-heart' : result.user_liked, 'fa-heart-o' : !result.user_liked }" class="fa" style='float:left;width:100%' aria-hidden="true">
+										<span class='btn-like-text' id='likes-{{result.uuid}}' style='font-size:0.9em;margin:4px;font-family: "Roboto", sans-serif;font-weight:500;color:#111' [style.margin-left.px]="math.floor(math.log10(result.likes_count)) === 2 ? -2 : 0">{{result.likes_count}}</span>
+									</i>
+								</div>
+							</button>
+						</div>
+						<div class="col ps6 average-rating-container"><span class='average-rating'>Rating: [{{result.ratings_count}}]</span><div style='margin-left:8px;margin-top:-11px' class='star-ratings-css col ps10'><div [style.transform]="transformRating(result.average_rating)" class="inner-star-ratings-css" ></div></div><div class='col ps2' style='float:right;margin-top:-5px;white-space: nowrap;'>{{result.average_rating}}</div></div>
+						<div class='col ps3 comment-count-container'><i class="fa fa-comment-o comment-count-icon" aria-hidden="true"><span class='comment-count-span'>{{result.comment_count}}</span></i></div>
+					</div>
+				</div>
+				<div *ngIf="result.post_type === 'apparel'" class='col ps6 m3'>
+					<div class='technology-info'>
+						<div id='' class='col ps9' style='padding:0px !important'>
+							<div class='link-title' (mouseenter)="marqueeToggle(1,i)" (mouseleave)="marqueeToggle(0,i)"><a id='search-title-link-{{i}}' [routerLink]="['/apparel', result.main_category, result.sub_category, result.url]">{{result.title}}</a></div>
+							<div>{{result.creator}}</div>
+						</div>
+						<div class='col ps3'>
+							<div>{{result.sale_price ? result.sale_price : result.price}}</div>
+						</div>
+						<div class='col ps12 apparel-info' style='color:grey;font-size:0.7em;margin-left:0px !important;margin-top:0px'>
+							<div *ngIf="result.nsfw" style="display:inline;border:1px solid #ff4040;padding:2px;border-radius:2px;font-size:0.88em">NSFW</div>
+							Posted by <a [routerLink]="['/user',result.submitted_by]">{{result.submitted_by}}</a>
+							in <a [routerLink]="['/apparel',result.main_category]" class='capitalize'>{{result.main_category}}</a> - <a [routerLink]="['/apparel',result.main_category, result.sub_category]" class='capitalize'>{{result.sub_category}}</a> 
+						</div>
+					</div>
+					<div id='apparel-images-container-{{i}}'>
+						<div *ngIf="!result.nsfw" id='apparel-sfw-container-{{i}}'>
+							<div *ngIf="result.upload_urls.length" class='main-image col ps12' id='main-photo-apparel-container-{{i}}' style='text-align:center;margin-top:10px;height:100%;width:100%'>
+								<img id='main-photo-apparel-{{i}}' class="cloudzoom" (mouseenter)="photoZoom('apparel',i)" src='{{result.upload_urls[0]}}' height="100%" width="100%" style='cursor:zoom-in;margin:auto'/>
+							</div>
+							<div class='all-images col ps12' style='margin-bottom:10px;min-height: 71px;'>
+								<div class='col ps3' *ngFor="let photo of result.upload_urls; let ip = index" style='cursor:pointer;margin-top:10px' id>
+										<img id='rest-photos-apparel-{{i}}-{{ip}}' class='rest-photos rest-photos-apparel-{{i}}' (tap)="changePhoto('apparel',i,ip)" src='{{photo}}' [ngClass]="{ 'active-photo' : ip === 0 }" height="100%" width="100%" style='margin:auto'/>
+								</div>
+							</div>
+						</div>
+						<div *ngIf="result.nsfw" id='apparel-nsfw-container-{{i}}'>
+							<div *ngIf="result.upload_urls_nsfw.length" class='main-image col ps12' id='main-photo-apparel-container-{{i}}' style='text-align:center;margin-top:10px;height:100%;width:100%'>
+								<img id='main-photo-apparel-{{i}}' class="cloudzoom" (mouseenter)="photoZoom('apparel',i)" src='{{result.upload_urls_nsfw[0]}}' height="100%" width="100%" style='cursor:zoom-in;margin:auto'/>
+							</div>
+							<div class='all-images col ps12' style='margin-bottom:10px;min-height: 71px;'>
+								<div class='col ps3' *ngFor="let photo of result.upload_urls_nsfw; let ip = index" style='cursor:pointer;margin-top:10px' id>
+										<img id='rest-photos-apparel-{{i}}-{{ip}}' class='rest-photos rest-photos-apparel-{{i}}' (tap)="changePhoto('apparel',i,ip)" src='{{photo}}' [ngClass]="{ 'active-photo' : ip === 0 }" height="100%" width="100%" style='margin:auto'/>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class='row col ps12 apparel-info' style='margin-top:-10px'>
+						<div class='col ps3' style='padding:0px !important'>
+							<div class='home-music-vote-actions-container' style='margin-top:-13px'>
+								<i [style.color]="result.user_voted === 1? '#ef6837' : 'black'" class='fa fa-chevron-up' id='apparel-upvote-{{result.uuid}}' (tap)="setVote(1, result.uuid,'apparel', result.average_vote, result.user_voted)" style='cursor:pointer'></i>
+								<div class='home-music-average-vote' id='apparel-vote-{{result.uuid}}' [style.margin-left.px]="math.floor(math.log10(result.average_vote)) % 1 === 0 ? 4 - (4*math.floor(math.log10(result.average_vote))) : 4">{{result.average_vote}}</div>
+								<i [style.color]="result.user_voted === -1? '#ef6837' : 'black'" class='fa fa-chevron-down' id='apparel-downvote-{{result.uuid}}' (tap)="setVote(-1, result.uuid,'apparel', result.average_vote, result.user_voted)" style='position:absolute;cursor:pointer'></i>
+							</div>
+							<button (tap)="like(result.uuid, result.user_liked,result.likes_count,i,result.post_type  )" [ngClass]="{ 'liked' : result.user_liked }" id='likes-button-{{result.uuid}}' class="btn btn-like">
+								<div class='row' style='margin-top:-5px;white-space: nowrap' [style.font-size.pct]="math.floor(math.log10(result.likes_count)) === 2 ? 0.95 : -1" [style.margin-left.px]="math.floor(math.log10(result.likes_count)) === 2 ? -17 : null">
+									<i id='icon-likes-{{result.uuid}}' [ngClass]="{ 'liked-icon fa-heart' : result.user_liked, 'fa-heart-o' : !result.user_liked }" class="fa" style='float:left;width:100%' aria-hidden="true">
+										<span class='btn-like-text' id='likes-{{result.uuid}}' style='font-size:0.9em;margin:4px;font-family: "Roboto", sans-serif;font-weight:500;color:#111' [style.margin-left.px]="math.floor(math.log10(result.likes_count)) === 2 ? -2 : 0">{{result.likes_count}}</span>
+									</i>
+								</div>
+							</button>
+						</div>
+						<div class="col ps6 average-rating-container"><span class='average-rating'>Rating: [{{result.ratings_count}}]</span><div style='margin-left:8px;margin-top:-11px' class='star-ratings-css col ps10'><div [style.transform]="transformRating(result.average_rating)" class="inner-star-ratings-css" ></div></div><div class='col ps2' style='float:right;margin-top:-5px;white-space: nowrap;'>{{result.average_rating}}</div></div>
+						<div class='col ps3 comment-count-container'><i class="fa fa-comment-o comment-count-icon" aria-hidden="true"><span class='comment-count-span'>{{result.comment_count}}</span></i></div>
+					</div>
+				</div>
+				<hr style='float: left;width: 100%;'>
+		</div>
+	</div>
+	<div *ngIf="pages >= 2" class='row col ps12 center pagination-container' style='position:relative;bottom:50px;height:20px'>
+		<div class='pages-text'>Page {{currentPage}} of {{pages}}</div>
+		<button (tap)="changePage('start',1)" *ngIf="pages > 2" [disabled]='currentPage == 1' class='btn btn-pagination' style='display:inline'><i class='fa fa-angle-double-left'></i></button>
+		<button (tap)="changePage('back',currentPage - 1)" *ngIf="pages > 1" [disabled]='currentPage == 1' class='btn btn-pagination' style='display:inline'><i class='fa fa-angle-left'></i></button>
+		<div *ngFor="let number of numbers;let i = index" style='display:inline'>
+			<button (tap)="changePage('page',i+1)" [style.display]="pages < 6 || (currentPage < 4 && i < 5) || (pages - currentPage < 3 && pages - i < 6) || (currentPage - 4 < i && i < currentPage) || (i-2 < currentPage && currentPage < (i+1)) ? 'inline':'none'" class='btn btn-pagination' [ngClass]="{ 'active' : i + 1 == currentPage }">
+				<div [style.margin-left.px]="math.floor(math.log10(i+1)) % 1 === 0 ? -1 - (5*math.floor(math.log10(i+1))) : 1">{{i + 1}}</div>
+			</button>
+		</div>
+		<button (tap)="changePage('next',currentPage + 1)" *ngIf="pages > 1" class='btn btn-pagination' [disabled]='currentPage == pages' style='display:inline'><i class='fa fa-angle-right'></i></button>
+		<button (tap)="changePage('end',pages)" *ngIf="pages > 2" [disabled]='currentPage == pages' class='btn btn-pagination' style='display:inline'><i class='fa fa-angle-double-right'></i></button>
+	</div>
+	<div id='loading-spinner-search'>
+		<h4 class='center'>Loading Results...</h4>
+		<div class="spinner">
+			<div class="rect1"></div>
+			<div class="rect2"></div>
+			<div class="rect3"></div>
+			<div class="rect4"></div>
+			<div class="rect5"></div>
+		</div>
+	</div>
+</div>

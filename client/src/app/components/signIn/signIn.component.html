@@ -1,0 +1,37 @@
+<div class='container'>
+  <div *ngIf='banned' class="card-panel center-align red darken-1">
+    <em style='color:white'>This user has been banned.</em>
+  </div>
+  <h4>Sign In</h4>
+
+  <div class="row">
+    <form [formGroup]="signInForm" (ngSubmit)="onSubmit(signInForm.value)" class="col s12">
+      <div class="row">
+        <div class="input-field col s12 m6">
+          <input [ngClass]="{ 'has-error-input' : error || banned || ((signInForm.get('username').hasError('required') || signInForm.get('username').hasError('pattern') )&& signInForm.get('username').touched) }" [formControl]="signInForm.controls['username']" id="username-signin-page" type="text" class="validate">
+          <label for="username">Username</label>
+          <em *ngIf="signInForm.get('username').hasError('required') && signInForm.get('username').touched" class='has-error'> Required </em>
+          <em *ngIf="signInForm.get('username').hasError('pattern') && signInForm.get('username').touched" class='has-error'> Enter a valid username </em>
+        </div>
+        <div class="input-field col s12 m6">
+          <input [ngClass]="{ 'has-error-input' : error || banned || ((signInForm.get('password').hasError('required') || signInForm.get('password').hasError('pattern')  )&& signInForm.get('password').touched) }" [formControl]="signInForm.controls['password']" id="password-signin-page" type="password" class="validate">
+          <label for="password">Password</label>
+          <em *ngIf="signInForm.get('password').hasError('required') && signInForm.get('password').touched" class='has-error'> Required </em>
+          <em *ngIf="signInForm.get('password').hasError('pattern') && signInForm.get('password').touched" class='has-error'> Enter a valid password </em>
+        </div>
+      </div>
+      <div *ngIf="error">
+        <em class='has-error'> Incorrect username and password </em>
+      </div>
+    </form>
+
+  <div class="row">
+    <div class="center-align">
+      <button type="submit" id='submit-login-button' [disabled]='!signInForm.valid || submitted' class="waves-effect waves-light btn" (tap)="onSubmit(signInForm.value)">Sign In</button>
+      <svg class="spinner-circle" id='submit-login' viewBox="0 0 50 50">
+        <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+      </svg>
+    </div>
+  </div>
+  <a [routerLink]="['/reset']" class='reset-link'>Reset Password</a>
+</div>

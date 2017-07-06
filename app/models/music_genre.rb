@@ -1,0 +1,2 @@
+class MusicGenre < ApplicationRecord
+end

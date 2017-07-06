@@ -1,0 +1,121 @@
+<div id='lightbox-messages' class='notification-box messages-box'>
+    <div style='border-bottom:1px solid white'>
+        <div class='center' style='color:white'><h5>Messages</h5></div>
+    </div>
+    <div (click)="close()" class='messages-close-button-container'>
+        <div class='messages-close-button-first'></div>
+        <div class='messages-close-button-second'></div>
+    </div>
+    <div style='padding:15px;height:95%;position: relative;width:95%;margin:auto;top:-20px;overflow:hidden'>
+        <div class='side-menus' id='message-container' style=' height: inherit; overflow:scroll; background-color: #262626 !important;;position:absolute;width:100%;left:0%;display:block; overflow-x: hidden' data-inner="false">
+            <div class="row" style='margin-left:0px;margin-right:0px'>
+                <div>
+                    <ul class="tabs" materialize="tabs" id='messages-tab-container' style='background-color: #262626 !important; width:95% !important'>
+                        <li *ngFor="let name of names; let i = index" class="tab col ps4" id='tab-output-messages'>
+                            <a id='messages-tab-link' href="#{{name}}-messages" class='capitalize'>{{name}}</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div id='inbox-messages' class='row col ps12' style='font-weight: 300;margin-left:0px;margin-right:0px;'>
+                <span style='color:grey;font-size:0.8em;text-align:center;float: left;width: 100%;position: relative;height: 15px;top: -10px;'>{{unreadInbox}} unread converations of {{totalInbox}} conversations</span>
+                <div *ngIf="loaded" style=' height: inherit;'>
+                    <div *ngFor="let message of inbox; let i = index" class='message-containers row col ps12' [attr.data-index]="i" [ngClass]="{ 'unread-message' : !message.read }" style='text-align:center;color:white;margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.3);padding:6px'>
+                        <div class='row col ps4' style='padding:0px'>
+                            <div class='row' style='text-align: initial;margin-left: 5px;overflow: hidden'> From: {{message.sender}}</div>
+                            <div class='row' style='text-align: initial;margin-left: 5px;overflow: hidden'> {{message.time_ago}}</div>
+                        </div>
+                        <div class='row col ps7' style='padding:0px'>
+                            <div class='row' style='text-align: initial;margin-left: 5px;'>Body: {{message.body}}</div>
+                        </div>
+                        <div class='row col ps1' style='color:#039be5;float:right;left: 50%;top: 50%;transform: translate(-50%, -50%);-webkit-transform: translate(-50%, -50%);-moz-transform: translate(-50%, -50%);cursor:pointer' (click)="readConversation(message.conversation_id)">
+                            <i class='fa fa-chevron-right' style='position: relative;bottom: -50px;font-size: 1.2em;'></i>
+                        </div>
+                    </div>
+                    <div *ngIf="!inbox.length">
+                        <div class='center' style='padding-top:10px; color:white'><h6>You haven't received any messages.</h6></div>
+                    </div>
+                </div>
+            </div>
+            <div id='outbox-messages' class='row col ps12' style='font-weight: 300;margin-left:0px;margin-right:0px;'>
+                <span style='color:grey;font-size:0.8em;text-align:center;float: left;width: 100%;position: relative;height: 15px;top: -10px;'>{{totalOutbox}} outbound conversations</span>
+                <div *ngIf="loaded" style=' height: inherit;'>
+                    <div *ngFor="let message of outbox; let i = index" class='message-containers row col ps12' [attr.data-index]="i" style='text-align:center;color:white;border-bottom:1px solid rgba(255,255,255,0.3);padding:6px;margin-bottom: 10px'>
+                        <div class='row col ps4' style='padding:0px'>
+                            <div class='row' style='text-align: initial;margin-left: 5px;overflow: hidden'> To: {{message.receiver}}</div>
+                            <div class='row' style='text-align: initial;margin-left: 5px;overflow: hidden'> {{message.time_ago}}</div>
+                        </div>
+                        <div class='row col ps7' style='padding:0px'>
+                            <div class='row' style='text-align: initial;margin-left: 5px;'>Body: {{message.body}}</div>
+                        </div>
+                        <div class='row col ps1' style='color:#039be5;float:right;left: 50%;top: 50%;transform: translate(-50%, -50%);-webkit-transform: translate(-50%, -50%);-moz-transform: translate(-50%, -50%);cursor:pointer' (click)="readConversation(message.conversation_id)">
+                            <i class='fa fa-chevron-right' style='position: relative;bottom: -50px;font-size: 1.2em;'></i>
+                        </div>
+                    </div>
+                    <div *ngIf="!outbox.length">
+                        <div class='center' style='padding-top:10px; color:white'><h6>You haven't sent any messages.</h6></div>
+                    </div>
+                </div>
+            </div>
+            <div id='compose-messages' class='row col ps12' style='font-weight: 300;margin-left:0px;margin-right:0px'>
+                <div *ngIf="loaded" style=' height: inherit;'>
+                    <form [formGroup]="message" (ngSubmit)="submitNews(message.value)" class="col s12">
+                        <div class="row col s12">
+                            <label for="message-receiver" id='message-receiver-label' class='form-link-label'>Recipient</label>
+                            <input [ngClass]="{ 'has-error-input' : message.controls.receiver.errors?.required && message.controls.receiver.touched }" [formControl]="message.controls['receiver']" id="message-receiver" type="text" class="validate form-link" style='color:white !important'>
+                        </div>
+                        <div class='text-box row col s12'>
+                            <label for='message-body' id='message-body-label'>Body</label>
+                            <textarea [ngClass]="{ 'has-error-body' : message.controls.body.errors?.required && message.controls.body.touched}" id='message-body' [formControl]="message.controls['body']" class="validate" type='text' data-type='text' style="border:1px solid rgba(255,255,255,0.3);;color:white !important"></textarea>
+                        </div>
+                    </form>
+                    <div class='submit-message' style='text-align:center'>
+                        <button class='btn message-submit' [disabled]="!message.valid" (click)="submitMessage(message.value)">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id='conversation-messages' class='row col ps12 side-menus' style='position:absolute;width:100%;left:100%;background-color: #262626 !important;color:white;font-weight: 300;margin-left:0px;margin-right:0px;height:82vh;overflow:scroll'>
+            <div class='row col ps12' style='padding:0px'>
+                <div class='row col ps12' style='padding:5px;border-bottom:1px solid rgba(255,255,255,0.3);font-size:1.2em;'>
+                    <div (click)="readConversation(null)" style='cursor:pointer;max-width:80px'><i class='fa fa-chevron-left' style='color:#039be5;margin-right:5px'></i> All</div>
+                    <div style='text-align:center;position: relative;height: 0px;font-size: 1.3em;top: -30px;cursor:pointer' [routerLink]="['/user',otherUser]" (click)="close()">{{otherUser}}</div>
+                </div>
+
+                <div class='row col ps12' style=' height: inherit;' *ngIf="!loadingConversation">
+                        <div id='convo-spinner-container' style='text-align:center;margin:auto;display:none;width:100%;position:relative;top:-15px;left:-20px'>
+                            <svg class="spinner-circle" id='spinner-conversation' viewBox="0 0 50 50">
+                                <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+                            </svg>
+                        </div>
+                        <div *ngFor="let message of conversation; let i = index" id='conversation-container-{{i}}' class='message-containers col ps12' [attr.data-index]="i" [attr.data-sender]="message.sender" [attr.data-receiver]="message.receiver" style='color:white;'>
+                            <div style='color:grey;font-size:0.8em;text-align:center;position:relative;top:-7px'>{{message.time_ago}}</div>
+                        <div [ngClass]="message.sender === currentUser ? 'col ps8 push-ps4' : 'col ps8'">
+                            <div [ngStyle]="{'border': message.sender === currentUser ? '1px solid #039be5' : '1px solid #888','float': message.sender === currentUser ? 'right' : 'left' }" style='color:white;border-radius: 10px;float: right;padding: 2px 5px;margin-bottom: 10px;'>
+                            <div class='row' style='text-align: initial;margin-left: 5px;margin-right: 5px;float: left;margin-bottom: 0px;font-weight:300'>{{message.body}}</div>
+                            </div>
+                        </div>
+                        </div>
+                        <div class='row'>
+                        <div class='col ps12' style='border-top:1px solid rgba(255,255,255,0.3)'>
+                            <textarea id='reply-body' class='reply-input' type='text' placeholder="Reply:"></textarea> 
+                            <div (click)="submitReply()" style='background-color: #039be5;height: 20px;width: 20px;border-radius: 100px;float: right;position: relative;top: -30px;left: -3px;'>
+                            <i class='fa fa-chevron-up' style='color:white;position:relative;left:2.5px;top:-2px;'></i>
+                            </div>
+                        </div>
+                        </div>
+                </div>
+                <div class='row col ps12' id='loading-spinner' *ngIf="loadingConversation">
+                    <h4 class='center'>Loading Messages...</h4>
+                    <div class="spinner">
+                    <div class="rect1"></div>
+                    <div class="rect2"></div>
+                    <div class="rect3"></div>
+                    <div class="rect4"></div>
+                    <div class="rect5"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

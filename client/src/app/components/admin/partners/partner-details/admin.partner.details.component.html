@@ -1,0 +1,37 @@
+<div class='row col s12'>  
+  <h4>Company Details</h4>
+  <hr>
+  	<h5 class='center'>Application Details</h5>
+  	<div class="row">
+  		<span>Application ID: {{id}}</span>
+  	</div>
+  	<div class="row">
+  		<span>Company Name: {{name}}</span>
+  	</div>
+    <div class='row'>
+      <span>Contact's Name: {{contact_name}}</span>
+    </div>
+    <div class='row'>
+      <span>Contact's Email: {{email}}</span>
+    </div>
+  	<div class="row">
+  		<span>Contact's Number: {{phone}}</span>
+  	</div>
+    <div class="row">
+      <span>Company's Website: {{website}}</span>
+    </div>
+    <div class="row">
+      <span>Information: {{information}}</span>
+    </div>
+    <div class="row">
+      <span>Submitted By: {{submitted_by}}</span>
+    </div>
+  	<hr>
+
+  <div class="row">
+    <div class="center-align">
+      <button class="waves-effect waves-light btn" [routerLink]="['/admin','partners']">Go Back</button>
+      <a (tap)="revoke()" style='cursor:pointer'><button type="submit" class="waves-effect waves-light btn">Revoke</button></a>
+    </div>
+  </div>
+</div>

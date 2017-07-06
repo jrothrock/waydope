@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+  </head>
+  <body>
+    <p>Hey, <%= @user.username %>. A password reset request has been issued for your account. Anyone can request this, so your account has not been compromised.</p>
+    <p>If you are the one who requested the password reset, follow the link below.
+        <a>http://localhost:4200/reset/password?token=<%=@user.reset_password_token %><a>
+    </p>
+  </body>
+</html>

@@ -1,0 +1,130 @@
+<div class='row col s12 music-container'>
+	<h1 class='capitalize'>{{category}}</h1>
+	<div class='rest-music-divider'>
+		<div class='music-category-sorting row'>
+			<div class='col m1 ps2' style='margin-top:19px'><h5>Sort:</h5>
+			</div>
+			<form [formGroup]="sortMusic" (ngSubmit)="getSorting(sortMusic.value)" class="col m9 ps10">
+				<div class='col ps4 sort'> 
+					<label for="options">Order</label>
+					<select (change)="onOptionsChange($event.target.value)" id="options" required [formControl]="sortMusic.controls['options']" style='display:block'>
+						<option *ngFor="let option of options" [value]="option">{{option}}</option>
+					</select>
+				</div>
+				<div class='col ps4 sort'>
+					<label for="time">Time</label>
+					<select id="time" required [formControl]="sortMusic.controls['time']" style='display:block'>
+						<option *ngFor="let times of timings" [value]="times">{{times}}</option>
+					</select>
+				</div> 
+				<div class='col ps4 sort'>
+					<label for="type">Type</label>
+					<select id="type" required [formControl]="sortMusic.controls['type']" style='display:block'>
+						<option *ngFor="let type of types; let i = index" [value]="typeValues[i]">{{type}}</option>
+					</select>
+				</div>
+			</form>
+			<div class='col m2 ps12 sort-button'>
+				<button style='margin-top:25px' type="submit" [disabled]='!sortMusic.valid || !songs' class="waves-effect waves-light btn" (tap)="getSorting(sortMusic.value)">Sort Music</button>
+			</div>
+		</div>
+		<hr>
+	</div>
+	<div id='music-category-container' style='display:none'>
+		<div *ngIf="songs && songs.length" class='content'>
+			<div class='col ps6 m3' *ngFor="let fs of songs; let i = index" id="user-{{fs.uuid}}">
+    			<div class="row music-title-info-container">
+                    <div (mouseenter)="marqueeToggle(1,i)" (mouseleave)="marqueeToggle(0,i)" class='title link-title'>
+                        <div class='col ps1' id='inner-link-span'>Title:</div><div class='col ps11' id='inner-link-title'><a id='music-title-link-{{i}}' [routerLink]="['/music',fs.main_genre, fs.url]">{{fs.title}}</a></div>
+                    </div>
+                    <div class='artist'>
+                        <div class="col ps1" id='inner-link-span'>Artist:</div><div class='col ps11 artist-inner' id='inner-link-title'><a style='color: #4c03db !important;cursor:pointer' (tap)="searchArtist(fs.artist)">{{fs.artist}}</a></div>
+                    </div>
+                    <div class='song-info' style='color:grey;font-size:0.7em;margin-left: 12px;float:left'>
+							<div *ngIf="fs.nsfw" style="display:inline;border:1px solid #ff4040;padding:2px;border-radius:2px;font-size:0.88em">NSFW</div>
+                            Posted <span>{{fs.time_ago}}</span>
+                            by <a [routerLink]="['/user',fs.submitted_by]">{{fs.submitted_by}}</a>
+                            in <a [routerLink]="['/music',fs.main_genre]" class='capitalize'>{{fs.main_genre}}</a>
+                    </div>
+                </div>
+				<div *ngIf="!fs.clicked" class='music-home-photo-container' (mouseenter)="photoHover(1,'fs',i)" (mouseleave)="photoHover(0,'fs',i)" (tap)="photoClicked('fs',i, fs.form)">
+					<img class='play-button-home' id='play-button-home-fs-{{i}}' style='opacity:0.8' src="/assets/images/blackbutton.svg" alt="Play Button">
+					<img *ngIf="fs.form == 0 && fs.link_artwork" style='opacity:0.6;cursor:pointer' id='music-artwork-home-fs-{{i}}' src='{{fs.link_artwork}}' height="100%" width="100%"/>
+					<img *ngIf="fs.form == 1 && !fs.nsfw && fs.upload_artwork_url" style='opacity:0.6;cursor:pointer' id='music-artwork-home-fs-{{i}}' [src]="fs.upload_artwork_url ? fs.upload_artwork_url : null | safeurl" height="100%" width="100%"/>
+					<img *ngIf="fs.form == 1 && fs.nsfw && fs.upload_artwork_url_nsfw" style='opacity:0.6;cursor:pointer' id='music-artwork-home-fs-{{i}}' [src]="fs.upload_arwork_url_nsfw ? fs.upload_arwork_url_nsfw : null | safeurl" height="100%" width="100%"/>
+					<img *ngIf="(fs.form == 0 && !fs.link_artwork) || (fs.form == 1 && !fs.upload_artwork_url)" style='opacity:0.6;cursor:pointer' id='music-artwork-home-fs-{{i}}' class='music-featured-artwork-default-container' src="/assets/images/background-music.png" height="100%" width="100%"/>
+				</div>
+				<div *ngIf="fs.clicked && fs.form == 0" class='music-home-frame-container' [innerHTML]="fs.link | safe"></div>
+				<div *ngIf="fs.clicked && fs.form == 1" class='music-home-frame-container'>
+					<div class='music-home-photo-container gradient-wrap' style='cursor: initial;'>
+						<img src="{{fs.nsfw ? fs.upload_artwork_url_nsfw : fs.upload_artwork_url}}" cross-origin="anonymous" style='height: 100%;width: 100%;background-size: 100% 100%;background-repeat: no-repeat;opacity:0.350;'>
+						<a rel='nofollow' id="song-{{i}}-download-link" download="{{fs.upload_url}}"><audio id='song-fs-{{i}}' [src]="fs.song && fs.upload_url ? fs.upload_url : null | safeurl" [attr.data-value]="0" [attr.data-place]="0"></audio></a>
+						<button class='btn song-music-frame-button' id="song-play-{{i}}" (tap)="playAudio('fs',i,fs.upload_url)"><i class='fa fa-play' id='play-icon-fs-{{i}}' style='opacity:1'></i></button>
+						<div id="waveform-fs-{{i}}" class='song-music-frame' style='border-bottom:0;top:-85%'></div>
+						<div id='song-playing-time-fs-{{i}}' style='height:0px;color:white;position:relative;top:-220px;font-size:0.9em;display:none'><span id='current-time-fs-{{i}}'>0:00</span>/<span id='duration-fs-{{i}}'></span></div>
+						<div id='song-playing-time-fs-{{fs.uuid}}' style='height:0px;color:white;position:relative;top:-220px;font-size:0.9em;display:none'><span id='current-time-fs-{{fs.uuid}}'>0:00</span>/<span id='duration-fs-{{fs.uuid}}'></span></div>
+						<div id='song-fs-{{i}}-actions' class='row col ps12 song-music-frame-actions' style='border-top:1px solid white;padding:0px'>
+							<div class='col ps4' style='padding:0px'>
+								<div id='song-fs-{{i}}-volumne' style='display:inline;position:relative;'><i class='fa fa-volume-up fa-fs-actions'></i></div>
+								<div id='song-fs-{{i}}-volumn-range' style='margin-top:-35px'><p style='height: 3px;padding: 0px;margin: 0px; margin-left: 5px;' class='volume'><input (mousedown)="checkVolume(1,i,'fs')" (mouseup)="checkVolume(0,i,'fs')" (click)="checkVolume(1,i,'fs',true)" type="range" id="fs-{{i}}-volume-range" min="0" max="100" style='width: 75%;left: 20px;top: -2px;' value="100" /></p></div>
+							</div>
+							<div class='col ps4' style='text-align:center;padding:0px'>
+								<div id='song-fs-{{i}}-repeat' style='display:inline;position:relative;' class='repeat-icon' [attr.data-loop]="0" (tap)="loop(i,'fs')"><i class='fa fa-refresh fa-fs-actions'></i></div>
+							</div>
+							<div class='col ps4' style='text-align:right;white-space:nowrap;padding:0px'>
+								<div *ngIf="fs.download === 1" id='song-fs-{{i}}-download' style='display:inline;position:relative;cursor:pointer' (tap)="download(fs.uuid,fs.title,fs.type)"><i class='fa fa-cloud-download fa-fs-actions'></i></div>
+								<div *ngIf="fs.download === 2" id='song-fs-{{i}}-download' style='display:inline;position:relative;top:-5px;' (tap)="download(fs.uuid,fs.title,fs.type)"><a href='{{fs.download_url}}' target="_blank" rel="noopener" style="font-size: 1rem;color: white !important;">{{fs.download_text}}</a></div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class='row col ps12 music-info'>
+					<div class='col ps3' style='padding:0px'>
+						<div class='home-music-vote-actions-container' style='margin-top:-13px'>
+							<i [style.color]="fs.user_voted === 1? '#ef6837' : 'black'" class='fa fa-chevron-up' id='fsmusic-upvote-{{fs.uuid}}' (tap)="setVote(1, fs.uuid,'fsmusic', fs.average_vote, fs.user_voted)" style='cursor:pointer'></i>
+							<div class='home-music-average-vote' id='fsmusic-vote-{{fs.uuid}}' [style.margin-left.px]="math.floor(math.log10(fs.average_vote)) % 1 === 0 ? 4 - (4*math.floor(math.log10(fs.average_vote))) : 4">{{fs.average_vote}}</div>
+							<i [style.color]="fs.user_voted === -1? '#ef6837' : 'black'" class='fa fa-chevron-down' id='fsmusic-downvote-{{fs.uuid}}' (tap)="setVote(-1, fs.uuid,'fsmusic', fs.average_vote, fs.user_voted)" style='position:absolute;cursor:pointer'></i>
+						</div>
+						<button (tap)="like(fs.uuid, fs.user_liked, fs.post_type,fs.likes_count,'fs',i  )" [ngClass]="{ 'liked' : fs.user_liked }" id='likes-button-{{fs.uuid}}' class="btn btn-like">
+							<div class='row' style='margin-top:-5px;white-space: nowrap' [style.font-size.pct]="math.floor(math.log10(fs.likes_count)) === 2 ? 0.95 : -1" [style.margin-left.px]="math.floor(math.log10(fs.likes_count)) === 2 ? -17 : null">
+								<i id='icon-likes-{{fs.uuid}}' [ngClass]="{ 'liked-icon fa-heart' : fs.user_liked, 'fa-heart-o' : !fs.user_liked }" class="fa" style='float:left;width:100%' aria-hidden="true">
+									<span class='btn-like-text' id='likes-{{fs.uuid}}' style='font-size:0.9em;margin:4px;font-family: "Roboto", sans-serif;font-weight:500;color:#111' [style.margin-left.px]="math.floor(math.log10(fs.likes_count)) === 2 ? -2 : 0">{{fs.likes_count}}</span>
+								</i>
+							</div>
+						</button>
+					</div>
+					<div class="col ps6 average-rating-container"><span class='average-rating'>Rating: [{{fs.ratings_count}}]</span><div style='margin-left:8px;margin-top:-11px' class='star-ratings-css col ps10'><div [style.transform]="transformRating(fs.average_rating)" class="inner-star-ratings-css" ></div></div><div class='col ps2' style='float:right;margin-top:-5px;white-space: nowrap;'>{{fs.average_rating}}</div></div>
+					<div class='col ps3 comment-count-container'><i class="fa fa-comment-o comment-count-icon" aria-hidden="true"><span class='comment-count-span'>{{fs.comment_count}}</span></i></div>
+				</div>
+
+    		</div>
+		</div>
+		<div *ngIf="!songs" style='text-align:center'>
+			<span *ngIf="category != 'all'">There are no dank songs in this category. Be the first to add one</span>
+			<span *ngIf="category == 'all'">Damn. No dank songs have been added to this site. Like, at all. Be the first to do so</span>
+		</div>
+		<div *ngIf="pages >= 2" class='row col ps12 center pagination-container' style='position:relative;bottom:50px;'>
+			<div class='pages-text'>Page {{currentPage}} of {{pages}}</div>
+			<button (tap)="changePage('start',1)" *ngIf="pages > 2" [disabled]='currentPage == 1' class='btn btn-pagination' style='display:inline'><i class='fa fa-angle-double-left'></i></button>
+			<button (tap)="changePage('back',currentPage - 1)" *ngIf="pages > 1" [disabled]='currentPage == 1' class='btn btn-pagination' style='display:inline'><i class='fa fa-angle-left'></i></button>
+			<div *ngFor="let number of numbers;let i = index" style='display:inline'>
+				<button (tap)="changePage('page',i+1)" [style.display]="pages < 6 || (currentPage < 4 && i < 5) || (pages - currentPage < 3 && pages - i < 6) || (currentPage - 4 < i && i < currentPage) || (i-2 < currentPage && currentPage < (i+1)) ? 'inline':'none'" class='btn btn-pagination' [ngClass]="{ 'active' : i + 1 == currentPage }">
+					<div [style.margin-left.px]="math.floor(math.log10(i+1)) % 1 === 0 ? -1 - (5*math.floor(math.log10(i+1))) : 1">{{i + 1}}</div>
+				</button>
+			</div>
+			<button (tap)="changePage('next',currentPage + 1)" *ngIf="pages > 1" class='btn btn-pagination' [disabled]='currentPage == pages' style='display:inline'><i class='fa fa-angle-right'></i></button>
+			<button (tap)="changePage('end',pages)" *ngIf="pages > 2" [disabled]='currentPage == pages' class='btn btn-pagination' style='display:inline'><i class='fa fa-angle-double-right'></i></button>
+		</div>
+	</div>
+</div>
+<div id='loading-spinner-music-category'>
+	<h4 class='center'>Loading Music...</h4>
+	<div class="spinner">
+		<div class="rect1"></div>
+		<div class="rect2"></div>
+		<div class="rect3"></div>
+		<div class="rect4"></div>
+		<div class="rect5"></div>
+	</div>
+</div>

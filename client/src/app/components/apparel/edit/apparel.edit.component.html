@@ -1,0 +1,226 @@
+<h1>Apparel Form</h1>
+<div *ngIf="!worked && loaded" id='messages-worked' class="messages card-panel center-align deep-purple" style='display:block'>
+    <em style='color:white'><i class='fa fa-archive'></i> Can't update a post until it has been uploaded. Please try again later.</em>
+</div>
+<div class="row">
+    <div class="col s12">
+        <div class="row">
+          <form [formGroup]="uploadApparel" (ngSubmit)="submitApparel(uploadApparel.value)" class="col s12">
+          	<div class="row">
+              <div class="input-field col s12 m6">
+                <input [ngClass]="{ 'has-error-input' : uploadApparel.controls.title.errors?.required && uploadApparel.controls.title.touched}" [formControl]="uploadApparel.controls['title']" id="title" type="text" class="validate">
+                <label for="title" id='post-title'>Title</label>
+                <em *ngIf="uploadApparel.controls.title.errors?.required && uploadApparel.controls.title.touched" class='has-error'> A title is required </em>
+              </div>
+              <div class="input-field col s12 m6">
+                <input [ngClass]="{ 'has-error-input' : uploadApparel.controls.creator.errors?.required && uploadApparel.controls.creator.touched}" [formControl]="uploadApparel.controls['creator']" id="creator" type="text" class="validate">
+                <label for="creator" id='post-creator'>Brand</label>
+                <em *ngIf="uploadApparel.controls.creator.errors?.required && uploadApparel.controls.creator.touched" class='has-error'> A brand name is required </em>
+              </div>
+            </div>
+            <div class='row'>
+                <div class="input-field col s12 m6">   
+                    <span>Do you, or your company, have a website?</span>
+                    <div>
+                        <p style='display:inline-block;margin-left:-15px'>
+                            <input class="with-gap has-site" type="radio" [formControl]="uploadApparel.controls['has_site']" name="has_site" id="site-yes" [value]="1">
+                            <label for="site-yes" id='post-has-site'>Yes</label>
+                        </p>
+                        <p style='display:inline-block;margin-left:20px'>
+                            <input class="with-gap has-site" type="radio" [formControl]="uploadApparel.controls['has_site']" name="has_site" id="site-no" [value]="0">
+                            <label for="site-no" id='post-has-no-site'>No</label>
+                        </p>
+                    </div>
+                </div>
+                <div class="input-field col s12 m6">
+                    <input autocomplete="off" [ngClass]="{ 'has-error-input' : ((uploadApparel.controls.link.errors?.required || uploadApparel.controls.link.errors?.pattern  )&& uploadApparel.controls.link.touched) }" [formControl]="uploadApparel.controls['link']" id="link" type="text" class="validate form-link">
+                    <label for="link" id='site-link' class='form-link-label'>Site URL</label>
+                    <em *ngIf="uploadApparel.controls.link.errors?.required && uploadApparel.controls.link.touched" class='has-error'> A link is required </em>
+                    <em *ngIf="uploadApparel.controls.link.errors?.pattern" class='has-error'> Enter a valid link type </em>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s12 m6">
+                    <input [ngClass]="{ 'has-error-input' : uploadApparel.controls.zip.errors?.required && uploadApparel.controls.zip.touched}" [formControl]="uploadApparel.controls['zip']" id="apparel-zip" type="number" class="validate">
+                    <label for="zip" id='post-zip'>Zip Code</label>
+                    <em *ngIf="uploadApparel.controls.zip.errors?.required && uploadApparel.controls.zip.touched" class='has-error'> A zip code is required </em>
+                </div>
+                <div class="input-field col s12 m6" style='margin-top:16px'>
+                    <select id="condition" required [formControl]="uploadApparel.controls['condition']" style='display:block' class='enabled'>
+					    <option *ngFor="let condition of conditions; let i = index" [value]="conditionValues[i]" [disabled]='conditionValues[i] !== "nwb"' >{{condition}}</option>
+				    </select>
+                    <span style='font-size:0.8em;color:gray'>Condition:</span>
+                </div>
+            </div>
+            <div class="row">
+              <div class='input-field col s12 m6'>
+                <div class="form-group">
+                  <input  id="category-link" [formControl]="uploadApparel.controls['category']" name="category" class="validate category" style='display:block !important'>
+
+                  <label for="category" id='post-link'>category</label>
+                  <span class='main-category' for="category" id='post-link2'>Main Category: {{mainCategory}}</span>
+                   <em *ngIf="uploadApparel.controls.category.errors?.required && uploadApparel.controls.category.touched" class='has-error'> Category is required </em>
+                </div>
+              </div>
+              <div class='input-field col s12 m6'>
+                <div class="form-group">
+                  <input  id="sub-category-input" [formControl]="uploadApparel.controls['sub_category']" name="sub_category" class="validate sub_category" style='display:block !important'>
+                  <span class='main-category' for="category" id='post-link2'>Sub Category: {{subCategory}}</span>
+                   <em *ngIf="uploadApparel.controls.sub_category.errors?.required && uploadApparel.controls.sub_category.touched" class='has-error'> Category is required </em>
+                </div>
+              </div>
+            </div>
+            <div class='row' id='has-options'>
+                <div class="input-field col s12 m6">   
+                    <span id='has-variations-text'>Does your product contain different variations? (colors and/or sizes)</span>
+                    <div>
+                        <p style='display:inline-block;margin-left:-15px'>
+                            <input class="with-gap has-variations" type="radio" [formControl]="uploadApparel.controls['has_variations']" name="has_variations" id="variations-yes" [value]="1">
+                            <label for="variations-yes">Yes</label>
+                        </p>
+                        <p style='display:inline-block;margin-left:20px'>
+                            <input class="with-gap has-variations" type="radio" [formControl]="uploadApparel.controls['has_variations']" name="has_variations" id="variations-no" [value]="0">
+                            <label for="variations-no">No</label>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div id='no-variations-selections' class='row no-variations-containers' data-hidden='false'>
+                <div id='no-variations-sizes' class='col m12'>
+                    <div class='col m3'>
+                        <label>Color:</label>
+                        <input  class='no-variations-sizes-inputs' id='no-variations-color' type='text' data-type='same-type' disabled/>
+                    </div>
+                    <div class='col m3'>
+                        <label>Size:</label>
+                        <select id='no-variations-size' class='no-variations-sizes-inputs' style='display:block' disabled>
+                            <option *ngFor="let size of sizes; let i = index" [value]="sizeValues[i]">{{size}}</option>
+                        </select>
+                    </div>
+                    <div class='col m3'>
+                        <label>Quantity:</label>
+                        <input class='no-variations-sizes-inputs' id='no-variations-quantity' type='number' data-type='same-type' disabled/>
+                    </div>
+                    <div class='col m3'>
+                        <label>Price: ($)</label>
+                        <input class='no-variations-sizes-inputs' id='no-variations-price' type='number' data-type='same-type' disabled/>
+                    </div>
+                </div>
+            </div>
+            <div id='no-variations-dimensions-selections' class='row no-variations-containers' style='display:none' data-hidden='true'>
+                <div id='no-variations-dimensions' class='row' style='border:1px solid rgba(0,0,0,0.1)'>
+                    <div class='col m12'>
+                        <div class='col m4'>
+                            <label>Color:</label>
+                            <input class='no-variations-sizes-inputs-dimensions' id='no-variations-dimensions-color' type='text' data-type='same-type' disabled/>
+                        </div>
+                        <div class='col m4'>
+                            <label>Quantity:</label>
+                            <input class='no-variations-sizes-inputs-dimensions' id='no-variations-dimensions-quantity' type='number' data-type='same-type' disabled/>
+                        </div>
+                        <div class='col m4'>
+                            <label>Price: ($)</label>
+                            <input class='no-variations-sizes-inputs-dimensions' id='no-variations-dimensions-price' type='text' data-type='same-type' disabled/>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class='col m12'>
+                        <div class='col m4'>
+                            <label>Height:</label>
+                            <input class='no-variations-sizes-inputs-dimensions' id='no-variations-dimensions-height' type='number' data-type='same-type' disabled/>
+                        </div>
+                        <div class='col m4'>
+                            <label>Width:</label>
+                            <input class='no-variations-sizes-inputs-dimensions' id='no-variations-dimensions-width' type='number' data-type='same-type' disabled/>
+                        </div>
+                        <div class='col m4'>
+                            <label>Depth:</label>
+                            <input class='no-variations-sizes-inputs-dimensions' id='no-variations-dimensions-depth' type='number' data-type='same-type' disabled/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id='sub-category-selected' style='display:none'>
+            </div>
+            <div id='sub-category-selected-shoes' style='display:none'>
+            </div>
+            <hr>
+            <div class='row' style='min-height:100px;text-align:center;float:left;width:100%'>
+                <span style='font-size:0.8em;color:red;font-style:italic;text-align: center'>An image is required.</span>
+                <div style='border: 1px solid rgba(0,0,0,0.25);width: 25%;padding: 10px;margin: auto;margin-bottom:10px'>
+                    <span>Upload up to four photos of your product.</span>
+                    <div style='width:200px;text-align:center;margin:auto;'>
+                    <input type='file' name='file' accept="image/png, image/jpeg, image/gif" id='photo-upload' class='inputfile' multiple='true'/>
+                    <label for="photo-upload" class='btn photo-upload-button active'><i class='fa fa-camera' aria-hidden="true"></i> Upload Photos</label>
+                    </div>
+                </div>
+                <div id='photos-apparel-form' class='grabbable'>
+                    <div *ngFor="let photo of photos;let i = index" class='col m4 apparel-form-photo-containers' style='padding:4px' id='apparel-form-photo-container-{{i}}' [attr.data-total]="photoCount" [attr.data-total]="i" [attr.data-id]="photo.uuid">
+                        <div class='photo-border'>
+                            <div>
+                                <div class='delete-photo' style='float:right;padding-top:5px;cursor:pointer;' [attr.data-index]="i" [attr.data-total]="i" [attr.data-id]="photo.uuid">
+                                    <div class='notification-close-button-first' style='background-color:black'></div>
+                                    <div class='notification-close-button-second' style='background-color:black'></div>
+                                </div>
+                            </div>
+                            <div class='photo-border-top'>
+                                <img src='{{urls[i]}}' alt='image' width='100%' id='apparel-form-photo-{{i}}' [attr.data-index]="i"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class='row'>
+                <div class="input-field col s12 m6">
+                    <input [ngClass]="{ 'has-error-input' : ((uploadApparel.controls.shipping.errors?.required )&& uploadApparel.controls.shipping.touched) }" [formControl]="uploadApparel.controls['shipping']" id="shipping" type="number" class="validate form-shipping" step="any">
+                    <label for="shipping" id='post-shipping' class='form-shipping-label'>Shipping Cost: ($)</label>
+                    <em *ngIf="uploadApparel.controls.shipping.errors?.required && uploadApparel.controls.shipping.touched" class='has-error'> A shipping cost is required </em>
+                    <em *ngIf="uploadApparel.controls.shipping.errors?.pattern" class='has-error'> Enter a valid shipping cost </em>
+                </div>
+                <div class="input-field col s12 m6">
+                    <input [ngClass]="{ 'has-error-input' : ((uploadApparel.controls.shipping_type.errors?.required)&& uploadApparel.controls.shipping_type.touched) }" [formControl]="uploadApparel.controls['shipping_type']" id="shipping-type" type="text" class="validate form-shipping">
+                    <label for="shipping-type" id='post-shipping-type' class='form-shipping-label'>Shipping Type: (ex. USPS Priority Mail 1 - 3 days.)</label>
+                    <em *ngIf="uploadApparel.controls.shipping_type.errors?.required && uploadApparel.controls.shipping_type.touched" class='has-error'> A shipping type is required </em>
+                </div>
+            </div>
+            <div class='row'>
+                <div class="input-field col s12 m6">
+                    <input [ngClass]="{ 'has-error-input' : ((uploadApparel.controls.turnaround_time.errors?.required || uploadApparel.controls.turnaround_time.errors?.pattern  )&& uploadApparel.controls.turnaround_time.touched) }" [formControl]="uploadApparel.controls['turnaround_time']" id="turnaround-time" type="number" class="validate form-turnaround_time">
+                    <label for="turnaround-time" id='post-turnaround-time' class='form-turnaround_time-label'>Turnaround Time: (Days)</label>
+                    <em *ngIf="uploadApparel.controls.turnaround_time.errors?.required && uploadApparel.controls.turnaround_time.touched" class='has-error'>A turnaround time is required </em>
+                </div>
+                <div class="input-field col s12 m6" style='margin-top:16px'>
+                   <select id="return" required [formControl]="uploadApparel.controls['returns']" style='display:block' class='enabled'>
+					    <option *ngFor="let return of returns; let i = index" [value]="returnValues[i]">{{return}}</option>
+				    </select>
+                    <span style='font-size:0.8em;color:gray'>Returns:</span>
+                </div>
+            </div>
+            <div class='row'>
+              <div class='text-box col s12'>
+                <label for='link' id='post-description'>Description - (Markdown and HTML; styling enabled)</label>
+                <textarea [formControl]="uploadApparel.controls['description']" id='description' class="validate" type='text'></textarea>
+                <a style='font-size:0.9em' class='btn formatting-button' id='formatting-guide-link' style='color:black !important'>Formatting Guide</a>
+                <div id='add-formatting-guide' data-open='false'>
+                </div>
+              </div>
+            </div>
+          </form>
+          <div id='output-container' style='display:none'>
+            <h5>Output:</h5>
+            <div id='post-output' style='border: 1px solid rgba(0,0,0,0.1);padding:3px'>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="center-align">
+            <button type="submit" class="waves-effect waves-light btn" (tap)="cancelUpload()">Cancel</button>
+            <button type="submit" [disabled]='!uploadApparel.valid || !subCategory || !imageCount || (photoIds.length != imageCount) || insubmit || !worked || !uploadComplete' class="waves-effect waves-light btn" (tap)="submitApparel(uploadApparel.value)">Submit Apparel</button>
+            <svg class="spinner-circle" id='submit-apparel-edit' viewBox="0 0 50 50">
+              <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+            </svg>
+          </div>
+        </div>
+    </div>
+</div>
+    

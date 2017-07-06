@@ -1,0 +1,58 @@
+<h5 class='center'>Signup to become a partner</h5>
+<span> We believe that everything, in itself, is an art. We try to tailor ourselfs to fit the market of aesthetic, and intelligent products, but in the are way dope. As such, we would love to work with those brands who fit right into our target markets tastes. Please fill in the form below, and we will get back to you as soon as possible. </span>
+
+  <div class="row">
+    <form [formGroup]="applyForm" (ngSubmit)="apply(applyForm.value)" class="col s12">
+      <div class="row">
+        <div class="input-field col s12 m6">
+          <input [ngClass]="{ 'has-error-input' : error || ((applyForm.controls.email.errors?.required || applyForm.controls.email.errors?.pattern )&& applyForm.controls.email.touched) }" [formControl]="applyForm.controls['email']" id="email" type="email" class="validate">
+          <label for="email">Email</label>
+          <em *ngIf="applyForm.controls.email.errors?.required && applyForm.controls.email.touched" class='has-error'> Required </em>
+          <em *ngIf="applyForm.controls.email.errors?.pattern && applyForm.controls.email.touched" class='has-error'> Enter a valid email </em>
+        </div>
+        <div class="input-field col s12 m6">
+          <input [ngClass]="{ 'has-error-input' : error || ((applyForm.controls.name.errors?.required || applyForm.controls.name.errors?.pattern  )&& applyForm.controls.name.touched) }" [formControl]="applyForm.controls['name']" id="name" type="text" class="validate">
+          <label for="name">Company Name</label>
+          <em *ngIf="applyForm.controls.name.errors?.required && applyForm.controls.name.touched" class='has-error'> Required </em>
+          <em *ngIf="applyForm.controls.name.errors?.pattern && applyForm.controls.name.touched" class='has-error'> Enter a valid name </em>
+        </div>
+      </div>
+      <div class="row">
+        <div class="input-field col s12 m6">
+          <input [ngClass]="{ 'has-error-input' : error || ((applyForm.controls.contact_name.errors?.required || applyForm.controls.contact_name.errors?.pattern )&& applyForm.controls.contact_name.touched) }" [formControl]="applyForm.controls['contact_name']" id="contact_name" type="text" class="validate">
+          <label for="contact_name">Contact's Name</label>
+          <em *ngIf="applyForm.controls.contact_name.errors?.required && applyForm.controls.contact_name.touched" class='has-error'> Required </em>
+          <em *ngIf="applyForm.controls.contact_name.errors?.pattern && applyForm.controls.contact_name.touched" class='has-error'> Enter a valid name </em>
+        </div>
+        <div class="input-field col s12 m6">
+          <input [ngClass]="{ 'has-error-input' : error || ((applyForm.controls.phone.errors?.required || applyForm.controls.phone.errors?.pattern  )&& applyForm.controls.phone.touched) }" [formControl]="applyForm.controls['phone']" id="phone" type="tel" class="validate">
+          <label for="phone">Phone Number</label>
+          <em *ngIf="applyForm.controls.phone.errors?.required && applyForm.controls.phone.touched" class='has-error'> Required </em>
+          <em *ngIf="applyForm.controls.phone.errors?.pattern && applyForm.controls.phone.touched" class='has-error'> Enter a valid phone number </em>
+        </div>
+      </div>
+       <div class="row">
+        <div class="input-field col s12">
+          <input [ngClass]="{ 'has-error-input' : error || ((applyForm.controls.website.errors?.required || applyForm.controls.website.errors?.pattern )&& applyForm.controls.website.touched) }" [formControl]="applyForm.controls['website']" id="website" type="url" class="validate">
+          <label for="website">Website Url</label>
+          <em *ngIf="applyForm.controls.website.errors?.required && applyForm.controls.website.touched" class='has-error'> Required </em>
+          <em *ngIf="applyForm.controls.website.errors?.pattern && applyForm.controls.website.touched" class='has-error'> Enter a valid url </em>
+        </div>
+      </div>
+      <div class='row'>
+      <div class='text-box col s12'>
+      	<label for='link' id='information'>Brief description of the products you sell, as well as their price point.</label>
+        <textarea [ngClass]="{ 'has-error-select' : applyForm.controls.information.errors?.required && applyForm.controls.information.touched}" class="validate" [formControl]="applyForm.controls['information']" type='text'></textarea>
+      </div>
+      <em *ngIf="applyForm.controls.information.errors?.required && applyForm.controls.information.touched" class='has-error'> The body is required </em>
+    </div>
+    </form>
+
+  <div class="row">
+    <div class="center-align">
+      <button type="submit" [disabled]='!applyForm.valid || submitted' class="waves-effect waves-light btn" (tap)="apply(applyForm.value)">Connect</button>
+      <svg class="spinner-circle" id='submit-partner' viewBox="0 0 50 50">
+        <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+      </svg>
+    </div>
+  </div>

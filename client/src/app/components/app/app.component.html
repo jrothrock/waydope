@@ -1,0 +1,385 @@
+<div>
+   <nav class='extended-menu-nav'>
+    <div class="nav-wrapper navbar-extended" style='background-color:#ef6837;height:40px;z-index:9999'>
+       <ul class="left hide-on-tablet-and-down" style='margin-left: 20px;margin-top:-10px;'>
+        <li>
+          <form [formGroup]="search" (keydown)="checkEnter($event)" style='height:0px'>
+            <div class="input-group" style='white-space:nowrap'>
+              <!--<select id="rank" (change)="onOptionsChange($event.target.value)" required [formControl]="sortCategories.controls['options']" style='display:block'>-->
+              <div style='width:50px' id='search-form-menu'>
+                <select id="search-category-menu" class='search-select-menu' [formControl]="search.controls['category']" required style='display:inline;box-shadow:none !important'>
+                    <option *ngFor="let option of options;let i = index" [value]="option">{{option}}</option>
+                </select>
+                </div>
+                <input type="text" class="search-menu" [formControl]="search.controls['search']" id="search" style='border-bottom: 1px solid #fff !important; box-shadow: none !important;'/>
+                <span class="input-group-addon">
+                    <i class="fa fa-search" style='cursor:pointer;margin-left: -25px;' (tap)="submitSearch(search.value)"></i>
+                </span>
+            </div>
+          </form>
+        </li>
+      </ul>
+      <ul class="right hide-on-tablet-and-down" style='margin-top:-10px;position:absolute;right:0px'>
+        <li style='margin-right:20px;max-height:1px'  (tap)='showMessages()'><i class='fa fa-envelope' style='cursor:pointer;font-size:1.2em'></i><div id='unread-messages' style='position:absolute;display:none;height:10px;width:13px;background-color:red;border-radius:2px;top:19px;left:10px'></div><span id='unread-messages-text' style='display:none;font-size: 0.7em;position: absolute;top: -7px;left: 13px;'></span></li>
+        <li style='margin-right:20px;max-height:1px' (tap)='showNotifications()'><i class='fa fa-bell' style='cursor:pointer;font-size:1.2em'></i><div id='unread-notifications' class='unread-notifications'></div><span id='unread-notifications-text' class='unread-notifications-text'></span></li>
+        <li style='margin-right:20px;cursor:pointer;max-height:1px' (tap)='showCart()'><i class='fa fa-shopping-cart' style='font-size:1.2em'></i><div id='shopping-cart-icon' style='position:absolute;display:none;height:10px;width:13px;background-color:red;border-radius:2px;top:19px;right:10px;'></div><span id='shopping-cart-icon-text' class='shopping-cart-icon-text'></span></li>
+      </ul>
+    </div>
+   </nav> 
+</div>
+<div id='navbar-faded' #boards>
+  <nav>
+      <div class="nav-wrapper" style='background-color:#ef6837'>
+        <div class='side-menu-shopping-cart cart' (tap)='showCart()'><i class='fa fa-shopping-cart'></i><div id='shopping-cart-icon-menu' class='shopping-cart-icon-menu'></div><span id='shopping-cart-icon-text-menu' class='shopping-cart-icon-text-menu'></span></div>
+        <div class='side-menu-notifications notifications' (tap)='showNotifications()'><i class='fa fa-bell' style='cursor:pointer'></i><div id='unread-notifications-menu' class='unread-notifications-menu' style='display:none'></div><span id='unread-notifications-text-menu' class='unread-notifications-text-menu'></span></div>
+        <div class='side-menu-notifications messages' (tap)='showMessages()'><i class='fa fa-envelope' style='cursor:pointer'></i><div id='unread-messages-menu' style='position: relative;display: none;height: 10px;width: 13px;background-color: red;border-radius: 2px;top: -63px;left: 12px;'></div><span id='unread-messages-text-menu' style='display: none;font-size: 0.6em;position: relative;top: -95px;left: 16px;color: white;'></span></div>
+        <ul class="left hide-on-tablet-and-down" style='margin-left: 20px'>
+            <li (mouseenter)="addDropDown(1,'home')" (tap)="closeDropDown('home')" (mouseleave)="addDropDown(0,'home')" id='home-menu'><a [routerLink]="['/']">Home</a></li> 
+            <li (mouseenter)="addDropDown(1,'boards')" (tap)="closeDropDown('boards')" (mouseleave)="addDropDown(0,'boards')" id='boards-menu' [routerLinkActive]="['active']"><a [routerLink]="['boards']">Boards</a></li> 
+            <li (mouseenter)="addDropDown(1,'music')" (tap)="closeDropDown('music')" id='music-menu' (mouseleave)="addDropDown(0,'music')" [routerLinkActive]="['active']"><a [routerLink]="['music']">Music</a></li> 
+            <li (mouseenter)="addDropDown(1,'videos')" (tap)="closeDropDown('videos')" id='videos-menu' (mouseleave)="addDropDown(0,'videos')" [routerLinkActive]="['active']"><a [routerLink]="['videos']">Videos</a></li> 
+            <li (mouseenter)="addDropDown(1,'apparel')" (tap)="closeDropDown('apparel')" id='apparel-menu' (mouseleave)="addDropDown(0,'apparel')" [routerLinkActive]="['active']"><a [routerLink]="['apparel']">Apparel</a></li> 
+            <li (mouseenter)="addDropDown(1,'technology')" (tap)="closeDropDown('technology')" id='technology-menu' (mouseleave)="addDropDown(0,'technology')" [routerLinkActive]="['active']"><a [routerLink]="['technology']">Technology</a></li> 
+        </ul>
+        <a class="brand-logo center"[routerLink]="['/']">Way Dope</a>
+        <ul class="right hide-on-tablet-and-down">
+            <li *ngIf="!isLoggedIn" [routerLinkActive]="['active']"><a [routerLink]="['signin']">Sign In</a></li>
+            <li *ngIf="!isLoggedIn" [routerLinkActive]="['active']"><a [routerLink]="['signup']">Sign Up</a></li>
+            <li *ngIf="isLoggedIn"><a (tap)="logout()">Logout</a></li>
+            <li *ngIf="isSeller" [routerLinkActive]="['active']"><a [routerLink]="['/seller']">Seller</a></li>
+            <li *ngIf="isAdmin" [routerLinkActive]="['active']"><a [routerLink]="['/admin']">Admin</a></li>
+            <li (mouseenter)="addDropDown(1,'profile')" (mouseleave)="addDropDown(0,'profile')" (tap)="closeDropDown()" *ngIf="isLoggedIn" [routerLinkActive]="['active']" id='profile-menu'><a [routerLink]="['/user', currentUser]">Profile</a></li>
+        </ul>
+        <div class='side-menu-toggle' id='side-menu-toggle'>
+          <span class='menu-toggle-bar' id='first-menu-toggle-bar'></span>
+          <span class='menu-toggle-bar' id='second-menu-toggle-bar'></span>
+          <span class='menu-toggle-bar' id='third-menu-toggle-bar'></span>
+        </div>
+      </div>
+  </nav>
+</div>
+
+
+<div class='pushmenu pushmenu-left'>
+  <!--  Shopping cart for the mobile menu -->
+  <div id='shopping-cart-side-menu' style='display:none'>
+    <div style='border-bottom:1px solid white;'><h5 class='center' style='color:white'>Shopping Cart</h5></div>
+    <div *ngIf="order">
+      <div style='border-bottom:1px solid #aaa;padding: 5px;padding-bottom: 15px;background-color:#2f2f2f'>
+        <span *ngIf="order" style='color:white;font-size:1.25em;position:relative;top:6px'>Total: {{order.total}}</span>
+        <button class='buy-now menu btn' style='color:white;float:right' (tap)="cartClose('/cart#review')">Check Out</button>
+      </div>
+      <div class='row' style='border-bottom: 1px solid #aaa;width:100%;padding:2px;text-align:center;background-color:#2f2f2f'>
+        <div class='col ps4' *ngIf="order" style='color:white;font-size:0.9em;padding-right: 5px;'>Sub Total: <div>{{order.sub_total}}</div></div>
+        <div class='col ps4' *ngIf="order" style='color:white;font-size:0.9em;padding-right: 5px;'>Shipping: <div>{{order.shipping}}</div></div>
+        <div class='col ps4' *ngIf="order" style='color:white;font-size:0.9em;padding-right: 5px;'>Tax: <div>{{order.tax}}</div></div>
+      </div>
+      <div style='overflow:scroll;height:100%;'>
+        <div *ngFor="let item of titles;let i = index" style='background-color: #262626 !important;float:left;color:white;padding:5px;width:100%' class='row'>
+            <div class='link-title'><a id='apparel-title-link-{{i}}' [routerLink]="['/' + items[item.index].post_type, items[item.index].main_category, items[item.index].sub_category, items[item.index].url]" class='menu-links'>{{item.title}}</a></div>
+          <div *ngIf="items[item.index].upload_urls && items[item.index].upload_urls.length" class='main-image col ps4' id='main-photo-apparel-container' style='text-align:center;margin-top:10px;'>
+              <img height="100%" width="100%" class="cloudzoom" id='main-photo-cart-menu-{{i}}'(mouseenter)="photoZoom(i)" src='{{items[item.index].upload_urls[0]}}' style='cursor:zoom-in;'/>
+          </div>
+          <div class='col ps4'>
+              <span>Price:</span>
+              <div>{{prices[i]}}</div>
+          </div>
+          <div class='col ps4' style='padding:0px;white-space: nowrap'>
+                <div>total: {{totals[i]}}</div>
+                <div>sub: {{sub_totals[i]}}</div> 
+                <div>ship: {{shippings[i]}}</div>
+                <div *ngIf="taxes[i]">tax: {{taxes[i]}}</div>
+            </div>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="!order" style='text-align:center'>
+      <span style='color:white'>You haven't added any items to your cart.</span>
+    </div>
+  </div>
+
+  <!--  Notifications for the mobile menu -->
+  <div id='notifications-side-menu' style='display:none;'>
+    <div style='border-bottom:1px solid white'><h5 class='center' style='color:white'>Notifications</h5></div>
+    <div class='notifications-container-side-menu' id='notifications-container-side-menu' style='height:89vh'>
+      <div style='font-size:0.8em;color:#ababab;text-align:center;height:20px' *ngIf="notifications.length">
+        {{unreadNotificationCount}} unread of {{notificationsTotal}} notifications
+      </div>
+      <div *ngFor="let notification of notifications; let i = index" [ngClass]="{'unread-notification' : !notification.read }" style='border-bottom:1px solid rgba(255,255,255,.3);height:60px'>
+        <div *ngIf="notification.notice_type === 'comment'">
+          <div style='color:white'>{{notification.notified_by}} has responded to your comment on <a (tap)="notificationLink(notification.post_type,notification.category, notification.subcategory, notification.url)" class='menu-links'>{{notification.title}}</a></div>
+          <div style='color:white'>'{{notification.body}}'</div>
+        </div>
+        <div *ngIf="notification.notice_type === 'new_sale'">
+          <div style='color:white'>A new sale was made on <a (tap)="notificationLink(notification.post_type,notification.category, notification.subcategory, notification.url)" class='menu-links'>{{notification.title}}</a></div>
+        </div>
+        <div *ngIf="notification.notice_type === 'upload'">
+          <div style='color:white' class='menu-links' *ngIf="notification.post_type === 'videos'">Your video has finished uploading, and can be viewed <a (tap)="exitLink(notification.post_type, notification.category, notification.subcategory, notification.url )">here.</a></div>
+          <div style='color:white' class='menu-links' *ngIf="notification.post_type === 'music'">Your song has finished uploading, and can be viewed <a (tap)="exitLink(notification.post_type, notification.category, notification.subcategory, notification.url )">here.</a></div>
+          <div style='color:white' class='menu-links' *ngIf="notification.post_type === 'apparel' || notification.post_type === 'technology'">Your product has finished uploading, and can be viewed <a (tap)="exitLink(notification.post_type, notification.category, notification.subcategory, notification.url )">here.</a></div>
+        </div>
+        <div *ngIf="notification.notice_type === 'new_shipment'">
+            <div style='color:white' class='menu-links' *ngIf="notification.post_type === 'apparel' || notification.post_type === 'technology'">Your order for {{notification.quantity}} <a (tap)="exitLink(notification.post_type, notification.category, notification.subcategory, notification.url )">{{notification.title}} has shipped. Check your email for more information.</a></div>
+        </div>
+        <div *ngIf="notification.notice_type === 'new_shipment'">
+            <div style='color:white' class='menu-links' *ngIf="notification.post_type === 'apparel' || notification.post_type === 'technology'">Your order for {{notification.quantity}} <a (tap)="exitLink(notification.post_type, notification.category, notification.subcategory, notification.url )">{{notification.title}}</a> has shipped. Check your email for more information.</div>
+        </div>
+      </div>
+      <div *ngIf="!notifications || !notifications.length || notifications === []" style='text-align: center'>
+        <span style='color:white'>You haven't received any notifications</span>
+      </div>
+      <div id='loading-spinner-notifications-side-menu' style='display:none'>
+            <h4 class='center'>Loading Notifications...</h4>
+            <div class="spinner">
+                <div class="rect1"></div>
+                <div class="rect2"></div>
+                <div class="rect3"></div>
+                <div class="rect4"></div>
+                <div class="rect5"></div>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <div id='messages-side-menu' style='display:none;margin:auto;overflow:hidden;height:100%'>
+      <div style='border-bottom:1px solid white'><h5 class='center' style='color:white'>Messages</h5></div>
+      <div class='side-menus' id='message-container-menu' style='background-color: #262626 !important;position:absolute;width:100%;left:0%;display:block;height:inherit;overflow:scroll' data-inner="false">
+          <div class="row" style='border-bottom:1px solid white'>
+              <div>
+                  <ul class="tabs" materialize="tabs" id='messages-side-menu-tab-container' style='background-color: #262626 !important; width:95% !important'>
+                      <li *ngFor="let tab of messageTabs; let i = index" class="tab col ps4" id='tab-output-messages-side-menu'>
+                          <a id='messages-tab-link' href="#{{tab}}-messages-side-menu" class='capitalize'>{{tab}}</a>
+                      </li>
+                  </ul>
+              </div>
+          </div>
+          <div id='inbox-messages-side-menu' class='row col ps12' style='font-weight:300;margin-left:0px;margin-right:0px'>
+              <div style='height:inherit;padding:0px;'>
+                  <div *ngFor="let message of inbox; let i = index" class='message-containers row col ps12' [attr.data-index]="i" [ngClass]="{ 'unread-message' : !message.read }" style='text-align:center;color:white;margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.3);padding:6px'>
+                        <div class='row col ps4' style='padding:0px'>
+                            <div class='row' style='text-align: initial;margin-left: 5px;overflow: hidden'> From: {{message.sender}}</div>
+                            <div class='row' style='text-align: initial;margin-left: 5px;overflow: hidden'> {{message.time_ago}}</div>
+                        </div>
+                        <div class='row col ps7' style='padding:0px'>
+                            <div class='row' style='text-align: initial;margin-left: 5px;'>Body: {{message.body}}</div>
+                        </div>
+                        <div class='row col ps1' style='color:#039be5;float:right;left: 50%;top: 50%;transform: translate(-50%, -50%);-webkit-transform: translate(-50%, -50%);-moz-transform: translate(-50%, -50%);cursor:pointer' (click)="readConversation(message.conversation_id)">
+                            <i class='fa fa-chevron-right' style='position: relative;bottom: -50px;font-size: 1.2em;'></i>
+                        </div>
+                    </div>
+                  <div *ngIf="!inbox.length">
+                      <div class='center' style='padding-top:10px; color:white'><h6>You haven't received any messages.</h6></div>
+                  </div>
+              </div>
+          </div>
+          <div id='outbox-messages-side-menu' class='row col ps12' style='font-weight: 300;margin-left:0px;margin-right:0px;'>
+              <div style=' height: inherit;'>
+                 <div *ngFor="let message of outbox; let i = index" class='message-containers row col ps12' [attr.data-index]="i" style='text-align:center;color:white;border-bottom:1px solid rgba(255,255,255,0.3);padding:6px;margin-bottom: 10px'>
+                        <div class='row col ps4' style='padding:0px'>
+                            <div class='row' style='text-align: initial;margin-left: 5px;overflow: hidden'> To: {{message.receiver}}</div>
+                            <div class='row' style='text-align: initial;margin-left: 5px;overflow: hidden'> {{message.time_ago}}</div>
+                        </div>
+                        <div class='row col ps7' style='padding:0px'>
+                            <div class='row' style='text-align: initial;margin-left: 5px;'>Body: {{message.body}}</div>
+                        </div>
+                        <div class='row col ps1' style='color:#039be5;float:right;left: 50%;top: 50%;transform: translate(-50%, -50%);-webkit-transform: translate(-50%, -50%);-moz-transform: translate(-50%, -50%);cursor:pointer' (click)="readConversation(message.conversation_id)">
+                            <i class='fa fa-chevron-right' style='position: relative;bottom: -50px;font-size: 1.2em;'></i>
+                        </div>
+                    </div>
+                  <div *ngIf="!outbox.length">
+                      <div class='center' style='padding-top:10px; color:white'><h6>You haven't sent any messages.</h6></div>
+                  </div>
+              </div>
+          </div>
+          <div id='compose-messages-side-menu' class='row col ps12' >
+              <div style=' height: inherit;'>
+                  <form [formGroup]="message" class="col s12">
+                      <div class="row col s12">
+                          <label for="message-recipient-side-menu" class='form-link-label'>Recipient</label>
+                          <input id='message-recipient-side-menu' [ngClass]="{ 'has-error-input' : message.controls.receiver.errors?.required && message.controls.receiver.touched }" [formControl]="message.controls['receiver']" type="text" class="validate form-link" style='color:white !important'>
+                      </div>
+                      <div class='row'>
+                          <div class='text-box col ps12'>
+                              <label for='message-body-side-menu'>Body</label>
+                              <textarea id='message-body-side-menu' [ngClass]="{ 'has-error-body' : message.controls.body.errors?.required && message.controls.body.touched}" [formControl]="message.controls['body']" class="validate" type='text' data-type='text' style="border:1px solid rgba(255,255,255,0.3);;color:white !important"></textarea>
+                          </div>
+                      </div>
+                  </form>
+                  <div class='submit-message' style='text-align: center'>
+                      <button class='btn message-submit' [disabled]="!message.valid" (tap)="submitMessage(message.value)">Submit</button>
+                  </div>
+              </div>
+          </div>
+      </div>
+      <div id='conversation-side-menu' class='row col ps12 side-menus' style='position:absolute;width:100%;left:100%;background-color: #262626 !important;color:white;height:100%;overflow:scroll'>
+          <div class='row' (tap)="readConversation(null)" style='padding:5px;border-bottom:1px solid rgba(255,255,255,0.3);font-size:1.2em'><i class='fa fa-chevron-left' style='color:#039be5;margin-right:5px'></i> All</div>
+          <div style=' height: inherit;' *ngIf="!loadingConversation">
+                <div *ngFor="let message of conversation; let i = index" id='conversation-container-{{i}}' class='message-containers col ps12' [attr.data-index]="i" [attr.data-sender]="message.sender" [attr.data-receiver]="message.receiver" style='color:white;'>
+                    <div style='color:grey;font-size:0.8em;text-align:center;position:relative;top:-7px'>{{message.time_ago}}</div>
+                    <div [ngClass]="message.sender === currentUser ? 'col ps8 push-ps4' : 'col ps8'">
+                        <div [ngStyle]="{'border': message.sender === currentUser ? '1px solid #039be5' : '1px solid #888','float': message.sender === currentUser ? 'right' : 'left' }" style='color:white;border-radius: 10px;float: right;padding: 2px 5px;margin-bottom: 10px;'>
+                        <div class='row' style='text-align: initial;margin-left: 5px;margin-right: 5px;float: left;margin-bottom: 0px;font-weight:300'>{{message.body}}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class='row'>
+                  <div class='col ps12' style='border-top:1px solid rgba(255,255,255,0.3)'>
+                    <textarea id='reply-body' class='reply-input' type='text' placeholder="Reply:"></textarea> 
+                    <div (tap)="submitReply()" style='background-color: #039be5;height: 20px;width: 20px;border-radius: 100px;float: right;position: relative;top: -30px;left: -3px;'>
+                      <i class='fa fa-chevron-up' style='color:white;position:relative;left:4px;top:-1.5px;'></i>
+                    </div>
+                  </div>
+                </div>
+          </div>
+          <div id='loading-spinner' *ngIf="loadingConversation">
+            <h4 class='center'>Loading Messages...</h4>
+            <div class="spinner">
+              <div class="rect1"></div>
+              <div class="rect2"></div>
+              <div class="rect3"></div>
+              <div class="rect4"></div>
+              <div class="rect5"></div>
+              </div>
+          </div>
+      </div>
+  </div>
+
+
+  <div id='side-menu-container' style='display:none'>
+    <div id='side-menu-search' class='row col ps12'>
+      <form [formGroup]="search" (keydown)="checkEnter($event)" class='row col ps12'>
+        <select id="search-category-menu" class='search-select-menu' [formControl]="search.controls['category']" required style='display:inline;box-shadow:none !important;position:relative;max-width:20%;top:0px;padding:0px !important'>
+            <option *ngFor="let option of options;let i = index" [value]="option">{{option}}</option>
+        </select>
+        <input type="text" class="search-menu" [formControl]="search.controls['search']" id="search" style='border-bottom: 1px solid #fff !important; box-shadow: none !important;max-width:75%;display:inline;margin-left:-4px !important;padding:0px !important'/>
+        <span class="input-group-addon" (tap)='toggleSideMenu()'>
+                    <i class="fa fa-search" style='cursor:pointer;margin-left: -25px;color:white !important' (tap)="submitSearch(search.value)"></i>
+        </span>
+      </form>
+    </div>
+    <div>
+      <ul class='side-menus' id='main-side-menu' style='position:absolute;width:100%;left:0%;display:block'>
+            <li (tap)='toggleSideMenu()' id='home-menu' [routerLink]="['/']" class='side-menu-links center'><a><h6>Home</h6></a></li> 
+            <li (tap)='toggleInnerMenu("boards")' id='boards-menu' [routerLinkActive]="['active']" class='side-menu-links' data-target='boards-inner-menu'><a>Boards</a><span style='color: #ccc;float:right'>3 <i class="fa fa-angle-right" aria-hidden="true"></i></span></li> 
+            <li (tap)='toggleInnerMenu("music")' id='music-menu' [routerLinkActive]="['active']" class='side-menu-links'><a>Music</a><span style='color: #ccc;float:right'>3 <i class="fa fa-angle-right" aria-hidden="true"></i></span></li> 
+            <li (tap)='toggleInnerMenu("videos")' id='videos-menu' [routerLinkActive]="['active']" class='side-menu-links'><a>Videos</a><span style='color: #ccc;float:right'>3 <i class="fa fa-angle-right" aria-hidden="true"></i></span></li> 
+            <li (tap)='toggleInnerMenu("apparel")'  id='apparel-menu' [routerLinkActive]="['active']" class='side-menu-links'><a>Apparel</a><span style='color: #ccc;float:right'>3 <i class="fa fa-angle-right" aria-hidden="true"></i></span></li> 
+            <li (tap)='toggleInnerMenu("technology")'  id='technology-menu' [routerLinkActive]="['active']" class='side-menu-links'><a>Technology</a><span style='color: #ccc;float:right'>3 <i class="fa fa-angle-right" aria-hidden="true"></i></span></li> 
+      </ul>
+      <ul class='side-menus' id='main-non-inner-menu' style='position:absolute;width:100%;left:-100%;display:none'>
+          <li (tap)='toggleSideMenu()' id='home-menu' [routerLink]="['/']" class='side-menu-links center'><a><h6>Home</h6></a></li> 
+          <li (tap)='toggleSideMenu()' id='boards-menu' [routerLinkActive]="['active']" [routerLink]="['boards']" class='side-menu-links' data-target='boards-inner-menu'><a>Boards</a></li> 
+          <li (tap)='toggleSideMenu()' id='music-menu' [routerLinkActive]="['active']" [routerLink]="['music']" class='side-menu-links'><a>Music</a></li> 
+          <li (tap)='toggleSideMenu()' id='videos-menu' [routerLinkActive]="['active']" [routerLink]="['videos']" class='side-menu-links'><a>Videos</a></li> 
+          <li (tap)='toggleSideMenu()' id='apparel-menu' [routerLinkActive]="['active']" [routerLink]="['apparel']" class='side-menu-links'><a>Apparel</a></li> 
+          <li (tap)='toggleSideMenu()' id='technology-menu' [routerLinkActive]="['active']" [routerLink]="['technology']" class='side-menu-links'><a>Technology</a></li> 
+      </ul>
+      <ul class='side-menus inner-side-menus' id='boards-inner-menu' style='position:absolute;width:100%;left:100%'>
+          <span style='color:gray' (tap)='toggleInnerMenu("home","boards")' ><i class="fa fa-angle-left" aria-hidden="true"></i> Main Menu</span>
+          <li (tap)='toggleSideMenu()' id='boards-menu' [routerLinkActive]="['active']" class='inner-side-menu-links' data-target='boards-inner-menu'><a class='center' [routerLink]="['boards']"><h6>Boards</h6></a></li> 
+          <li (tap)='toggleSideMenu()' id='boards-menu' [routerLinkActive]="['active']" [routerLink]="['boards','hot']" class='inner-side-menu-links' data-target='boards-inner-menu'><a>Hot</a></li>
+          <li (tap)='toggleSideMenu()' id='boards-menu' [routerLinkActive]="['active']" [routerLink]="['boards','new']" class='inner-side-menu-links' data-target='boards-inner-menu'><a>New</a></li>
+          <li (tap)='toggleSideMenu()' id='boards-menu' [routerLinkActive]="['active']" [routerLink]="['boards','science']" class='inner-side-menu-links' data-target='boards-inner-menu'><a>Featured</a></li>
+      </ul>
+      <ul class='side-menus inner-side-menus' id='music-inner-menu' style='position:absolute;width:100%;left:100%;'>
+          <span style='color:gray' (tap)='toggleInnerMenu("home","music")' ><i class="fa fa-angle-left" aria-hidden="true"></i> Main Menu</span>
+          <li (tap)='toggleSideMenu()' id='boards-menu' [routerLinkActive]="['active']" class='inner-side-menu-links' data-target='boards-inner-menu'><a class='center' [routerLink]="['music']"><h6>Music</h6></a></li> 
+          <li (tap)='toggleSideMenu()' id='boards-menu' [routerLinkActive]="['active']" [routerLink]="['music','hot']" class='inner-side-menu-links' data-target='boards-inner-menu'><a>Hot</a></li>
+          <li (tap)='toggleSideMenu()' id='boards-menu' [routerLinkActive]="['active']" [routerLink]="['music','new']" class='inner-side-menu-links' data-target='boards-inner-menu'><a>New</a></li>
+          <li (tap)='toggleSideMenu()' id='boards-menu' [routerLinkActive]="['active']" [routerLink]="['music','featured']" class='inner-side-menu-links' data-target='boards-inner-menu'><a>Featured</a></li>
+      </ul>
+      <ul class='side-menus inner-side-menus' id='videos-inner-menu' style='position:absolute;width:100%;left:100%;'>
+          <span style='color:gray' (tap)='toggleInnerMenu("home","videos")' ><i class="fa fa-angle-left" aria-hidden="true"></i> Main Menu</span>
+          <li (tap)='toggleSideMenu()' id='boards-menu' [routerLinkActive]="['active']" class='inner-side-menu-links' data-target='boards-inner-menu'><a class='center' [routerLink]="['videos']"><h6>Videos</h6></a></li> 
+          <li (tap)='toggleSideMenu()' id='boards-menu' [routerLinkActive]="['active']" [routerLink]="['videos','hot']" class='inner-side-menu-links' data-target='boards-inner-menu'><a>Hot</a></li>
+          <li (tap)='toggleSideMenu()' id='boards-menu' [routerLinkActive]="['active']" [routerLink]="['videos','new']" class='inner-side-menu-links' data-target='boards-inner-menu'><a>New</a></li>
+          <li (tap)='toggleSideMenu()' id='boards-menu' [routerLinkActive]="['active']" [routerLink]="['videos','featured']" class='inner-side-menu-links' data-target='boards-inner-menu'><a>Featured</a></li>
+      </ul>
+      <ul class='side-menus inner-side-menus' id='apparel-inner-menu' style='position:absolute;width:100%;left:100%;'>
+          <span style='color:gray' (tap)='toggleInnerMenu("home","apparel")' ><i class="fa fa-angle-left" aria-hidden="true"></i> Main Menu</span>
+          <li (tap)='toggleSideMenu()' id='boards-menu' [routerLinkActive]="['active']" class='inner-side-menu-links' data-target='boards-inner-menu'><a class='center' [routerLink]="['apparel']"><h6>Apparel</h6></a></li> 
+          <li (tap)='toggleSideMenu()' id='boards-menu' [routerLinkActive]="['active']" [routerLink]="['apparel','hot']" class='inner-side-menu-links' data-target='boards-inner-menu'><a>Hot</a></li>
+          <li (tap)='toggleSideMenu()' id='boards-menu' [routerLinkActive]="['active']" [routerLink]="['apparel','new']" class='inner-side-menu-links' data-target='boards-inner-menu'><a>New</a></li>
+          <li (tap)='toggleSideMenu()' id='boards-menu' [routerLinkActive]="['active']" [routerLink]="['apparel','featured']" class='inner-side-menu-links' data-target='boards-inner-menu'><a>Featured</a></li>
+      </ul>
+      <ul class='side-menus inner-side-menus' id='technology-inner-menu' style='position:absolute;width:100%;left:100%;'>
+          <span style='color:gray' (tap)='toggleInnerMenu("home","technology")' ><i class="fa fa-angle-left" aria-hidden="true"></i> Main Menu</span>
+          <li (tap)='toggleSideMenu()' id='boards-menu' [routerLinkActive]="['active']" class='inner-side-menu-links' data-target='boards-inner-menu'><a class='center' [routerLink]="['technology']"><h6>Technology</h6></a></li> 
+          <li (tap)='toggleSideMenu()' id='boards-menu' [routerLinkActive]="['active']" [routerLink]="['technology','hot']" class='inner-side-menu-links' data-target='boards-inner-menu'><a>Hot</a></li>
+          <li (tap)='toggleSideMenu()' id='boards-menu' [routerLinkActive]="['active']" [routerLink]="['technology','new']" class='inner-side-menu-links' data-target='boards-inner-menu'><a>New</a></li>
+          <li (tap)='toggleSideMenu()' id='boards-menu' [routerLinkActive]="['active']" [routerLink]="['technology','featured']" class='inner-side-menu-links' data-target='boards-inner-menu'><a>Featured</a></li>
+      </ul>
+      <ul class='side-menus inner-side-menus' style='position:absolute;width:100%;left:100%;' id='settings-inner-menu'>
+        <li>
+          <div style='text-align:center'>
+            <div style='color:gray'>Show Submenus:</div>
+             <div class="switch">
+              <label>
+                Off
+                <input (tap)='toggleMainMenu()' disabled id='submenus-select' checked type="checkbox">
+                <span class="lever"></span>
+                On
+              </label>
+            </div>
+          </div>
+        </li>
+        <li style='margin-top:20px'>
+          <div style='text-align:center'>
+            <div style='color:gray'>Show Posts:</div>
+             <div class="switch">
+              <label>
+                Off
+                <input disabled type="checkbox">
+                <span class="lever"></span>
+                On
+              </label>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </div>
+      <div class='side-menu-footer'>
+        <ul>
+          <li (tap)='toggleSideMenu()' *ngIf="!isLoggedIn" [routerLinkActive]="['active']" [routerLink]="['signin']" style='display:inline;float:left;margin-left:5px'><a>Sign In</a></li>
+          <li (tap)='toggleSideMenu()' *ngIf="!isLoggedIn" [routerLinkActive]="['active']" [routerLink]="['signup']" style='display:inline;float:right;margin-right:5px'><a>Sign Up</a></li>
+          <div (tap)='toggleInnerMenu("settings", "settings")' class='settings-toggle' id='settings-toggle' style='text-align:center' data-open='false' data-inner='' data-main='true'>
+            <i class="fa fa-cog settings-cog" id='cog' aria-hidden="true" style='font-size:1.7em'></i>
+          </div>
+          <li (tap)='toggleSideMenu()' *ngIf="isLoggedIn"><a (tap)="logout()" style='display:inline;float:left;margin-left:5px;margin-top: -25px;'>Logout</a></li>
+          <li (tap)='toggleSideMenu()' *ngIf="isLoggedIn" [routerLinkActive]="['active']" id='profile-menu' [routerLink]="['/user', currentUser]" style='display:inline;float:right;margin-right:5px;margin-top: -25px;'><a>Profile</a></li>
+        </ul>
+      </div>
+  </div>
+</div>
+<div id="toast-container"></div>
+<!-- Currently don't use the menu directive as the logging-in is busted -->
+<!-- <menu class='menu'></menu> -->
+
+
+<!-- <div class='background'>  -->
+  <div class='outer-container'>
+    <div class='container'>
+      <system_messages></system_messages>
+      <lightbox></lightbox>
+      <modal (setLoggedIn)="setLoggedIn($event)"></modal>
+      <modal_update></modal_update>
+      <messages_modal></messages_modal>
+      <notifications></notifications>
+      <cart_modal></cart_modal>
+      <router-outlet></router-outlet>
+      <footer></footer>
+    </div>
+  </div>
+<!-- </div> -->
+
+<a (tap)="backToTop()" id="back-to-top" class="rippler rippler-bs-default"><i class="fa fa-angle-up arrow"></i></a>
+<a *ngIf="newNotifications" (tap)='showNotifications()' id='notification-icon' ><i class='fa fa-bell' style='font-size: 1.2em;padding-top: 5px;color: rgba(255,255,255,0.8)'></i></a>
+<a *ngIf="items.length" (tap)='showCart()' id='shopping-icon' class='cart' style='top:175px;border:1px solid;'><i class='fa fa-shopping-cart' style='font-size: 1.2em;padding-top: 5px;color: rgba(255,255,255,0.8)'></i></a>
+
+<div *ngIf="prod">
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+      'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer','GTM-KFPN9Z8');</script>
+</div>

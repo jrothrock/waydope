@@ -1,0 +1,50 @@
+<div [style.margin-left.px]='offset' class='row col s12 menu-drop-down' id='videos-drop-down' (mouseenter)="mouseEnter()" (mouseleave)="mouseLeft()">
+	<h4 class='menu-titles' style='color:white' (tap)='clickedLink("header")'>Videos</h4>
+	<hr class='menu-divider'>
+	<div class="row">
+	    <div class="tabs-vertical">
+	        <div class="col s4 m3 l3 xl2">
+	            <ul class="menu-tabs" id='videos-menu-tabs'>
+	                <div *ngFor="let name of names; let i = index" class='menu-tab-container' id="menu-tab-name-videos-{{name}}" [attr.data-name]="giveDataName(name)" [attr.data-type]="'videos'" (mouseenter)="hoveringItem(name)">
+		                <li class="menu-tab" id='menu-tab-videos-{{name}}' (dblclick)="menuClick(name)" [ngClass]="{'active-tab':i===0}">
+		                    <a id='menu-tab-link' [ngClass] = "{active: i == 0}" href="#menu-{{name}}-videos" style='text-transform:capitalize'>{{name}}</a>
+		                </li>
+		            </div>
+	            </ul>
+	        </div>
+	        <div class="col s8 m9 l8 xl6 menu-tab-output" id='menu-tab-output-videos' style='min-height:300px'>
+	            <div *ngFor="let name of names; let i = index" id="menu-{{name}}-videos" class='menu-tab-content' [style.display]="i === 0 ? 'block' : 'none'">
+					<div class='row col m12' style='border-bottom:1px solid white'><h4 class='center capitalize link' (tap)="clickedLink('category',name)">{{name}}</h4></div>
+					<div *ngIf="posts && posts[i] && initiated" id="menu-{{name}}-videos-container" class='row col m12 menu-videos-container' style='margin-top:-10px;opacity:0;transition: all 125ms'>
+						<div class="col m4" *ngFor="let post of posts[i]; let ic = index" id="menu-{{name}}-videos">
+							<div class='menu-video-info'>
+								<div class='link-title' style='cursor:pointer' (mouseenter)="marqueeToggle(1,name,ic)" (mouseleave)="marqueeToggle(0,name,ic)"><a id='videos-menu-title-link-{{name}}-{{ic}}' (tap)="clickedLink('video',post.main_category, post.url)">{{post.title}}</a></div>
+							</div>
+							<div style='color:grey;font-size:0.7em'>
+								Posted by <a (tap)="clickedLink('user',post.submitted_by)" style='cursor:pointer'>{{post.submitted_by}}</a> <br>
+							</div>
+							<div *ngIf="!post.clicked" class='video-menu-photo-container' (mouseenter)="photoHover(1,name,ic)" (mouseleave)="photoHover(0,name,ic)" (tap)="photoClicked(name,i,ic,post.form,post.uuid)">
+								<img class='play-button-menu' id='play-button-menu-video-{{name}}-{{ic}}' style='opacity:0.8' src="/assets/images/blackbutton.svg" alt="Play Button">
+								<img *ngIf="post.form == 0 && post.link_artwork" style='opacity:0.6;cursor:pointer' id='video-artwork-menu-{{name}}-{{ic}}' src='{{post.link_artwork}}' height="100%" width="100%"/>
+								<img *ngIf="post.form == 1 && !post.nsfw && post.upload_artwork_url" style='opacity:0.6;cursor:pointer' id='video-artwork-menu-{{name}}-{{ic}}' [src]="post.upload_artwork_url ? post.upload_artwork_url : null | safeurl" height="100%" width="100%"/>
+								<img *ngIf="post.form == 1 && post.nsfw && post.upload_artwork_url_nsfw" style='opacity:0.6;cursor:pointer' id='video-artwork-menu-{{name}}-{{ic}}' [src]="post.upload_artwork_url_nsfw ? post.upload_artwork_url_nsfw : null | safeurl" height="100%" width="100%"/>
+								<img *ngIf="(post.form == 0 && !post.link_artwork) || (post.form == 1 && !post.upload_artwork_url)" style='opacity:0.7;cursor:pointer' id='video-artwork-menu-{{name}}-{{ic}}' class='video-menu-artwork-default-container' src="/assets/images/background-video.png" height="100%" width="100%"/>
+							</div>
+							<div *ngIf="post.clicked && post.form == 0" class='video-menu-frame-container' [innerHTML]="post.link | safe"></div>
+							<div *ngIf="post.clicked && post.form == 1">
+								<video id="menu_video_{{i}}_{{post.uuid}}" class="video-js vjs-default-skin vjs-big-play-centered video-js-menu" data-setup='{"fluid": true}' controls preload="auto">
+									<source [src]="post.upload_url | safeurl" type="video/mp4" />
+									<p class="vjs-no-js">To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="http://videojs.com/html5-video-support/" target="_blank" rel="noopener">supports HTML5 video</a></p>
+								</video>
+							</div>
+							<div class='menu-vote-actions-video'>
+				              <div class='menu-upvote-video'><i [ngClass]="{ 'active' : post.user_voted === 1}" (tap)="setVote(1, post.uuid,name, post.average_vote, post.user_voted)" id='{{name}}-upvote-{{post.uuid}}' class='fa fa-chevron-up' style='cursor:pointer' aria-hidden="true"></i></div><div class='menu-downvote-video'><i [ngClass]="{ 'active' : post.user_voted === -1}" (tap)="setVote(-1, post.uuid,name, post.average_vote, post.user_voted)" class='fa fa-chevron-down' style='cursor:pointer' id='{{name}}-downvote-{{post.uuid}}' aria-hidden="true"></i></div>
+				              <div [style.margin-left.px]="math.floor(math.log10(post.average_vote)) % 1 === 0 ? 3 - (4*math.floor(math.log10(post.average_vote))) : 3" class='menu-average-votes' id='{{name}}-vote-{{post.uuid}}'>{{post.average_vote}}</div>
+				            </div>
+						</div>
+					</div>
+	            </div>
+	        </div>
+	    </div>
+	</div>
+</div>

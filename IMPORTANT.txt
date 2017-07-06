@@ -1,0 +1,112 @@
+Import things when working on this.
+---------------------------------------------------
+
+When building prod use: 
+    npm build
+
+!!!!IMPORTANT!!!!
+
+When moving/downloading this folder, you will need to clone the open_nsfw reposityory into the top ie /waydope:
+https://github.com/yahoo/open_nsfw
+
+!!!!!  !IMPORTANT!
+
+When running the open_nsfw on dev, you need to run ```boot2docker up``` then set the env variables, then launch sidekiq in that same tab, or you will get a no docker daemon error.
+
+!!!!!!!!!!!!!!!!!!
+
+Comment where code can be confusing!
+    - Keep it DRY (don't repeat yourself) and please KISS (keep it simple, stupid)
+        - I, Jack Rothrock, will probably end up reading your code, just for the hell of it, and I'm definitely not as smart as you.
+
+Use transformations instead of transitions: http://stackoverflow.com/questions/15605731/jerky-css-transform-transition-in-chrome
+    -also, stay away from jQuery's animate. jQuery's fadeIn and fadeOut use animate.
+
+Tagging onto the above, Use transitions - with z-index and opacity - and Jquery's add/remove class, instead of using jQuery's fadeIn/fadeOut
+    - this that good grammer, though.
+
+For inputs that use files, use accepts but don't use all inclusive - accept="image/*" || accept="video/*"
+    - instead use accept="image/png, image/jpeg, image/gif"
+    - this is due to a bug on OSX. http://stackoverflow.com/questions/39187857/inputfile-accept-image-open-dialog-so-slow-with-chrome
+
+Need to pass data between a parent and child? or two children? use a service.
+    - http://stackoverflow.com/questions/34714462/updating-variable-changes-in-components-from-a-service-with-angular2
+    - https://angular.io/docs/ts/latest/cookbook/component-communication.html#!#bidirectional-service
+    
+    - IMPORTANT!!! There is a bug in 2.0 atleast, maybe fixed in later versions, where if you put the service in the 
+    app component providers, then use it in the child, the service/subscription will not work! Only put it in the app component provider
+        - ex. putting messageservice in app_component providers as well as putting the messageservice in the message_modal_component providers.
+
+As there won't be too much going on at first, I've decided to go with short polling over websockets for the notications - seeing as the notifications really only need to updated
+about every minute or so. Later on websockets should replace them.
+
+In the future, to pop down to a reply comment, look at this: https://github.com/angular/angular/issues/6595
+
+
+JSONB queries and such, http://nandovieira.com/using-postgresql-and-jsonb-with-ruby-on-rails
+    - JSONB
+
+If you get, '..module is not an ngModule' on 'npm start' just save a random file, it will recompile and it will work.
+    - this is a bug with either @angular/compiler-cli or @angular/cli.
+
+###########################
+
+Production:
+
+To Launch Sidekiq
+    bundle exec sidekiq -d -L log/sidekiq.log -e production
+
+To kill Sidekiq 	
+    kill `ps aux | grep sidekiq | grep -v grep | awk '{print $2}'`
+    -- or ps -ef | grep sidekiq | grep -v grep | awk '{print $2}' | xargs kill -9
+
+ALIASES (can be found in ~/.bash_aliases: 
+1. restart_server
+    - runs the restart_server.sh file which stops unicorn, kills sidekiq, starts unicorn, starts sidekiq.
+2. kill_workers
+    - runs the kill_workers.sh file which kills all the sidekiq kill_workers
+3. kill_worker (JID)
+    - runs the kill_worker.sh file which kills job by the JID that is passed in
+4. retry_workers
+    - runs the retry_workers.sh file retrys all the kill_worker
+5. retry_worker (JID)
+    - runs the retry_worker.sh file which retrys the job by the JID that is passed in.
+
+
+
+
+To reload unicorn use, 'sudo service waydope stop' then 'sudo service waydope start'. Sometimes there are troubles with restart, and reload just straight up fucks it.
+
+If you update whenever then update the cron using "whenever --update-crontab", you have to restart the cron "sudo service cron restart"
+
+If you get unitialized constant in rails, you are going to need to run 'spring stop'
+
+
+#### CACHING ###
+The only things that are being cached are the home, menus, comments, types (music,boards,videos,etc.), and inner categories (as well as subcategories)
+
+So the caching needs some work. Currently the cache works as such. Two examples.
+Ex 1. Someone votes on a news post
+All news post caches will destroyed - ie. /news and /news/category
+If the post that was voted on is in the home (by looking at the home ids redis key) it will destroy the home cache
+If the post that was voted on is in the menus (by looking at the menu ids redis key) it will destroy the menu cache
+
+Ex 2. News Post creationg.
+All news post caches will be destroyed - ie. /news and /news/category
+If the home has less than 25 posts (ie all 5 sections aren't filled) it will destroy the home cache 
+If the menu has less than 15 posts (ie all 5 sections aren't filled) it will destroy the menu cache
+
+    - the only drawback to these two things are, lets say, a home post has -1 votes it won't be uncached as the new post will have a higher rating
+        - this will really only happen in development
+
+If the models in the console aren't working, spring needes to be restarted.
+!!! DEV TO PROD
+Before pushing shit to prod, remove all console logs!
+    0. git status; git add .; git commit (-am "message" | --amend)
+    1. cd /path/to/waydope/client/src/app --- make sure to do it only in the client/src/app. 
+        - If you accidentaly fuck up, and do it in the client down: The npm packages will have to be removed and reinstalled, and a fresh cloudzoom will need to be added to the assets.
+    2. grep -r -l "console\.log(.*);" . | xargs sed -i "" "s/console\.log(.*)\;//g"
+    3. grep -r -l "console\.log(.*)" . | xargs sed -i "" "s/console\.log(.*)//g"
+    0.1 - If it fucked shit up, git reset HEAD --hard
+
+For future notice, the alias.sh doesn't set the aliases/work. I had to set it in the bash rc, if I remember correctly.

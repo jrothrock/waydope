@@ -1,0 +1,22 @@
+require "#{Rails.root}/app/uploaders/artwork_uploader"
+require 'carrierwave'
+require 'taglib'
+require 'open-uri'
+class ProductuploadWorker
+	include Sidekiq::Worker
+	# @queue = :soundcloud
+	def perform
+		products = Product.where("updated = true AND uploaded = false").all
+
+		key = Rails.application.secrets.aws_access_key_id
+		secret =  Rails.application.secrets.aws_secret_access_key
+		credentials = Aws::Credentials.new(key, secret)
+		s3 = Aws::S3::Resource.new(region: 'us-west-2', credentials: credentials)
+
+		products.each do |product|
+			Product.uploadPhotos(product,s3)
+			Product.removeDir(product)
+			NotificationuploadWorker.perform_async(product.as_json)
+		end
+	end
+end

@@ -1,0 +1,22 @@
+  <div id="modal-report" class="modal report">
+    <div class="modal-content">
+			<form [formGroup]="reportForm" class="col m12" style='margin-bottom:15px'>
+				<h5 class='center'>Report Comment:</h5>
+				<p>
+					<input class="with-gap" type="radio" [formControl]="reportForm.controls['foul']" name="foul" id="report-1" [value]="1">
+					<label for="report-1">Spam</label>
+				</p>
+				<p>
+					<input class="with-gap" type="radio" [formControl]="reportForm.controls['foul']" name="foul" id="report-2" [value]="2">
+					<label for="report-2">Hateful and/or abusive content</label>
+				</p>
+			</form>
+			<button class='btn' (tap)='closeReport()'>Cancel</button>
+			<button class='btn' (tap)='submitReport(reportForm.value)'>Submit Report</button>
+		</div>
+    </div>
+  <div id='modal-has-reported' class='modal report'>
+  	<h5>Thanks for reporting. We are currently looking into your request.</h5>
+  	<button class='btn' (tap)='closeReport()'>Ok</button>
+  </div>
+

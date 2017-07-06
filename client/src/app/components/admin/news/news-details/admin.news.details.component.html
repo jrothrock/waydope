@@ -1,0 +1,65 @@
+<div class='row col s12'>  
+  <h4>News Details</h4>
+  <hr>
+  	<h5 class='center'>Current Article Details</h5>
+  	<div class="row">
+  		<span>Article ID: {{id}}</span>
+  	</div>
+  	<div class="row">
+  		<span>Article Title: {{title}}</span>
+  	</div>
+  	<div class="row">
+  		<span>Article Category: {{category}}</span>
+  	</div>
+  	<div class="row">
+  		<span>Article Description: {{description}}</span>
+  	</div>
+  	<div class="row">
+  		<span>Article Link: {{link}}</span>
+  	</div>
+  	<div class="row">
+  		<span>Submitted By: {{submitted_by}}</span>
+  	</div>
+  	<hr>
+  	<h5 class='center'>Update Article Details</h5>
+  <div class="row">
+  <form [formGroup]="updateArticle" (ngSubmit)="submitArticle(updateArticle.value)" class="col s12">
+  	<div class="row">
+      <div class="input-field col s12 m6">
+        <input [ngClass]="{ 'has-error-input' : updateArticle.controls.title.errors?.required && updateArticle.controls.title.touched}" [formControl]="updateArticle.controls['title']" id="title-input" type="text" [value]="title" class="validate">
+        <label for="title" id='title-label'>Title</label>
+        <em *ngIf="updateArticle.controls.title.errors?.required && updateArticle.controls.title.touched" class='has-error'> A title is required </em>
+      </div>
+    </div>
+    <div class="row">
+      <div class='select-field col s12 m6'>
+        <div class="form-group">
+          <label for="power">Category</label>
+          <select class="form-control" id="power" [ngClass]="{ 'has-error-select' : updateArticle.controls.category.errors?.required && updateArticle.controls.category.touched}"  required [formControl]="updateArticle.controls['category']" name="power" class="validate" style='display:block !important'>
+            <option *ngFor="let p of powers" [value]="p">{{p}}</option>
+          </select>
+           <em *ngIf="updateArticle.controls.category.errors?.required && updateArticle.controls.category.touched" class='has-error'> Category is required </em>
+        </div>
+      </div>
+      <div class="input-field col s12 m6">
+          <input [ngClass]="{ 'has-error-input' :  ((updateArticle.controls.link.errors?.required || updateArticle.controls.link.errors?.pattern  )&& updateArticle.controls.link.touched) }" [formControl]="updateArticle.controls['link']" [value]="link" id="link-input" type="text" class="validate">
+          <label for="link" id='link-label'>link</label>
+          <em *ngIf="updateArticle.controls.link.errors?.required && updateArticle.controls.link.touched" class='has-error'> A link is required </em>
+      </div>
+    </div>
+    <div class='row'>
+      <div class='text-box col s12'>
+        <textarea [formControl]="updateArticle.controls['description']" type='text'></textarea>
+        <label for='link' id='song-description'>Description</label>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="row">
+  <div class="center-align">
+  	<button class="waves-effect waves-light btn" [routerLink]="['/admin','news']">Go Back</button>
+    <button type="submit" [disabled]='!updateArticle.valid' class="waves-effect waves-light btn" (tap)="submitArticle(updateArticle.value)">Update Article</button>
+  </div>
+</div>
+

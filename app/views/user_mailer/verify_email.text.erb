@@ -1,0 +1,3 @@
+Hey, <%= @user.username %>. Please verify your email through the link below:
+
+<%= @production ? "http://waydope.com/verify?type=email&verification=#{@user.email_token}" : "http://localhost:4200/verify?type&email?verification=#{@user.email_token}" %>

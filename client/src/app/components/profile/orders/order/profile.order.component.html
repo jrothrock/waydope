@@ -1,0 +1,53 @@
+<a [routerLink]="['/user',user,'orders']">All Orders</a>
+<h4>Your Order:</h4>
+<div id='order-container' style='opacity:0;transition:all 0.2s'>
+    <div style='border: 1px solid rgba(0,0,0,0.1);height: 100px'>
+        <div style='text-align:center'><h4>Total: {{order.total}}</h4></div>
+        <div class='row col ps12' style='text-align:center'> 
+            <div class='col ps4'>subtotal: {{order.sub_total}}</div>
+            <div class='col ps4'>shipping: {{order.shipping}}</div>
+            <div class='col ps4'>tax: {{order.tax}}</div>
+        </div>
+    </div>
+    <h5 style='text-align:center'>Items:</h5>
+    <div style='border: 1px solid rgba(0,0,0,0.1)' class='row'>
+        <div *ngFor="let item of titles; let ic = index" class='row col ps12' [attr.data-index]="ic" [style.border-top]="ic != 0 ? '1px solid rgba(0,0,0,0.2)' : 'opx solid rgba(0,0,0,0.1)'" style='padding:10px 0px'>
+            <div *ngIf="shipped_ids.indexOf(order.products[item.i].id) > -1" style='text-align:center;border:1px solid rgba(0,0,0,0.1);position: relative; height: 50px;width:400px;top:10px;margin:auto;margin-bottom: 20px'>
+                <div style='color:#18bb18;text-align: center'>This item has shipped.</div> 
+                <div>Confirmation code: {{confirmation_codes[shipped_ids.indexOf(order.products[item.i].id)]}}</div>
+            </div>
+            <div class='link-title' style='font-size:1.3em' (mouseenter)="marqueeToggle(1,i,ic)" (mouseleave)="marqueeToggle(0,i,ic)"><a id='apparel-title-link-{{i}}-{{ic}}' [routerLink]="['/' + order.products[item.i].post_type, order.products[item.i].main_category, order.products[item.i].sub_category, order.products[item.i].url]">{{item.title}}</a></div>
+            <div *ngIf="order.products[item.i].upload_urls.length" class='main-image col ps5 m3' id='main-photo-cart-review-container-{{ic}}' style='text-align:center;margin-top:10px;'>
+                <img height="100%" width="100%" class="cloudzoom" id='main-photo-order-{{ic}}' (mouseenter)="photoZoom(ic)" src='{{order.products[item.i].upload_urls[0]}}' style='cursor:zoom-in;'/>
+            </div>
+            <div class='col ps7 m9'>
+                <div class='row col ps12'>
+                    <div class='col ps4'>
+                        <span>Price:</span>
+                        <div>{{prices[ic]}}</div>
+                    </div>
+                    <div class='col ps4'>
+                        <span>Quantity:</span>
+                        <div>{{quantities[ic]}}</div>
+                    </div>
+                    <div class='col ps4'>
+                        <div style='white-space: nowrap'>total: {{totals[ic]}}</div>
+                        <div style='white-space: nowrap'>sub: {{prices[ic]}}</div> 
+                        <div style='white-space: nowrap'>ship: {{shippings[ic]}}</div>
+                        <div *ngIf="order.tax_rate" style='white-space: nowrap'>tax: {{taxes[ic]}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h5 style='text-align:center'>Shipping Information:</h5>
+    <div style='border: 1px solid rgba(0,0,0,0.1);padding: 7px' class='row'>
+        <div style='white-space: nowrap'>Firstname: {{order.firstname}}</div>
+        <div style='white-space: nowrap'>Lastname: {{order.lastname}}</div> 
+        <div style='white-space: nowrap'>Address: {{order.address}}</div>
+        <div style='white-space: nowrap'>Address two: {{order.address_two}}</div>
+        <div style='white-space: nowrap'>Zip: {{order.zip}}</div>
+        <div style='white-space: nowrap'>City: {{order.city}}</div>
+        <div style='white-space: nowrap'>State: {{order.state}}</div>
+    </div>
+</div>

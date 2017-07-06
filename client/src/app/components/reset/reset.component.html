@@ -1,0 +1,27 @@
+<div class='row' class='reset-container'>
+    <h4 style='text-align: center'>Reset Password</h4>
+        <div class="row">
+        <form [formGroup]="resetForm" class="col s12">
+            <div class="input-field col s12 m8 offset-m2">
+                <input [ngClass]="{ 'has-error-input' : no_user || no_email || ((resetForm.controls.username.errors?.required || resetForm.controls.username.errors?.pattern )&& resetForm.controls.username.touched) }" [formControl]="resetForm.controls['username']" id="username" type="text" class="validate">
+                <label for="username">Username</label>
+                <em *ngIf="resetForm.controls.username.errors?.required && resetForm.controls.username.touched" class='has-error'> Required </em>
+                <em *ngIf="resetForm.controls.username.errors?.pattern && resetForm.controls.username.touched" class='has-error'> Enter a valid username </em>
+            </div>
+            <div *ngIf="no_user" class='col m8 offset-m2' style='position:relative;top:-10px'>
+                <em class='has-error'>No Username Found By That Name.</em>
+            </div>
+            <div *ngIf="no_email" class='col m8 offset-m2' style='position:relative;top:-10px'>
+                <em class='has-error'>Username doesn't have an email associated to it.</em>
+            </div>
+        </form>
+        <div class="row">
+            <div class="center-align">
+                <button type="submit" [disabled]='!resetForm.valid || submitted' class="waves-effect waves-light btn" (tap)="submitReset(resetForm.value)">Send Email</button>
+                <svg class="spinner-circle" id='submit-reset' viewBox="0 0 50 50">
+                    <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+                </svg>
+            </div>
+        </div>
+    </div>
+</div>

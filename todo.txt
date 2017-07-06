@@ -1,0 +1,301 @@
+## - may be completed # - may not need to be completed
+---------------------------------------------------
+
+# Uncomment the protect_from_forgery in the application_controller
+
+Change the cors
+
+# Change the development, and production secrets/keys
+    - done on production end for keys
+
+Work on the website url regex in partner component - http://www.rubular.com/r/A5jxmCDDaw
+
+Edit the play button to have white/orange stroke, as well as making a red and green one.
+
+Move the menu out of the app component and into the menus component 
+
+See if the post, song, and video categorize first_or_create caused the memory leak that blew up the computer. 
+    - On further evaluation, it didn't. This needs to be implemented.
+
+DOUBLE CHECK ALL INTAKES FOR SQL INJECTION, ESPECIALLY ALL NON WHEREs.
+
+#For deleted posts,songs,videos,comments, and replies, add deleted columns - such as title and body - so that all the original ones can be changed. Then do a select for all the og ones so the deleted columns never get leaked to the front end.
+
+edge case in the comments where if there is a comment with one reply, and the comment's owner deletes the comment, then the replies owner deletes the reply, the reply will become hidden, and the comment wont be. This can potentially be fixed by having a job fire off when a reply becomes hidden that looks for posts that are deleted, that have replies that are hidden, then make the comment hidden as well.
+
+##Fix issue with cookies being set multiple times.
+
+secure cookies. - https://www.nczonline.net/blog/2009/05/12/cookies-and-security/
+
+Add ability to manually hide songs, videos, and posts with out them deleteing while letting the creator have the chance to unhide it. 
+Maybe do the same thing that youtube does with videos in terms of hiding, etc.
+
+The way that the offset works is by using modulo 23. This is a super unfriendly API method. Needs to be changed in the future when the API gets opened up.
+
+# Due to the change up of offsets from frontend to backend, there may be some serious fuck ups. Check for both music and video using distinct names.
+    - not sure
+
+
+Give credit to those in the source code for open source projects - like wavesurfer.
+
+# Clean up the api, make it more restful, and version it to v1 - ex. /api/v1/music/electronic.
+    - this should be done when you are having fun changing all the localhost:3000 that you didn't want to set to a variable in the beginning... Idiot.
+
+Okay so the search method NEEDS to be figure out. Currently the all does a N+1 query for all the objects. This is due to me struggling to put an association
+on something that doesn't have a model. The other way is using a join, the last option is sorting using a hash and grabbing all the searches in a maximum 
+of 5 queries as opposed to 20. Both the joins and hash method are commented out while I'm awaiting to, hopefully, here a response from the person 
+who created pg_search. https://github.com/Casecommons/pg_search/issues/339. Another alternative to this, entirely, is to keep the model scoped search and change the
+multisearch/full-text search to this: https://robots.thoughtbot.com/implementing-multi-table-full-text-search-with-postgres and use the hair_trigger gem.
+
+# The menus dom is being traversed more than once when hovering over a new tab. This needs to be fixed. - Found in the app.component
+
+Home controller is calling everything one at a time - ie. five times for music, five times for posts, five times for videos, etc. This needs to be condensed.
+
+Videos have a fouc on the width of the container as well as the video inside the container.
+    - Fixed the height fouc, which hides the problem a bit.
+
+# Fix all foucs caused by loading of content. Ex. When the posts are pulled on the home component. It originally shows no gap, then does. Can be done with min-heights.
+    - worked on this a bit. Probably needs some more work.
+
+##An error occurs when a new commented is added then edited - as there is no childcomments defined. This isn't a big deal as everything works as expected. Should just be looked into when brain aint on noodle.
+    -comments.loop.component;line:181-182
+
+Refactor toggleInnerMenu, it was written on 3am brain noodle mode.
+    -app.component;line:343-366
+
+May need to change all transitions to transformations: http://stackoverflow.com/questions/15605731/jerky-css-transform-transition-in-chrome
+    -especiialy in the mobile menu
+    -also, stay away from jQuery's animate.
+
+THERE IS A MEMORY LEAK IN THE APPLICATION. SEARCH AND DESTROY.
+    -- this could be caused during a reload of the site. With the reload, the components may never trigger ngOnDestroy - causing all subscriptions to persist.
+
+Can't figure out rack-cors and why it wont added response headers to images. Therefore, the testing for the gradients needs to happen when objects are
+uploaded to S3. 
+    - still didn't figure it out after going to s3. With any permissions on files, I've found that do crossorigin="anonymous" doesn't help. It probably can be done someway though.
+        - Instead, the colors are produced on the backend
+
+Look into if, and how, a secrets.yaml can be leaked/exposed through the ENV.
+    - look into central logging.
+
+May want to change status codes in the sessions and user auth controllers.
+
+Double check all 404's and apply appropriate routing and messages for client side.
+    - also check if 401 modals are pointing to the correct routes.
+
+# !!! Change all routes that use the switch to use router.event.subscription and then update the post/category as neccessary.
+    - this may not have to be done to using things like skiplocationchange and location.go
+
+////////////////
+In the not so far future when I get some money running through:
+
+Become PCI compliant.
+
+Do a security audit.
+
+///////////////
+
+Ban all names that can affect the site. Example, 'form' and 'apply' look at all routes.
+
+On really slow connections, stripe and paypal's external scripts may not load immediately, causing the component to error. Use try blocks and timeouts to mitigate this.
+    - to add to this, check all of the site on a super slow speed.
+
+double check all returns and select only the columns that neccessary. 
+    - ex. A music post shouldn't return any of the users uuids, but should still do user.has_voted, etc.
+
+## Technology music and video posts need to be done for archiving and locking as well as the categorys mains and homes.
+
+Trying to upload a song after being forced to login, will just repeat the process.
+    - go to songs logged out, try to upload a song, fill in info, then try to upload again. Loop.
+
+Look through all the sections for responsiveness -  logged in and logged out.
+
+messagesubscription in the appcomponent is somewhat redundant read the comment.
+
+** IMPORTANT ONE **
+Not enough specificity in the Order may cause the order to change, the offsets will be wrong
+    - such as if there are four songs with a average_vote of 1, and the average_vote DESC is the order with an offset of three, the posts can change in order.
+        - this can be fixed by adding more specificity, like average_vote DESC created_at DESC
+
+**
+With the home pagination, if a song or video has been clicked, then the Videojs/wavesurfer needs to be reinitiated. This looks kinda
+weird. The only other thing that can be done is never delete the DOM, but this would impact memory. Decisions.
+    - this may not be true. If it's been clicked, a method could be added that would loop through the currents and if they have been clicked,
+    stop them.
+
+
+### 
+Getting rid of the jump in the veritcal tabs. It's not some random css, and you can't change the height
+as it will just add 6 to the div. You can't remove the div, and you can't remove the li. This has to be
+something with materialize setting some .tabs .tab child set height sort of deal. It may be a good idea in the future to just rebuild the entire vertical tab 
+without using any 3rd party plugin, except for jQuery obviously.
+
+###
+Find out why photos need to be reversed, get the stupid return to add.
+
+#Test if the modal unbinds allow the modal to be reopened - such as the guest checkout
+    -Guest checkout and close may be unbound double check these.
+
+check all hover titles
+
+There's a bug in the setmeta in assets/other, with a non defined sub_category for setPost
+
+########
+
+if guest checks out, and are located in an area that gets taxed, the tax needs to update to show such
+
+#####
+Test modals to see if backend fails to response how the timeouts work with the promise.
+
+#####
+Add failed messages to all actions everywhere, such as upvotes, cart edits, and the like.
+
+### get the loading spinner (next to the button) to be positioned absolute.
+    - I have already figured this out. It will figure out the offsets of the button then add some pixels to it to make put it right next to it.
+        - I had trouble trying to get it to work on all media sizes with one equation. Should be looked into.
+        - All code can be found in the signin component above the fadein. 
+            - spinner will have to have the position absolute uncommented in the stylesheet.
+
+#remove the errors on the login and signup form when the user resubmits.
+    -example. if someone puts in the wrong password the lines with turn red, and will remain red.
+
+#A failed payment will send them to undefined after the 20 second timeout. Needs to be fixed
+
+#If a user is logged in, then logs in from another place - the token will change. The original user needs to be notified.
+    -Update 04/30 - If they click profile it will say their session has ended, but doesn't do this for votes, likes etc,
+        - it also doesn't tell them if they have been signed in anywhere else. This may need to be done with old cookies stores (watch for timing attacks - even though this may not matter), 
+            - it will use the same auth subscription though that was built on april 30th
+
+Add Infinite Scroll Pagination To Everything:
+https://codepen.io/timseverien/pen/XXYaZe
+
+So, with the messages, there's a bottle neck due to the amount of messages someone could be trying to load, this could be fixed by setting the conversation_id to the strftime of the last created message. Then setting a limit on the inner query. This will result in a slower write, but a much faster read.
+    - Update: no idea if I have done this.
+
+If somehow, someway, two shipping notifications are sent at the same time, the flag for the worker wont be tripped; it would be set to false right after being set to true.
+    - Best way to mitigate this would be doing something with race conditions, or incrementing a column of some sort.
+
+# Some weird ass bugs with the messages.
+    1. While this doesn't really matter, switching over with an account from one browser to another can cause some strange shit with the floats
+         - I'm not sure how to reproduce this, so just try some shit.
+
+    2. If a new message comes in while the message is open, the notification wont go away
+
+# There's a bug with the home pagination with the apparel and technology, it only happens on the first page. The next array will popup in the apparel section, even though there are no more videos to paginate through.
+    - recreation can be a challenge.
+
+There's an issue with trying to paint the video image to the canvas in the video upload, currently it's "patched" by just recursively calling the function until something shows up on the canvas.
+    - Figure out the actual cause, and get rid of the patch.
+
+#Remove columns for the returns, check the url creation for all posts (getting a lot of temps), some values in the shipping confirmation are not coming in.
+
+clean up if statement for the credit card type in the checkout, (read comment there), and compress card images more.
+
+So when jquery is bound to stuff, like for the credit card on the cart, they need to be unbound when the component is destroyed, or else it will cause a memory leak.
+    - albiet a small leak, but a leak none of the less.
+
+The set tab causes the thing to disappear, it's probably best to just actually build it
+
+#If someone votes on something then unvotes it later, they won't lose the same amount of karma as they gained due to the 12 hours rule.
+    - scratch this, implement the 12 hour rule.
+
+if someone clicks through the home pagination really fast, it could change pages before the data json for the last one competes.
+
+For the apparel and technology posts nsfw, it'd be nice if they were seemless transitions (instead of the current fade in fade out)
+    - like maybe loading the opposite behind the current then hiding the current, then removing it.
+        -using z-indexs, displays, and shit
+
+# product upload image delete not working
+
+# Go through the wheres and add indexes to all of those that don't have any.
+
+So the votes have their time line somehow pushed forward, the likes run all at once, the ratings somehow trigger advanced if simplified
+    - Update: no idea
+
+Geocoder may take time to do the request. If this is the case, it would probably be better to throw it into a background worker
+
+need to reset the duration for the token when the user leaves.
+
+# update the sales_tax when a user either signs in or updates their address
+
+!!!! 
+
+track user, impressions, and plays should be worked on a little more
+    - average duration is fucked, and referers is fucked.
+
+the rakes need to be worked on.
+
+# still need to do the equations
+    - one of the equations is fucked up. Other two work.
+
+# add soundcloud button for music posts for the search
+    - needs some work
+
+vary small edge case:
+    so if a video is uploaded, and is sfw, but then someone uploads a nsfw photo, it will turn nsfw. Good so far. If the person then removes the nsfw photo and uploads a sfw photo, it will remain nsfw.
+        - this could be fixed by doing something like, video_nsfw and photo_nsfw columns.
+            - the problem with this is, that now there'd have to be 2/3 nsfw photo checks (1 photo and up to 2 for the video) to tell which is nsfw
+                - UPDATE: no idea if this is still a problem
+    
+may want to change/create-a-migration-for the depth to length to reflect the frontend for products
+
+With the multi search, there may be a speed hit by doing the lambda method
+    - https://github.com/Casecommons/pg_search/wiki/Segregating-search-documents-(multi-tenancy)
+        - It doesn't seem to have a huge hit (with 3 records granted), but again, should be looked at.
+            - this end up getting solved by someone, but I never added it to the code.
+
+change all of the long winded param functions to use objects.
+    -ex get rid of all the def self.test(param1,param2,param3) and do def self.test(params) and user params[:user] or whatever.
+
+for the apparel upload - mutli selection - if two of the same shoe sizes are chosen, it will overwrite the first one, and show a four.
+
+allow editing of cart in the cart modal. 
+    - once the edit button is clicked add X's to all the items.
+        - change the edit cart button to say cancel.
+
+reduce the amount of seller notifications
+    - this can be done by moving the email in the notify seller worker to the product level (in the hash) instead of the color.
+        - the email would have be to updated to reflect this change and show them all sales for different colors, etc.
+            - this is probably something that should be done.
+
+in the apparel form with the shoe multi variations on the first addition shoe size, the index value will be null. look into this. This is currently patched using a ternary. Look into this. 
+
+# admin comments modal needs work. Advaned ratings. edited comments aren't having their bodys updated if one clicks edit again.
+
+# on apparel edit form, if a photo is uploaded, and the photos are rearanged, it may fuck shit up
+
+# getting these left errors from the menus. This is caused by cloudzoom
+
+There is a potential liability in the way that the authorizing paypal works. Currently, it just accepts any auth code parameter that it gets at /paypal/verify, and doesn't verify it. This probably isn't the biggest deal at first, but later on this could allow people who are 'scammers'? Or something like that.
+   - In order to get the paypal information, ie validate the auth code from paypal, you need to follow the guide and it's integration step links.
+        1. guide: https://developer.paypal.com/docs/integration/direct/identity/log-in-with-paypal/#integration-steps
+            step 2 in integration. https://developer.paypal.com/docs/integration/paypal-here/merchant-onboarding/obtaining-refresh-token-and-access-tokens/
+            step 3 in integration. https://developer.paypal.com/docs/api/identity/#openidconnect_userinfo
+
+    - FWIW, the seller paypal onboarding works like this: the the user fills out the info on the modal, which then makes them open a new window on paypal where they login (the modal starts polling the backend looking to see if a code has come in - every 4 seconds), after logging in they get redirected to the end url with the code parameter (/paypal/verify?code=....), the window closes and sends an http request containing the code and user auth to an end point to acknowledge the user has a paypal account. The next poll on the model will reflect that they do infact have a paypal account, and will move the succeeded tab. 
+        - this could all be so much easier, if paypal just did an iframe with an http request (returning the auth code to the modal), like their express checkout, but nope, we live in the 20th century.
+
+The whole seller update modal is just shit code, with like zero verifications or error controlls. It's a POS.
+
+## Also, files for verification that are uploaded are open for anyone to view. This should be changed to allow only allow 
+    - this may have been fixed with s3 policy config by blocking cloudfront access to the verification folder. Double check in prod.
+
+To make the voting a little better, instead of just doing the average vote, (upvotes-downvotes), it could be more of a weighted average vote:
+    - something like ((upvotes - downvotes) * (upvotes/totalvotes))
+        - so instead of being like 90 with 490 up with 400 down, it'd be like 49.55
+            - bots may also only do upvotes, so if upvote percentage is above certain threshold, or SD away from mean. Remove it.
+
+When it comes to music, the best of the week will always be better than the best of the day (in terms of quality). It's probably better to have cookies set to see when they last visited and show either week or day, but on the other hand, those time stamps could deter people.
+
+The retry in the product rollbacks may be pointless. Re check this.
+
+The stripe product rollbacks may be executing twice. (This won't cause any bugs, but will put some stress on DB)
+    - this also may only occur in some instances, like only a 500, as a failed charge wouldn't cause the outermost rescue to execute.
+
+If a photo is uploaded for apparel and technology, and the backend goes down, or returns a 500, or whatever. The picture will just hang at 90% progress, and the user won't be able to delete it.
+
+In terms of routing, there can be a really long sleep that is applied to the apparel and technology forms. This should be looked into. Only occurs on mobile (at least in google chrome tools)
+
+If someone completes the form to sell, then signs out, then back in to do it with another account. It'll still show completed... Even tho they shouldn't do this anyways.
+
+Clean up all the code on the frontend, moving all common functions (like, setvote, rating,etc) into services. This could lead to huge savings on the frontend load time.

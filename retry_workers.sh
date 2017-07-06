@@ -1,0 +1,1 @@
+RAILS_ENV=production rake retry_workers:generate

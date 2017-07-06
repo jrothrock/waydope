@@ -1,0 +1,53 @@
+<div id='lightbox-cart' class='notification-box cart'>
+    <div style='border-bottom:1px solid white'>
+        <div class='center' style='color:white'><h5>Shopping Cart</h5></div>
+    </div>
+    <div (tap)="cartClose()" class='notification-close-button-container'>
+        <div class='notification-close-button-first'></div>
+        <div class='notification-close-button-second'></div>
+    </div>
+    <div style='padding:15px;height:95%;padding-right: 10px;padding-left: 0px;position: relative;left: -10px;'>
+        <div style=' height: inherit;overflow-y: scroll;overflow-x:hidden;background-color: #262626 !important;'>
+            <div *ngIf="items.length" class='row col m12' style='border-bottom: 1px solid white;position:relative;left:12px;width:100%;padding:5px'>
+                <span *ngIf="order" style='color:white;font-size:1.4em'>Total: {{order.total}}</span>
+                <button class='add-to-cart menu cart-modal-btn btn' style='color:white;float:right' (tap)="cartClose('/cart#review')">Check Out</button>
+                <button class='buy-now menu cart-modal-btn btn' style='color:white;float:right;margin-right:10px' (tap)="cartClose('/cart#edit')">Edit Cart</button>
+            </div>
+            <div *ngIf="items.length" class='row col m12' style='border-bottom: 1px solid white;position:relative;left:12px;width:100%;padding:4px;margin-top:-20px'>
+                <span class='col m4' *ngIf="order" style='color:white;font-size:0.9em'>Sub Total: {{order.sub_total}}</span>
+                <span class='col m4' *ngIf="order" style='color:white;font-size:0.9em'>Shipping: {{order.shipping}}</span>
+                <span class='col m4' *ngIf="order" style='color:white;font-size:0.9em'>Tax: {{order.tax}}</span>
+            </div>
+            <div *ngFor="let item of titles; let i = index" class='row col m12' [attr.data-index]="i" style='color:white;padding:0px 12px'>
+                <div *ngIf="items.length" class='link-title' class='menu-links' (mouseenter)="marqueeToggle(1,i)" (mouseleave)="marqueeToggle(0,i)"><a id='apparel-title-link-{{i}}' [routerLink]="['/' + items[item.index].post_type, items[item.index].main_category, items[item.index].sub_category, items[item.index].url]" style='color:#1e88e5'>{{item.title}}</a></div>
+                <div *ngIf="items.length && items[item.index] && items[item.index].upload_urls && items[item.index].upload_urls.length && !items[item.index].nsfw" class='main-image col m5' id='main-photo-cart-modal-container-{{i}}' style='text-align:center;margin-top:10px;height:150px'>
+                    <img height="100%" width="100%" class="cloudzoom" id='main-photo-cart-modal-{{i}}' (mouseenter)="photoZoom(i)" src='{{items[item.index].upload_urls[0]}}' style='cursor:zoom-in;width:100%'/>
+                </div>
+                <div *ngIf="items.length && item && item.i != null && items[item.index] && items[item.index].upload_urls && items[item.index].upload_urls_nsfw.length && items[item.index].nsfw" class='main-image col m5' id='main-photo-cart-modal-container-{{i}}' style='text-align:center;margin-top:10px;height:150px'>
+                    <img height="100%" width="100%" class="cloudzoom" id='main-photo-cart-modal-{{i}}' (mouseenter)="photoZoom(i)" src='{{items[item.index].upload_urls_nsfw[0]}}' style='cursor:zoom-in;width:100%'/>
+                </div>
+                <div class='col m7' *ngIf="order">
+                    <div class='row col m12'>
+                        <div class='col m4'>
+                            <span>Price:</span>
+                            <div>{{prices[i]}}</div>
+                        </div>
+                        <div class='col m4'>
+                            <span>Quantity:</span>
+                            <div>{{quantities[i]}}</div>
+                        </div>
+                        <div class='col m4' style='padding:0px;white-space: nowrap'>
+                            <div>total: {{totals[i]}}</div>
+                            <div>sub: {{sub_totals[i]}}</div> 
+                            <div>ship: {{shippings[i]}}</div>
+                            <div *ngIf="taxes[i]">tax: {{taxes[i]}}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div *ngIf="!items.length">
+                <div class='center' style='padding-top:10px; color:white'><h6>You haven't added any items to your cart.</h6></div>
+            </div>
+        </div>
+    </div>
+</div>

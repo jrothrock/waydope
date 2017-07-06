@@ -1,0 +1,159 @@
+<div id="modal-admin-posts" class="modal admin" style='width: 80%;max-height: 80%;'>
+	<ul class="tabs row" materialize="tabs">
+  		<li class="tab col ps3"><a href="#post-votes-modal" id='sign-in-link' class='active'>Votes</a></li>
+        <li class="tab col ps3"><a href="#post-likes-modal">Likes</a></li>
+		<li class="tab col ps3"><a href="#post-ratings-modal">Ratings</a></li>
+		<li class="tab col ps3"><a href="#post-comments-modal">Comments</a></li>
+    </ul>
+	<div id='post-votes-modal'>
+  	  <div class="modal-content">
+			<div class='row col m12'>
+				<div class='row col m10 offset-m1' style='border:1px solid rgba(0,0,0,0.2);overflow:scroll' id='comments-html'>
+						<h6 class='center'>Post Votes</h6>
+						<div class='row col m12'>
+								<div class='col m3'>
+										<label>Votes:</label>
+										<input type='number' id='votes-count'/>
+								</div>
+								<div class='col m3'>
+										<label>Average:</label>
+										<input type='text' id='post-average'>
+								</div>
+								<div class='col m3'>
+										<label>Time:</label>
+										<input type='text' id='votes-time'>
+								</div>
+								<div class='col m3'>
+										<label>Time Type:</label>
+										<select id='votes-time-type' style='display:block'>
+											<option value="normal">normal</option>
+											<option value="slow">slow</option>
+											<option value="fast">fast</option>
+										</select>
+								</div>
+						</div>
+				</div>
+				<div style='text-align:center;float:left;width:100%'> 
+					<button class='btn' (tap)='close()' style='margin-right:10px'>Close</button>
+					<button class='btn' (tap)='reset()' style='margin-right:10px'>Reset</button>
+					<button class='btn' id='submit-post-shit' (tap)='submitVotes()'>Submit Vote</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id='post-likes-modal'>
+  	  <div class="modal-content">
+			<div class='row col m12'>
+				<div class='row col m10 offset-m1' style='border:1px solid rgba(0,0,0,0.2);overflow:scroll' id='comments-html'>
+					<h6 class='center'>Post Likes</h6>
+					<div class='row col m12'>
+						<div class='col m4'>
+								<label>Likes:</label>
+								<input type='number' id='likes-count'/>
+						</div>
+						<div class='col m4'>
+								<label>Time:</label>
+								<input type='text' id='likes-post-time'>
+						</div>
+						<div class='col m4'>
+								<label>Time Type:</label>
+								<select id='likes-time-type' style='display:block'>
+									<option value="normal">normal</option>
+									<option value="slow">slow</option>
+									<option value="fast">fast</option>
+								</select>
+						</div>
+					</div>
+				</div>
+				<div style='text-align:center;float:left;width:100%'> 
+					<button class='btn' (tap)='close()' style='margin-right:10px'>Close</button>
+					<button class='btn' (tap)='reset()' style='margin-right:10px'>Reset</button>
+					<button class='btn' id='submit-post-shit' (tap)='submitLikes()'>Submit Likes</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id='post-ratings-modal'>
+  	  <div class="modal-content">
+			<div class='row col m12'>
+				<div class='row col m10 offset-m1' style='border:1px solid rgba(0,0,0,0.2);overflow:scroll' id='comments-html'>
+					<h6 class='center'>Ratings</h6>
+					<div>
+						<div class='col m6'>
+							<label>Time:</label>
+							<input type='text' id='ratings-time'/>
+						</div>
+						<div class='col m6'>
+							<label>Time Type:</label>
+							<select id='ratings-time-type' style='display:block'>
+								<option value="normal">normal</option>
+								<option value="slow">slow</option>
+								<option value="fast">fast</option>
+							</select>
+						</div>
+						<div class='col m12' style='padding:0px'>
+							<div class='col m3'>
+								<label>Simple Count:</label>
+								<input type='number' id='simple-ratings-count'/>
+							</div>
+							<div class='col m3'>
+								<label>Advanced Count:</label>
+								<input type='number' id='advanced-ratings-count'/>
+							</div>
+							<div class='col m3'>
+								<label>Hater Count:</label>
+								<input type='number' id='hater-ratings-count'/>
+							</div>
+							<div class='col m3'>
+								<label>Fan Count:</label>
+								<input type='number' id='fan-ratings-count'/>
+							</div>
+						</div>
+					</div>
+					<div class='col m12' id='content'>
+					</div>
+				</div>
+				<div style='text-align:center;float:left;width:100%'> 
+					<button class='btn' (tap)='close()' style='margin-right:10px'>Close</button>
+					<button class='btn' (tap)='reset()' style='margin-right:10px'>Reset</button>
+					<button class='btn' id='submit-post-shit' (tap)='submitRatings()'>Submit Ratings</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id='post-comments-modal'>
+  	  <div class="modal-content">
+			<div class='row col m12'>
+				<div class='row col m10 offset-m1' style='border:1px solid rgba(0,0,0,0.2);overflow:scroll' id='comments-html'>
+					<h6 class='center'>Comments</h6>
+					<div class='row col m12'>
+						<div class='col m4'>
+							<label>Count:</label>
+							<input type='number' id='replies-admin-post-count'/>
+						</div>
+						<div class='col m4'>
+								<label>Time:</label>
+								<input type='text' id='replies-admin-post-time'>
+						</div>
+						<div class='col m4'>
+							<label>Time Type:</label>
+							<select id='replies-admin-post-time-type' style='display:block'>
+								<option value="normal">normal</option>
+								<option value="slow">slow</option>
+								<option value="fast">fast</option>
+							</select>
+						</div>
+					</div>
+					<div id='comment-info-post' style='display:none'>
+							<h6>Comment Info</h6>
+					</div>
+				</div>
+				<div style='text-align:center;float:left;width:100%'> 
+					<button class='btn' (tap)='close()' style='margin-right:10px'>Close</button>
+					<button class='btn' (tap)='reset()' style='margin-right:10px'>Reset</button>
+					<button class='btn' id='submit-post-shit' (tap)='submitComments()'>Submit Comments</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

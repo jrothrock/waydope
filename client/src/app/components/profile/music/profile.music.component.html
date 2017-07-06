@@ -1,0 +1,126 @@
+<div class='row' style='margin-top:40px;'>
+	<h2 class='username' style='font-size:2.5em !important' [routerLink]="['/user', user]"><a style='cursor:pointer;color: rgba(23, 56, 231, 0.92) !important;'>{{user}}</a></h2>
+</div>
+<div class='rest-music-divider'>
+    <hr>
+    <div class='music-category-sorting row'>
+        <div class='col m1' style='margin-top:19px'><h5>Sort:</h5>
+        </div>
+        <form [formGroup]="sortMusic" (ngSubmit)="getSorting(sortMusic.value)" class="col m9">
+            <div class='col m4 sort'> 
+                <label for="options">Order</label>
+                <select (change)="onOptionsChange($event.target.value)" id="options" required [formControl]="sortMusic.controls['options']" style='display:block'>
+                    <option *ngFor="let option of options" [value]="option">{{option}}</option>
+                </select>
+            </div>
+            <div class='col m4 sort'>
+                <label for="time">Time</label>
+                <select id="time" required [formControl]="sortMusic.controls['time']" style='display:block'>
+                    <option *ngFor="let times of timings" [value]="times">{{times}}</option>
+                </select>
+            </div> 
+            <div class='col m4 sort'>
+                <label for="type">Type</label>
+                <select id="type" required [formControl]="sortMusic.controls['type']" style='display:block'>
+                    <option *ngFor="let type of types; let i = index" [value]="typeValues[i]">{{type}}</option>
+                </select>
+            </div>
+        </form>
+        <div class='col m2'>
+            <button style='margin-top:25px' type="submit" [disabled]='!sortMusic.valid || music.length < 2' class="waves-effect waves-light btn" (tap)="getSorting(sortMusic.value)">Sort Music</button>
+        </div>
+    </div>
+    <hr>
+</div>
+<div id='music-profile-container' style='display:none'>
+    <div class="col ps6 m3 home-music-post" *ngFor="let song of music; let i = index" id="{{song.uuid}}-music">
+        <div class="row music-title-info-container">
+            <div (mouseenter)="marqueeToggle(1,song.uuid)" (mouseleave)="marqueeToggle(0,song.uuid)" class='title link-title'>
+                <div class='col ps1' id='inner-link-span'>Title:</div><div class='col ps11' id='inner-link-title'><a id='music-title-link-{{song.uuid}}' [routerLink]="['/music',song.main_genre, song.url]">{{song.title}}</a></div>
+            </div>
+            <div class='artist'>
+                Artist: <span style='color: #4c03db;cursor:pointer' (tap)="searchArtist(song.artist)">{{song.artist}}</span>
+            </div>
+            <div class='song-info' style='color:grey;font-size:0.7em;margin-left: 12px;'>
+                    <div *ngIf="song.nsfw" style="display:inline;border:1px solid #ff4040;padding:2px;border-radius:2px;font-size:0.88em">NSFW</div>
+                    Posted <span>{{song.time_ago}}</span>
+                    by <a [routerLink]="['/user',song.submitted_by]">{{song.submitted_by}}</a>
+                    in <a [routerLink]="['/music',song.main_genre]" class='capitalize'>{{song.main_genre}}</a>
+            </div>
+        </div>
+        <div *ngIf="!song.clicked" class='music-home-photo-container' (mouseenter)="photoHover(1,i,song.uuid)" (mouseleave)="photoHover(0,i,song.uuid)" (tap)="photoClicked(i,song.form)">
+            <img class='play-button-home' id='play-button-home-{{i}}-{{song.uuid}}' style='opacity:0.8' src="/assets/images/blackbutton.svg" alt="Play Button">
+            <img *ngIf="song.form == 0 && song.link_artwork" style='opacity:0.6;cursor:pointer' id='music-artwork-home-{{i}}-{{song.uuid}}' src='{{song.link_artwork}}' height="100%" width="100%"/>
+            <img *ngIf="song.form == 1 && !song.nsfw && song.upload_artwork_url" style='opacity:0.6;cursor:pointer' id='music-artwork-home-{{i}}-{{song.uuid}}' [src]="song.upload_artwork_url | safeurl" height="100%" width="100%"/>
+            <img *ngIf="song.form == 1 && song.nsfw && song.upload_artwork_url_nsfw" style='opacity:0.6;cursor:pointer' id='music-artwork-home-{{i}}-{{song.uuid}}' [src]="song.upload_artwork_url_nsfw | safeurl" height="100%" width="100%"/>
+            <img *ngIf="(song.form == 0 && !song.link_artwork) || (song.form == 1 && !song.upload_artwork_url)" style='opacity:0.6;cursor:pointer' id='music-artwork-home-{{i}}-{{song.uuid}}' class='music-featured-artwork-default-container' src="/assets/images/background-music.png" height="100%" width="100%"/>
+        </div>
+        <div *ngIf="song.clicked && song.form == 0" class='music-home-frame-container' [innerHTML]="song.link | safe"></div>
+        <div *ngIf="song.clicked && song.form == 1" class='music-home-frame-container'>
+            <div class='music-home-photo-container gradient-wrap' style='cursor: initial;'>
+                <img src="{{song.upload_artwork_url}}" cross-origin="anonymous" style='height: 100%;width: 100%;background-size: 100% 100%;background-repeat: no-repeat;opacity:0.350;'>
+                <a rel='nofollow' id="song-{{song.uuid}}-download-link" download="{{song.upload_url}}"><audio id='song-{{song.uuid}}' [src]="song.song && song.upload_url ? song.upload_url : null | safeurl" [attr.data-value]="0"></audio></a>
+                <button id="song-play-{{song.uuid}}" class='btn song-music-frame-button' (tap)="playAudio(song.uuid,song.upload_url,name)"><i class='fa fa-play' id='song-play-icon-{{song.uuid}}' style='opacity:1'></i></button>
+                <div id="song-waveform-{{song.uuid}}" class='song-music-frame' style='border-bottom:0;top:-85%'></div>
+                <div id='song-playing-time-{{song.uuid}}' style='height:0px;color:white;position:relative;top:-220px;font-size:0.9em;display:none'><span id='current-time-{{song.uuid}}'>0:00</span>/<span id='duration-{{song.uuid}}'></span></div>
+                <div id='song-{{song.uuid}}-actions' class='row col ps12 song-music-frame-actions' style='border-top:1px solid white;padding:0px'>
+                    <div class='col ps4' style='padding:0px'>
+                        <div id='song-{{song.uuid}}-volumne' style='display:inline;position:relative;'><i class='fa fa-volume-up fa-song-actions'></i></div>
+                        <div id='song-{{song.uuid}}-volumn-range' style='margin-top:-35px'><p style='height: 3px;padding: 0px;margin: 0px; margin-left: 5px;' class='volume'><input (mousedown)="checkVolume(1,song.uuid,name)" (mouseup)="checkVolume(0,song.uuid,name)" (click)="checkVolume(1,song.uuid,name,true)" type="range" id="{{song.uuid}}-volume-range" min="0" max="100" style='width: 75%;left: 20px;top: -2px;' value="100" /></p></div>
+                    </div>
+                    <div class='col ps4' style='text-align:center;padding:0px'>
+                        <div id='song-{{song.uuid}}-repeat' style='display:inline;position:relative;' class='repeat-icon' [attr.data-loop]="0" (tap)="loop(song.uuid,name)"><i class='fa fa-refresh fa-song-actions'></i></div>
+                    </div>
+                    <div class='col ps4' style='padding:0px;text-align:right;white-space:nowap'>
+                        <div *ngIf="song.download === 1" id='song-{{song.uuid}}-download' style='display:inline;position:relative;cursor:pointer' (tap)="download(song.uuid,song.title,song.download)"><i class='fa fa-cloud-download fa-song-actions'></i></div>
+                        <div *ngIf="song.download === 2" id='song-{{song.uuid}}-download' style='display:inline;position:relative;top:-5px;' (tap)="download(song.uuid,song.title,song.download)"><a href='{{song.download_url}}' target="_blank" rel="noopener" style="font-size: 1rem;color: white !important;">{{song.download_text}}</a></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div></div>
+        <div class='row col ps12 music-info'>
+            <div class='col ps3' style='padding:0px'>
+                <div class='home-music-vote-actions-container' style='margin-top:-13px'>
+                    <i [style.color]="song.user_voted === 1? '#ef6837' : 'black'" class='fa fa-chevron-up' id='songmusic-upvote-{{song.uuid}}' (tap)="setVote(1, song.uuid,'songmusic', song.average_vote, song.user_voted)" style='cursor:pointer'></i>
+                    <div class='home-music-average-vote' id='songmusic-vote-{{song.uuid}}' [style.margin-left.px]="math.floor(math.log10(song.average_vote)) % 1 === 0 ? 4 - (4*math.floor(math.log10(song.average_vote))) : 4">{{song.average_vote}}</div>
+                    <i [style.color]="song.user_voted === -1? '#ef6837' : 'black'" class='fa fa-chevron-down' id='songmusic-downvote-{{song.uuid}}' (tap)="setVote(-1, song.uuid,'songmusic', song.average_vote, song.user_voted)" style='position:absolute;cursor:pointer'></i>
+                </div>
+                <button (tap)="like(song.uuid, song.user_liked, song.post_type,song.likes_count,i,ic  )" [ngClass]="{ 'liked' : song.user_liked }" id='likes-button-{{song.uuid}}' class="btn btn-like">
+                    <div class='row' style='margin-top:-5px;white-space: nowrap' [style.font-size.pct]="math.floor(math.log10(song.likes_count)) === 2 ? 0.95 : -1" [style.margin-left.px]="math.floor(math.log10(song.likes_count)) === 2 ? -17 : null">
+                        <i id='icon-likes-{{song.uuid}}' [ngClass]="{ 'liked-icon fa-heart' : song.user_liked, 'fa-heart-o' : !song.user_liked }" class="fa" style='float:left;width:100%' aria-hidden="true">
+                            <span class='btn-like-text' id='likes-{{song.uuid}}' style='font-size:0.9em;margin:4px;font-family: "Roboto", sans-serif;font-weight:500;color:#111' [style.margin-left.px]="math.floor(math.log10(song.likes_count)) === 2 ? -2 : 0">{{song.likes_count}}</span>
+                        </i>
+                    </div>
+                </button>
+            </div>
+            <div class="col ps6 average-rating-container"><span class='average-rating'>Rating: [{{song.ratings_count}}]</span><div style='margin-left:8px;margin-top:-11px' class='star-ratings-css col ps10'><div [style.transform]="transformRating(song.average_rating)" class="inner-star-ratings-css" ></div></div><div class='col ps2' style='float:right;margin-top:-5px;white-space: nowrap;'>{{song.average_rating}}</div></div>
+            <div class='col ps3 comment-count-container'><i class="fa fa-comment-o comment-count-icon" aria-hidden="true"><span class='comment-count-span'>{{song.comment_count}}</span></i></div>
+        </div>
+    </div>
+    <div *ngIf="!music || !music.length" style='text-align:center'>
+		{{user}} hasn't liked any music yet.
+	</div>
+</div>
+<div *ngIf="pages >= 2" class='row col ps12 center pagination-container' style='position:relative;bottom:50px;'>
+    <div class='pages-text'>Page {{currentPage}} of {{pages}}</div>
+    <button (tap)="changePage('start',1)" *ngIf="pages > 2" [disabled]='currentPage == 1' class='btn btn-pagination' style='display:inline'><i class='fa fa-angle-double-left'></i></button>
+    <button (tap)="changePage('back',currentPage - 1)" *ngIf="pages > 1" [disabled]='currentPage == 1' class='btn btn-pagination' style='display:inline'><i class='fa fa-angle-left'></i></button>
+    <div *ngFor="let number of numbers;let i = index" style='display:inline'>
+        <button (tap)="changePage('page',i+1)" [style.display]="pages < 6 || (currentPage < 4 && i < 5) || (pages - currentPage < 3 && pages - i < 6) || (currentPage - 4 < i && i < currentPage) || (i-2 < currentPage && currentPage < (i+1)) ? 'inline':'none'" class='btn btn-pagination' [ngClass]="{ 'active' : i + 1 == currentPage }">
+            <div [style.margin-left.px]="math.floor(math.log10(i+1)) % 1 === 0 ? -1 - (5*math.floor(math.log10(i+1))) : 1">{{i + 1}}</div>
+        </button>
+    </div>
+    <button (tap)="changePage('next',currentPage + 1)" *ngIf="pages > 1" class='btn btn-pagination' [disabled]='currentPage == pages' style='display:inline'><i class='fa fa-angle-right'></i></button>
+    <button (tap)="changePage('end',pages)" *ngIf="pages > 2" [disabled]='currentPage == pages' class='btn btn-pagination' style='display:inline'><i class='fa fa-angle-double-right'></i></button>
+</div>
+<div id='loading-spinner-profile-music'>
+	<h4 class='center'>Loading Music...</h4>
+	<div class="spinner">
+		<div class="rect1"></div>
+		<div class="rect2"></div>
+		<div class="rect3"></div>
+		<div class="rect4"></div>
+		<div class="rect5"></div>
+    </div>
+<div>

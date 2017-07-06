@@ -1,0 +1,48 @@
+<h3>Contact</h3>
+<div style='border-bottom:1px solid rgba(0,0,0,0.1); margin-bottom:20px'>
+  You can reach us by email at: <a href="mailto:info@waydope.com?Subject=Some%20Important%20Ish">info@waydope.com</a>, by phone: +1 (888) 860-8623, or via the form below.
+</div>
+<div class="row">
+  <form [formGroup]="uploadMessage" (ngSubmit)="submitMessage(uploadMessage.value)" class="col s12">
+  	<div class="row">
+      <div class="input-field col s12 m6">
+        <input [ngClass]="{ 'has-error-input' : uploadMessage.controls.title.errors?.required && uploadMessage.controls.title.touched}" [formControl]="uploadMessage.controls['title']" id="title" type="text" class="validate">
+        <label for="title" id='song-title'>Subject</label>
+        <em *ngIf="uploadMessage.controls.title.errors?.required && uploadMessage.controls.title.touched" class='has-error'> A subject is required </em>
+      </div>
+      <div class='select-field col s12 m6'>
+        <div class="form-group">
+          <label for="power">Category</label>
+          <select class="form-control" [ngClass]="{ 'has-error-select' : uploadMessage.controls.category.errors?.required && uploadMessage.controls.category.touched}" id="power" required [formControl]="uploadMessage.controls['category']" name="power" style='display:block !important'>
+            <option *ngFor="let p of powers" [value]="p">{{p}}</option>
+          </select>
+          <em *ngIf="uploadMessage.controls.category.errors?.required && uploadMessage.controls.category.touched" class='has-error'> A category is required </em>
+        </div>
+      </div>
+    </div>
+     <div class='row'>
+        <div class="input-field col s12">
+          <input [ngClass]="{ 'has-error-input' : (uploadMessage.controls.email.errors?.pattern && uploadMessage.controls.email.dirty && uploadMessage.controls.email.touched) || (uploadMessage.controls.email.errors?.required && uploadMessage.controls.email.touched)}" formControlName="email" id="email" type="text" class="validate" ngControl="username">
+          <label for="email">Email</label>
+          <em class='has-error' *ngIf="uploadMessage.controls.email.errors?.pattern && uploadMessage.controls.email.touched && uploadMessage.controls.email.dirty">Enter a valid email address</em>
+          <em class='has-error' *ngIf="uploadMessage.controls.email.errors?.required && uploadMessage.controls.email.touched">A valid email is required</em>
+        </div>
+      </div>
+    <div class='row'>
+      <div class='text-box col s12'>
+        <textarea [ngClass]="{ 'has-error-select' : uploadMessage.controls.body.errors?.required && uploadMessage.controls.body.touched}" class="validate" [formControl]="uploadMessage.controls['body']" type='text'></textarea>
+        <label for='link' id='song-body'>Body</label>
+      </div>
+      <em *ngIf="uploadMessage.controls.body.errors?.required && uploadMessage.controls.body.touched" class='has-error'> The body is required </em>
+    </div>
+  </form>
+</div>
+
+<div class="row">
+  <div class="center-align">
+    <button type="submit" [disabled]='!uploadMessage.valid || submitted' class="waves-effect waves-light btn" (tap)="submitMessage(uploadMessage.value)">Submit Message</button>
+    <svg class="spinner-circle" id='submit-contact' viewBox="0 0 50 50">
+        <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+    </svg>
+  </div>
+</div>

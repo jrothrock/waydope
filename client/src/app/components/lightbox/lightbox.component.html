@@ -1,0 +1,6 @@
+<div id='lightbox' class='lightbox-video' style='display:none'>
+    <div style='height:100%' *ngIf="form === 0 && link_type === 1" [innerHTML]="link | safe"></div>
+    <div style='height:100%;width:100%;text-align:center' *ngIf="form === 0 && link_type === 2">
+        <a href="{{link}}" style='cursor:pointer'><img [src]="link | safeurl" style='height:100%'></a>
+    </div>
+</div>

@@ -1,0 +1,176 @@
+<div id='loading-spinner-boards-post' style='display:none;position:absolute;left:50%;transform:translateX(-50%)'>
+	<h4 class='center'>Loading Post...</h4>
+	<div class="spinner">
+		<div class="rect1"></div>
+		<div class="rect2"></div>
+		<div class="rect3"></div>
+		<div class="rect4"></div>
+		<div class="rect5"></div>
+	</div>
+</div>
+<div id='boards-post-container' style='opacity:0;transition: all 175ms'>
+	<div *ngIf="locked" id='messages-locked' class="messages card-panel center-align deep-purple" style='display:block'>
+		<em style='color:white'><i class='fa fa-lock'></i> This Post Has Been Locked.</em>
+	</div>
+	<div *ngIf="archived" id='messages-archived' class="messages card-panel center-align deep-purple" style='display:block'>
+		<em style='color:white'><i class='fa fa-archive'></i> This Post Has Been Archived.</em>
+	</div>
+	<div *ngIf="flagged" id='messages-archived' class="messages card-panel center-align red darken-1" style='display:block'>
+		<em style='color:white'><i class='fa fa-lock'></i> Your post has been flagged and is being reviewed.</em>
+	</div>
+	<system_posts_modal [datanotify]="datanotify" (lockPostOutput)="lockPost($event)" (removePostOutput)="removePost($event)"></system_posts_modal>
+	<admin_posts_modal [dataadmin]="dataadmin"></admin_posts_modal>
+	<div class='col m12 boards-container'>
+		<div class='post-title center' style='margin:auto;margin-bottom:80px'>
+			<div style='color:grey;font-size:0.9em;position:absolute;display:none' id='boards-link-type'>(<span style='padding: 0 1px 0 1px'>{{hostname != 'waydope.com' ? hostname : "text." + category }}</span>)</div>
+			<a href="https://waydope.com/news/{{category}}/{{id}}"><h3 *ngIf="form == 0" class='capitalize' style='height:auto;width:auto' id='boards-like-post'>{{title}}</h3></a>
+			<h3 *ngIf="form == 1" class='capitalize' style='height:auto;width:auto' id='boards-like-post'><a href='{{link}}'>{{title}}</a></h3>
+		</div>
+	</div>
+	<div class='col m12 boards-container;height:0px;visibility:hidden'>
+		<div class='post-title center' style='height:0px;width:0px;margin:auto;margin-bottom:80px'>
+			<a><h3 *ngIf="form == 0" class='capitalize' style='position:absolute;height:auto;width:auto;visibility: hidden' id='boards-like-post-hidden'>{{title}}</h3></a>
+			<h3 *ngIf="form == 1" class='capitalize' style='position:absolute;height:auto;width:auto;visibility: hidden' id='boards-like-post-hidden'><a href='{{link}}'>{{title}}</a></h3>
+		</div>
+	</div>
+	<div class='row' style='margin-top:-20px'>
+		<h5 class='boards-info'>Category: <a class="music-links {{category | lowercase}} capitalize" [routerLink]="['/boards', category | lowercase]">{{category}}</a></h5>
+		<h5 class='boards-info' *ngIf="!hidden">Submitted By: <a [routerLink]="['/user', submitted_by]">{{submitted_by}}</a></h5>
+		<h5 class='boards-info' *ngIf="hidden">Submitted By: {{submitted_by}}</h5>
+		<h6>Submitted: {{created_at | date: 'medium'}}</h6>
+		<h6>Tags: <a class='capitalize' style='margin-right:5px' *ngFor="let c of categories" [routerLink]="['/boards', c | lowercase]">{{c}}</a></h6>
+		<div *ngIf='nsfw' class='nsfw-container-post'><h6 style='text-align: center;position: relative;top: -50%;transform: translatey(50%);'>NSFW</h6></div>
+	</div>
+	<div *ngIf="marked" class='row col m12' style='padding-top:20px'>
+		<div class='post-content'>
+			<span [innerHTML]="marked"></span>
+		</div>
+	</div>
+	<div class='row col m12'>
+		<div class='left-post-buttons'>
+			<div class='col m2 l4'>
+				<div class='col m6 song-vote-actions' style='font-size:1.1em;margin-top: 9px'>
+					<i (tap)="setVote(1)" [style.color]="user_voted === 1? '#ef6837' : 'black'" class='fa fa-chevron-up' style='cursor:pointer;position: absolute;margin-top: -16px;margin-left: -4px;' id='upvote'></i>
+					<div [style.margin-left.px]="math.floor(math.log10(average_vote)) % 1 === 0 ? 0 - (5*math.floor(math.log10(average_vote))) : 0" class='music-post-average-vote' id='average-vote'>{{average_vote}}</div>
+					<i [style.color]="user_voted === -1? '#ef6837' : 'black'" (tap)="setVote(-1)" id='downvote' class='fa fa-chevron-down' style='cursor:pointer;position:absolute;margin-top:-5px;margin-left:-4px;'></i>
+				</div>
+				<div class='col m6'>
+				</div>
+			</div>
+			<div class="col m5 l4 star-ratings-css-container" style='margin-top: -4px;'>
+				<div>Overall Rating:</div><div class='star-ratings-css col m10'><div class='inner-star-ratings-css' [style.transform]="transformRating(average_rating)"></div></div><div class='col m2 average-rating-value' style='float:right;white-space:nowrap'>{{average_rating}} [{{average_rating_count}}]</div>
+			</div>
+		</div>
+		<div *ngIf="!rateOpen" style='text-align: center' class='right-post-buttons'>
+			<button class='btn btn-stats' style='float:left' (tap)='showAdvancedStatistics()'><i [ngClass]="advancedStatisticsShow ? 'fa fa-times' : 'fa fa-tasks'"></i></button>
+			<button  *ngIf="!has_rated" type='submit' class='waves-effect waves-light btn' (tap)="toggleRateForm()">Add Rating</button>
+			<span *ngIf="has_rated" class='has-rated news-rated' style='border:1px solid #1e88e5;padding: 5px;margin-left: 12px;'>Thank you for rating.</span>
+			<button class='dropdown-button btn btn-flag' style='float:right;' materialize='dropdown' data-activates='dropdown1'><i class='fa fa-ellipsis-h'></i></button>
+				<ul id='dropdown1' class='dropdown-content'>
+					<li (tap)='toggleReportForm()'><i class='fa fa-flag report-icon'></i> Report</li>
+					<li *ngIf="submitted_by == username" (tap)='editPost()'><i class='fa fa-pencil report-icon'></i> Edit</li>
+					<li *ngIf="submitted_by == username" (tap)='toggleDeleteForm()'><i class='fa fa-trash report-icon'></i> Delete</li>
+					<li *ngIf="isAdmin" (tap)='lockInit()'><i class='fa fa-lock report-icon'></i> Lock</li>
+					<li *ngIf="isAdmin" (tap)='removeInit()'><i class='fa fa-close report-icon'></i> Remove</li>
+					<li *ngIf="isAdmin" (tap)='adminInit()'><i class='fa fa-cogs report-icon'></i> Admin</li>
+				</ul>
+		</div>
+		<div *ngIf="rateOpen" class='col m4 right-post-buttons'>
+			<button (tap)='showAdvancedStatistics()' class='btn btn-stats' style='float:left'><i [ngClass]="advancedStatisticsShow ? 'fa fa-times' : 'fa fa-tasks'" ></i></button>
+			<button class='dropdown-button btn btn-flag' style='float:right;' materialize='dropdown' data-activates='dropdown1'><i class='fa fa-ellipsis-h'></i></button>
+				<ul id='dropdown1' class='dropdown-content'>
+					<li (tap)='toggleReportForm()'><i class='fa fa-flag report-icon'></i> Report</li>
+					<li *ngIf="submitted_by == username" (tap)='editPost()'><i class='fa fa-pencil report-icon'></i> Edit</li>
+					<li *ngIf="submitted_by == username" (tap)='toggleDeleteForm()'><i class='fa fa-trash report-icon'></i> Delete</li>
+					<li *ngIf="isAdmin" (tap)='lockInit()'><i class='fa fa-lock report-icon'></i> Lock</li>
+					<li *ngIf="isAdmin" (tap)='removeInit()'><i class='fa fa-close report-icon'></i> Remove</li>
+					<li *ngIf="isAdmin" (tap)='adminInit()'><i class='fa fa-cogs report-icon'></i> Admin</li>
+				</ul>
+			<div>
+				<form [formGroup]="simpleRating" (ngSubmit)="submitRating(simpleRating.value, post_type)" class="col ps12">
+					<div class="row range-field rating">
+						<div class='col ps12'>Rate Post: {{simpleRating.controls.rating._value}}</div>
+						<input [formControl]="simpleRating.controls['rating']" type="range" id="test5" min="0" max="100" />
+					</div>
+				</form>
+			</div>
+			<div class='row song-rate-actions-container col ps12'>
+					<div class='col ps4 song-rate-actions'>
+						<button type="submit" class="waves-effect waves-light btn" (tap)="toggleRateForm()">Cancel</button>
+					</div>
+					<!-- <div class='col m4 offset m1 song-rate-actions'>
+						<button type="submit" class="waves-effect waves-light btn" (tap)="toggleAdvancedForm()" [innerHTML]="advancedForm? 'Simple Rating':'Advanced Rating'">Submit Rating</button>
+					</div> -->
+					<div class='col ps4 offset-ps4 song-rate-actions'>
+						<button *ngIf="advancedForm" type="submit" class="waves-effect waves-light btn" (tap)="submitRating(advancedRating.value, post_type)">Submit Rating</button>
+						<button *ngIf="!advancedForm" type="submit" class="waves-effect waves-light btn" (tap)="submitRating(simpleRating.value, post_type)">Submit Rating</button>
+					</div>
+			</div>
+		</div>
+			<div *ngIf="showReportForm" class='col m4'>
+			<div *ngIf="!has_reported">
+				<form [formGroup]="reportForm" (ngSubmit)="submitRating(reportForm.value)" class="col m12" style='margin-bottom:15px'>
+					<h5 class='center'>Report Song:</h5>
+					<p>
+						<input class="with-gap" type="radio" [formControl]="reportForm.controls['foul']" name="foul" id="report-1" [value]="1">
+						<label for="report-1">Spam</label>
+					</p>
+					<p>
+						<input class="with-gap" type="radio" [formControl]="reportForm.controls['foul']" name="foul" id="report-2" [value]="2">
+						<label for="report-2">Paywall, or just overall shitty site.</label>
+					</p>
+					<p>
+						<input class="with-gap" type="radio" [formControl]="reportForm.controls['foul']" name="foul" id="report-3" [value]="3">
+						<label for="report-3">Wrong Category</label>
+					</p>
+					<p>
+						<input class="with-gap" type="radio" [formControl]="reportForm.controls['foul']" name="foul" id="report-4" [value]="4">
+						<label for="report-4">Infringes on my rights</label>
+					</p>
+					<p>
+						<input class="with-gap" type="radio" [formControl]="reportForm.controls['foul']" name="foul" id="report-5" [value]="5">
+						<label for="report-5">Hateful and/or abusive content</label>
+					</p>
+				</form>
+				<button class='btn' (tap)='toggleReportForm()'>Cancel</button>
+				<button class='btn' (tap)='submitReport(reportForm.value)'>Submit Report</button>
+			</div>
+			<div *ngIf="has_reported" style='margin-top:15px'>
+				<span>Thanks for reporting. We will be looking into your report.</span>
+			</div>
+		</div>
+		<div *ngIf="showDeleteForm" class='col m4'>
+			<h6>Are you sure you want to delete this post?</h6>
+			<button class='btn' (tap)='toggleDeleteForm()'>Cancel</button>
+			<button class='btn' (tap)='deletePost()'>Delete Post</button>
+		</div>
+		<div *ngIf="advancedStatisticsShow" class='col' [ngClass]="rateOpen ? 'm8 advanced-stats-with-form':'m12'">
+				<hr *ngIf="!rateOpen">
+				<div class='col' [ngClass]="rateOpen ? 'm6' : 'm4'"  style='margin-top: 40px;'>
+					<h5 style='text-align: center; margin-top:-20px'>Overall Scores:</h5>
+					<div class='row'>
+						<div>Upvote Percentage:</div><div class='star-ratings-css col m10'><div class='inner-star-ratings-css' [style.transform]="transformRating(average_vote_width)"></div></div><div class='col m2' style='float:right;white-space: nowrap'>{{average_vote_width}} [{{votes_count}}]</div>
+					</div>
+				</div>
+			</div>
+	</div>
+	<div class='comments'>
+		<comments [post]="post"></comments>
+	</div>
+</div>
+<div class="fixed-action-btn horizontal click-to-toggle" style="bottom: 45px; left: 24px;" id='share-button-boards-post'>
+		<a class="btn-floating btn-large blue darken-1">
+		<i class="fa fa-navicon fa-2x"></i>
+		</a>
+		<ul class='share-button-container'>
+			<li style='margin: 8px 10px 0 0;'><a class="btn-floating blue darken-3" href="https://facebook.com/sharer/sharer.php?u={{encode(window.location.href)}}" onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;" id='facebook-share-a'><i class="fa fa-facebook"></i></a></li>
+			<li style='margin: 8px 10px 0 0;'><a class="btn-floating blue" href="https://twitter.com/share?text={{title}}&amp;url={{encode(window.location.href)}}" onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;"><i class="fa fa-twitter"></i></a></li>
+			<li style='margin: 8px 10px 0 0;'><a href="https://www.reddit.com/submit?url={{encode(link)}}&title={{encode(title)}}" onclick="window.open(this.href, 'reddit-share','width=850,height=296');return false;" class="btn-floating" style='background-color: rgb(255, 80, 0) !important;'><i class="fa fa-reddit-alien" aria-hidden="true"></i></a></li>
+			<li style='margin: 8px 10px 0 0;'><a href="//www.linkedin.com/shareArticle?url={{encode(link)}}&title={{encode(title)}}&source=WayDope" class="btn-floating" style='background-color:#007BB6' onclick="window.open(this.href, 'linkedin-share', 'width=490,height=530');return false;"><i class="fa fa-linkedin"></i></a></li>
+			<li style='margin: 8px 10px 0 0;display:none' class='hidden-socials'><a href="https://www.tumblr.com/widgets/share/tool/preview?shareSource=legacy&canonicalUrl=&url={{encode(window.location.href)}}&_format=html" style='background-color:#36465D' class="btn-floating" onclick="window.open(this.href, 'tumblr-share', 'width=490,height=530');return false;"><i class="fa fa-tumblr"></i></a></li>
+			<li style='margin: 8px 10px 0 0;display:none' class='hidden-socials'><a href="javascript:void((function()%7Bvar%20e=document.createElement('script');e.setAttribute('type','text/javascript');e.setAttribute('charset','UTF-8');e.setAttribute('src','https://assets.pinterest.com/js/pinmarklet.js?r='+Math.random()*99999999);document.body.appendChild(e)%7D)());" class="btn-floating" style='background-color: rgb(255, 45, 0) !important;'><i class="fa fa-pinterest rippler"></i></a></li>
+			<li style='margin: 8px 10px 0 0;display:none' class='hidden-socials'><a href="//www.linkedin.com/shareArticle?url={{encode(window.location.href)}}&title={{encode(title)}}&summary={{encode(description)}}&source=WayDope" class="btn-floating blue" onclick="window.open(this.href, 'linkedin-share', 'width=490,height=530');return false;"><i class="fa fa-linkedin"></i></a></li>
+			<li style='margin: 8px 10px 0 0;'><a href="mailto:?Subject={{encode(title)}}&body=Check this out: {{encode(window.location.href)}}" class="btn-floating blue"><i class="fa fa-envelope-o"></i></a></li>
+			<li style='margin:8px 10px 0 0;' (click)="showSocials()"><a class='btn-floating' style='background-color:white;'><i  class='fa fa-chevron-{{window.outerWidth > 600 ? "right" : "up"}}' style='color: rgb(30, 136, 229) !important;' id='show-socials-icon'></i></a></li>
+		</ul>
+</div>

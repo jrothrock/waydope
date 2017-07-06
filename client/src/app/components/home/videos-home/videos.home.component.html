@@ -1,0 +1,70 @@
+<h1 class='home-links' [routerLink]="['/videos']">Videos</h1>
+<div class="row">
+    <div>
+        <ul class="tabs" materialize="tabs">
+            <li *ngFor="let name of names; let i = index" class="tab col ps4" id='tabs-home-videos' (dblclick)="tabClick(name)">
+                <a id='videos-tab-link' href="#{{name}}-videos" [ngClass]="{'active':i==0}">{{name}}</a>
+            </li>
+        </ul>
+    </div>
+</div>
+<div id='tab-output-videos-container' style='min-height:500px'>
+    <div id='tab-output-videos' class='row col ps12' style='opacity:0;transition: all 200ms'>
+        <div *ngFor="let name of names; let i = index" id="{{name}}-videos">
+            <div class='center pagination-container' id='boards-home-pagination-{{i}}' [attr.data-count]="count[i]" [attr.data-pages]="count[i] % 4" [attr.data-currentPage]="0">
+                <div class='paginate-back-container' *ngIf="count[i] > 4 && currentPage[i] > 0"><i class='fa paginate-back' (tap)="startPaginate('back',i)" [ngClass]="window.outerWidth > 1080 ? 'fa-chevron-left' : 'fa-chevron-up'" style='text-align:center;font-size:2em;color:#ff6100;cursor:pointer'></i></div>           
+            </div>
+            <div *ngIf="loaded && vids && vids[i]" class='row'>
+                <div class="col ps6 m3 home-videos-post" *ngFor="let vid of currentPosts[i]; let ic = index" id="{{name}}-videos">
+                    <div class="row video-title-info-container">
+                        <div (mouseenter)="marqueeToggle(1,i,vid.uuid)" (mouseleave)="marqueeToggle(0,i,vid.uuid)" class='title link-title'>
+                            <div class='col ps1' id='inner-link-span'>Title:</div><div class='col ps11' id='inner-link-title'><a id='video-home-title-link-{{i}}-{{vid.uuid}}' [routerLink]="['/videos',vid.main_category, vid.url]">{{vid.title}}</a></div>
+                        </div>
+                        <div class='video-info' style='color:grey;font-size:0.7em;margin-left: 12px !important;margin-top:0px'>
+                                <div *ngIf="vid.nsfw" style="display:inline;border:1px solid #ff4040;padding:2px;border-radius:2px;font-size:0.88em">NSFW</div>
+                                Posted <span>{{vid.time_ago}}</span>
+                                by <a [routerLink]="['/user',vid.submitted_by]">{{vid.submitted_by}}</a>
+                                in <a [routerLink]="['/videos',vid.main_category]" class='capitalize'>{{vid.main_category}}</a>
+                        </div>
+                    </div>
+                    <div *ngIf="!vid.clicked" class='video-home-photo-container' (mouseenter)="photoHover(1,i,vid.uuid)" (mouseleave)="photoHover(0,i,vid.uuid)" (tap)="photoClicked(i,ic,vid.uuid)">
+                        <img class='play-button-home' id='play-button-home-videos-{{i}}-{{vid.uuid}}' style='opacity:0.8' src="/assets/images/blackbutton.svg" alt="Play Button">
+                        <img *ngIf="vid.form == 0 && vid.link_artwork" style='opacity:0.6;cursor:pointer' id='video-artwork-home-{{i}}-{{vid.uuid}}' src='{{vid.link_artwork}}' height="100%" width="100%"/>
+                        <img *ngIf="vid.form == 1 && !vid.nsfw && vid.upload_artwork_url" style='opacity:0.6;cursor:pointer' id='video-artwork-home-{{i}}-{{vid.uuid}}' [src]="vid.upload_artwork_url ? vid.upload_artwork_url : null | safeurl" height="100%" width="100%"/>
+                        <img *ngIf="vid.form == 1 && vid.nsfw && vid.upload_artwork_url_nsfw" style='opacity:0.6;cursor:pointer' id='video-artwork-home-{{i}}-{{vid.uuid}}' [src]="vid.upload_artwork_url_nsfw ? vid.upload_artwork_url_nsfw : null | safeurl" height="100%" width="100%"/>
+                        <img *ngIf="(vid.form == 0 && !vid.link_artwork) || (vid.form == 1 && !vid.upload_artwork_url)" style='opacity:0.7;cursor:pointer' id='video-artwork-home-{{i}}-{{vid.uuid}}' class='video-featured-artwork-default-container' src="/assets/images/background-video.png" height="100%" width="100%"/>
+                    </div>
+                    <div *ngIf="vid.clicked && vid.form == 0">
+                        <img *ngIf="vid.link_type === 2" [src]="vid.link | safeurl">
+                        <div class='videos-home-video-container' *ngIf="vid.link_type === 1" [innerHTML]="vid.link | safe"></div>
+                    </div>
+                    <div *ngIf="vid.clicked && vid.form == 1">
+                        <video id="home_video_{{i}}_{{vid.uuid}}" class="video-js vjs-default-skin vjs-big-play-centered home-video-{{i}}-{{vid.uuid}} video-js-thumbnail" data-setup='{"fluid": true, "playbackRates": [0.5, 1, 1.5, 2], "autoplay":true}' controls preload="auto">
+                            <source [src]="vid.upload_url ? vid.upload_url : null | safeurl" type="video/mp4" />
+                            <p class="vjs-no-js">To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="http://videojs.com/html5-video-support/" target="_blank" rel="noopener">supports HTML5 video</a></p>
+                        </video>
+                    </div>
+                    <div class='row col ps12 video-info'>
+                        <div class='col ps3' style='padding:0px !important'>
+                            <div class='home-videos-vote-actions-container' style='margin-top:-13px'><i [style.color]="vid.user_voted === 1? '#ef6837' : 'black'" class='fa fa-chevron-up' id='video-upvote-vid-{{vid.uuid}}' (tap)="setVote(1, vid.uuid,'vid', vid.average_vote, vid.user_voted)" style='cursor:pointer'></i><div class='home-video-average-vote' id='video-average-vote-vid-{{vid.uuid}}' [style.margin-left.px]="math.floor(math.log10(vid.average_vote)) % 1 === 0 ? 4 - (4*math.floor(math.log10(vid.average_vote))) : 4">{{vid.average_vote}}</div><i [style.color]="vid.user_voted === -1? '#ef6837' : 'black'" class='fa fa-chevron-down' id='video-downvote-vid-{{vid.uuid}}' (tap)="setVote(-1, vid.uuid,'vid',vid.average_vote,vid.user_voted)" style='position:absolute;cursor:pointer'></i></div>
+                            <button id='likes-button-video-{{vid.uuid}}' class='btn btn-like' [ngClass]="{ 'liked' : vid.user_liked }" (tap)="likeVideo(vid.uuid, vid.user_liked, vid.post_type,vid.likes_count,i,ic  )"  style="float:left;margin-top:-25px">
+                                <div class='row' style='margin-top:-5px;white-space: nowrap' [style.font-size.pct]="math.floor(math.log10(vid.likes_count)) === 2 ? 0.95 : -1" [style.margin-left.px]="math.floor(math.log10(vid.likes_count)) === 2 ? -17 : null">
+                                    <i [ngClass]="{ 'liked-icon fa-heart' : vid.user_liked, 'fa-heart-o' : !vid.user_liked  }" class='fa' id='icon-likes-video-{{vid.uuid}}' style='float:left;width:100%' aria-hidden="true">
+                                        <span class='btn-like-text' id='likes-video-{{vid.uuid}}' style='font-size:0.9em;margin:4px;font-family: "Roboto", sans-serif;font-weight:500;color:#111' [style.margin-left.px]="math.floor(math.log10(vid.likes_count)) === 2 ? -2 : 2">{{vid.likes_count}}</span>
+                                    </i>
+                                </div>
+                            </button>
+                        </div>
+                        <div class="col ps6 average-rating-container"><span class='average-rating'>Rating: [{{vid.ratings_count}}]</span><div style='margin-left:8px;margin-top:-11px' class='star-ratings-css col ps10'><div [style.transform]="transformRating(vid.average_rating)" class="inner-star-ratings-css" ></div></div><div class='col ps2' style='float:right;margin-top:-5px;white-space: nowrap;'>{{vid.average_rating}}</div></div>
+                        <div class='col ps3 comment-count-container'><i class="fa fa-comment-o comment-count-icon" aria-hidden="true"><span class='comment-count-span'>{{vid.comment_count}}</span></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class='center pagination-container' id='boards-home-pagination-{{i}}' [attr.data-count]="count[i]" [attr.data-pages]="count[i] % 4" [attr.data-currentPage]="0">
+                <div class='paginate-next-container' *ngIf="count[i] > 4 && ((currentPage[i]*4) + currentPosts[i].length) != count[i]"><i class='fa paginate-next' (tap)="startPaginate('next',i)" [ngClass]="window.outerWidth > 1080 ? 'fa-chevron-right' : 'fa-chevron-down'" style='text-align:center;font-size:2em;color:#ff6100;cursor:pointer'></i>
+                </div>           
+            </div>
+        </div>
+    </div>
+</div>
+<hr>

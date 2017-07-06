@@ -1,0 +1,15 @@
+<div id="modal-delete" class="modal report">
+	<div class="modal-content" id='modal-normal' style='display: none'>
+			<h5>Are you sure you want to delete this comment?</h5>
+			<button class='btn' (tap)='closeReport()'>Cancel</button>
+			<button class='btn' (tap)='deleteComment()'>Delete</button>
+	</div>
+	<div class="modal-content" id='modal-admin' style='display: none'>
+			<h5>Reason for removal:</h5>
+			<select (change)="reason = ($event.target.value)" id="removal-reason" required style='display:block;margin-bottom:10px'>
+				<option *ngFor="let option of optionsRemove" [value]="option">{{option}}</option>
+			</select>
+			<button class='btn' (tap)='closeReport()'>Cancel</button>
+			<button class='btn' (tap)='deleteComment()'>Delete</button>
+	</div>
+</div>

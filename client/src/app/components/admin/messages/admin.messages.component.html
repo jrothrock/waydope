@@ -1,0 +1,56 @@
+<h4>Message list</h4>
+<hr>
+<div class='row col s12'>
+	<div class='col s1'>
+		Id
+	</div>
+	<div class='col s2'>
+		Title
+	</div>
+	<div class='col s1'>
+		Category
+	</div>
+	<div class='col s2'>
+		Email
+	</div>
+	<div class='col s3'>
+		Message
+	</div>
+	<div class='col s1'>
+		Submitted By
+	</div>
+	<div class='col s1'>
+		Read?
+	</div>
+	<div class='col s1'>
+		Actions
+	</div>
+</div>
+<div class='row col s12'>
+	<div *ngFor="let message of messages; let i = index" id="message-{{message.id}}" style="overflow:hidden">
+		<div class='col s1'>
+			{{message.id}}
+		</div>
+		<div class='col s2'>
+			{{message.title}}
+		</div>
+		<div class='col s1'>
+			{{message.category}}
+		</div>
+		<div class='col s2'>
+			{{message.email}}
+		</div>
+		<div class='col s3' style="overflow:hidden">
+			{{message.preview}}
+		</div>
+		<div class='col s1' id="good-standing-text-{{message.id}}" style="overflow:hidden">
+			{{message.submitted_by}}
+		</div>
+		<div class='col s1'>
+			{{message.read}}
+		</div>
+		<div class='col s1'>
+			<a [routerLink]="['/admin','messages',message.id]" style='cursor:pointer'>Read</a>
+		</div>
+	</div>
+</div>

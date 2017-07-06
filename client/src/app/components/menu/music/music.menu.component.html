@@ -1,0 +1,62 @@
+<div [style.margin-left.px]='offset' class='row col s12 menu-drop-down' id='music-drop-down' (mouseenter)="mouseEnter()" (mouseleave)="mouseLeft()">
+	<h4 class='menu-titles' style='color:white'(tap)="clickedLink('header')">Music</h4>
+	<hr class='menu-divider'>
+	<div class="row">
+	    <div class="tabs-vertical">
+	        <div class="col s4 m3 l3 xl2">
+	            <ul class="menu-tabs" id='music-menu-tabs'>
+	                <div *ngFor="let name of names; let i = index" class='menu-tab-container' id="menu-tab-name-music-{{name}}" [attr.data-name]="giveDataName(name)" [attr.data-type]="'music'" (mouseenter)="hoveringItem(name)">
+		                <li class="menu-tab" id='menu-tab-music-{{name}}' (dblclick)="menuClick(name)" [ngClass]="{'active-tab':i===0}">
+		                    <a id='menu-tab-link' (dblclick)="menuClick(name)" [ngClass] = "{active: i == 0}" href="#menu-{{name}}-music" style='text-transform:capitalize'>{{name}}</a>
+		                </li>
+		            </div>
+	            </ul>
+	        </div>
+	        <div class="col s8 m9 l8 xl6 menu-tab-output" id='menu-tab-output-music' style='min-height:300px'>
+	            <div *ngFor="let name of names; let i = index" id="menu-{{name}}-music" class='menu-tab-content' [style.display]="i === 0 ? 'block' : 'none'">
+					<div class='row col m12' style='border-bottom:1px solid white'><h4 class='center capitalize link' (tap)="clickedLink('genre', name)">{{name}}</h4></div>
+					<div *ngIf="songs && songs[i] && initiated" id="menu-{{name}}-music-container" class='row col m12 menu-music-container' style='margin-top:-10px;opacity:0;transition: all 125ms'>
+						<div class="col m4" *ngFor="let song of songs[i]; let ic = index" id="menu-{{name}}-music">
+							<div class='menu-song-info'>
+								<div class='link-title' style='cursor:pointer' (mouseenter)="marqueeToggle(1,name,ic)" (mouseleave)="marqueeToggle(0,name,ic)"><a id='music-menu-title-link-{{name}}-{{ic}}' (tap)="clickedLink('title',song.main_genre, song.url)">{{song.title}}</a></div>
+								<div class='link-artist-menu' style='cursor:pointer;color:#9189fd' (tap)="searchArtist(song.artist)">{{song.artist}}</div>
+							</div>
+							<div style='color:grey;font-size:0.7em'>
+								<div *ngIf="song.nsfw" style="display:inline;border:1px solid #ff4040;padding:2px;border-radius:2px;font-size:0.88em">NSFW</div>
+								Posted by <a (tap)="clickedLink('user',song.submitted_by)" style='cursor:pointer'>{{song.submitted_by}}</a> <br>
+							</div>
+							<div *ngIf="!song.clicked" class='music-menu-photo-container' (mouseenter)="photoHover(1,name,ic)" (mouseleave)="photoHover(0,name,ic)" (tap)="photoClicked(name,i,ic,song.form)">
+								<img class='play-button-menu' id='play-button-menu-{{name}}-{{ic}}' style='opacity:0.8' src="/assets/images/blackbutton.svg" alt="Play Button">
+								<img *ngIf="song.form == 0 && song.link_artwork" style='opacity: 0.6' id='music-artwork-menu-{{name}}-{{ic}}' src='{{song.link_artwork}}' height="100%" width="100%"/>
+								<img *ngIf="song.form == 1 && !song.nsfw && song.upload_artwork_url" style='opacity: 0.6' id='music-artwork-menu-{{name}}-{{ic}}' [src]="song.upload_artwork_url ? song.upload_artwork_url : null" height="100%" width="100%"/>
+								<img *ngIf="song.form == 1 && song.nsfw && song.upload_artwork_url_nsfw" style='opacity: 0.6' id='music-artwork-menu-{{name}}-{{ic}}' [src]="song.upload_artwork_url_nsfw ? song.upload_artwork_url_nsfw : null" height="100%" width="100%"/>
+								<img *ngIf="(song.form == 0 && !song.link_artwork) || (song.form == 1 && !song.upload_artwork_url)" style='opacity:0.6;cursor:pointer' id='music-artwork-menu-{{name}}-{{ic}}' class='music-menu-artwork-default-container' src="/assets/images/background-music.png" height="100%" width="100%"/>
+							</div>
+							<div *ngIf="song.clicked && song.form == 0" class='music-menu-frame-container' [innerHTML]="song.link | safe"></div>
+							<div *ngIf="song.clicked && song.form == 1" class='music-menu-frame-container' style='height:150px !important'>
+								<div class='music-home-photo-container gradient-wrap' style='cursor: initial;height:150px !important;box-shadow: 0 0 0px black;border:none'>
+									<img src="{{song.nsfw ? song.upload_artwork_url_nsfw : song.upload_artwork_url}}" cross-origin="anonymous" style='height: 100%;width: 100%;background-size: 100% 100%;background-repeat: no-repeat;opacity:0.350;'>
+									<a rel='nofollow' id="song-{{name}}-{{ic}}-download-link-menu" download="{{song.upload_url}}"><audio id='song-{{name}}-{{ic}}-menu' [src]="song.upload_url ? song.upload_url : null | safeurl" [attr.data-value]="0"></audio></a>
+									<button class='btn' id="play-{{name}}-{{ic}}-menu" (tap)="playAudio(name,ic,song.upload_url)" style='position: relative;top: -156px;'><i class='fa fa-play' id='play-icon-{{name}}-{{ic}}-menu' style='opacity:1'></i></button>
+									<div id='song-playing-time-{{name}}-{{ic}}-menu' style='height:0px;color:white;position:relative;top:-20px;font-size:0.9em;display:none;float:right;top:-158px'><span id='current-time-{{name}}-{{ic}}-menu'>0:00</span>/<span id='duration-{{name}}-{{ic}}-menu'></span></div>
+									<div id="waveform-{{name}}-{{ic}}-menu" style='opacity: 1;position: relative;border-bottom: 1px solid white;top: -100%;height: 82px;'></div>
+									<div id='song-{{name}}-{{ic}}-actions-menu' style='display:inline;position:relative;top:-152px;color:white;font-size:1.5em'>
+										<div id='song-{{name}}-{{ic}}-volumne-menu' style='display:inline;position:relative;'><i class='fa fa-volume-up fa-song-actions'></i></div>
+										<div id='song-{{name}}-{{ic}}-volumn-range-menu' style='margin-top:-35px'><p style='height: 3px;padding: 0px;margin: 0px; margin-left: 5px;' class='volume'><input (mousedown)="checkVolume(1,ic,name)" (mouseup)="checkVolume(0,ic,name)" (click)="checkVolume(1,ic,name,true)" type="range" id="{{name}}-{{ic}}-volume-range-menu" min="0" max="100" style='width: 31%;left: 20px;top: -2px;' value="100" /></p></div>
+										<div id='song-{{name}}-{{ic}}-repeat-menu' style='display:inline;position:relative;right:-96px' class='repeat-icon' [attr.data-loop]="0" (tap)="loop(ic,name)"><i class='fa fa-refresh fa-song-actions'></i></div>
+										<div *ngIf="song.download === 1" id='song-{{name}}-{{ic}}-download-menu' style='display:inline;position:relative;right:-115px;cursor:pointer' (tap)="download(song.uuid,song.title,song.download)"><i class='fa fa-cloud-download fa-song-actions'></i></div>
+										<div *ngIf="song.download === 2" id='song-{{name}}-{{ic}}-download-menu' style='display:inline;position:relative;right:-115px;' (tap)="download(song.uuid,song.title,song.download)"><a href='{{song.download_url}}' target="_blank" rel="noopener" style="color: white !important;"><i class="fa fa-sign-in"></i></a></div>
+									</div>
+								</div>
+							</div>
+							<div class='menu-vote-actions-music' id='menu-vote-actions-music-{{name}}-{{ic}}'>
+				              <div class='menu-upvote-music'><i [ngClass]="{ 'active' : song.user_voted === 1}" (tap)="setVote(1, song.uuid,name, song.average_vote, song.user_voted)" id='{{name}}-upvote-{{song.uuid}}' class='fa fa-chevron-up' style='cursor:pointer' aria-hidden="true"></i></div><div class='menu-downvote-music'><i [ngClass]="{ 'active' : song.user_voted === -1}" (tap)="setVote(-1, song.uuid,name, song.average_vote, song.user_voted)" class='fa fa-chevron-down' style='cursor:pointer' id='{{name}}-downvote-{{song.uuid}}' aria-hidden="true"></i></div>
+				              <div [style.margin-left.px]="math.floor(math.log10(song.average_vote)) % 1 === 0 ? 3 - (4*math.floor(math.log10(song.average_vote))) : 3" class='menu-average-votes' id='{{name}}-vote-{{song.uuid}}'>{{song.average_vote}}</div>
+				            </div>
+						</div>
+					</div>
+	            </div>
+	        </div>
+	    </div>
+	</div>
+</div>

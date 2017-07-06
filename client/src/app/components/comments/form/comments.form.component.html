@@ -1,0 +1,30 @@
+<h6 class='center' ><span *ngIf="!parent_id && !edit">Add a comment</span><span *ngIf="parent_id && !edit">Add a reply</span><span *ngIf="edit">Edit Comment</span></h6>
+<div class="row" id='comment-form'>
+  <form [formGroup]="uploadComment" (ngSubmit)="submitComment(uploadComment.value)" class="col s12">
+    <div class='row'>
+      <div class='text-box comment-text-box col s10 l8 offset-l2 offset-s1'>
+        <textarea [formControl]="uploadComment.controls['body']" id='root-comment-body' value="{{body}}" type='text'></textarea>        
+        <a *ngIf="!parent_id && !edit" style='font-size:0.9em' class='btn formatting-button' id='formatting-guide-link' (tap)="formattingButton(null)" style='color:black !important' data-type='link'>Formatting Guide</a>
+        <a *ngIf="parent_id && !edit" style='font-size:0.9em' class='btn formatting-button' id='formatting-guide-link-{{parent_id}}' (tap)="formattingButton(parent_id)" style='color:black !important' data-type='link'>Formatting Guide</a>
+        <a *ngIf="edit" style='font-size:0.9em' class='btn formatting-button' id='formatting-guide-link-edit' (tap)="formattingButton('edit')" style='color:black !important' data-type='link'>Formatting Guide</a>
+        <div class="center-align">
+          <div *ngIf='!edit'>
+            <button type="submit" [disabled]='!uploadComment.valid || submitted' class="waves-effect waves-light btn submit-comment-button" (tap)="submitComment(uploadComment.value)">Submit</button>
+             <svg class="spinner-circle comment-spinner" id='submit-comment' viewBox="0 0 50 50">
+                <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+            </svg>
+          </div>
+          <div *ngIf='edit'>
+            <button type='submit' [disabled]='!uploadComment.valid || submitted' class="waves-effect waves-light btn submit-comment-button" id='submit-comment-button' (tap)="submitEdit(uploadComment.value)">Submit Edit</button>
+            <svg class="spinner-circle comment-spinner" id='submit-edit' viewBox="0 0 50 50">
+                <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+            </svg>
+          </div>
+        </div>
+        <div *ngIf="!parent_id && !edit" id='add-formatting-guide-link' data-open='false'></div>
+        <div *ngIf="parent_id && !edit" id='add-formatting-guide-link-{{parent_id}}' data-open='false'></div>
+        <div *ngIf="edit" id='add-formatting-guide-link-edit' data-open='false'></div>
+      </div>
+    </div>
+  </form>
+</div>

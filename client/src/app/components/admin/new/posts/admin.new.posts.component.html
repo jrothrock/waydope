@@ -1,0 +1,80 @@
+<h3 style='text-align:center'>New Posts</h3>
+<div style='border:1px solid rgba(0,0,0,0.1);margin-bottom:10px;padding:0px' class='row col ps12'>
+    <div *ngFor='let name of names; let i = index' style='border-right:1px solid rgba(0,0,0,0.1)' class='col ps2'>
+        {{name}}: {{count[i]}}
+    </div>
+</div>
+<div class="row">
+    <div class='col ps12'>
+        <ul class="tabs" materialize="tabs">
+            <li *ngFor="let name of names; let i = index" class="tab col ps2" id='tabs-home-boards'>
+                <a id='admin-posts-tab-link' href="#{{name}}-admin-posts" [ngClass]="{'active':i==0}">{{name}}</a>
+            </li>
+        </ul>
+    </div>
+</div>
+<div id='tab-output-admin-posts-container'>
+    <div *ngFor="let name of names; let i = index" id='{{name}}-admin-posts'>
+        <div *ngIf="posts && posts.length && posts[i].length">
+            <div *ngFor="let post of posts[i]; let ic = index" class='row col ps12' style='border-bottom:1px solid rgba(0,0,0,0.5)'>
+                <div class='row col ps12'>
+                    <div class='row col ps12' style='border-bottom:1px solid rgba(0,0,0,0.1)'>
+                        <div class='col ps{{i > 3 || i === 0 ? 8 : 9}}'>
+                            title: <a (tap)="titleLink()" style='cursor:pointer'>{{post.title}}</a>
+                        </div>
+                        <div *ngIf='i != 0' class='col ps{{i > 3 || i === 0 ? 2 : 3}}'>
+                            {{i != 2 ? "category:" : "genre:"}} {{i != 2 ? post.main_category : post.main_genre}}
+                        </div>
+                        <div *ngIf="i === 0" class='col ps2'>
+                            category: {{post.category}}
+                        </div>
+                        <div *ngIf="i > 3 || i === 0" class='col ps2'>
+                           sub category: {{i === 0 ? post.subcategory : post.sub_category}}
+                        </div>
+                    </div>
+                    <div class='col ps12' style='border-bottom:1px solid rgba(0,0,0,0.1)'>
+                        <div class='col ps3'>
+                            time ago: {{post.time_ago}}
+                        </div>
+                        <div class='col ps3'>
+                            submitted by: <a [routerLink]="['/user',post.submitted_by]">{{post.submitted_by}}</a>
+                        </div>
+                        <div class='col ps3'>
+                            votes: {{post.votes_count}}
+                        </div>
+                        <div *ngIf="i != 0">
+                            <div class='col ps3'>
+                                comments: {{post.comment_count}}
+                            </div>
+                        </div>
+                        <div *ngIf="i === 0">
+                            <div class='col ps3'>
+                                comment id: <a (tap)="commentLink()" style='cursor:pointer'>{{post.uid}}</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div *ngIf='i === 0' class='col ps12'>
+                        <div class='col ps12' style='margin-top:10px'>
+                            body: {{post.body}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div *ngIf="!posts || !posts.length || !posts[i].length">
+            <div>No recent posts for {{name}}</div>
+        </div>
+        <div *ngIf="pages[i] >= 2" class='row col ps12 center pagination-container' style='position:relative;bottom:50px;'>
+            <div class='pages-text'>Page {{currentPage[i]}} of {{pages[i]}}</div>
+            <button (tap)="changePage('start',1,i)" *ngIf="pages[i] > 2" [disabled]='currentPage[i] == 1' class='btn btn-pagination' style='display:inline'><i class='fa fa-angle-double-left'></i></button>
+            <button (tap)="changePage('back',current[i] - 1,i)" *ngIf="pages[i] > 1" [disabled]='currentPage[i] == 1' class='btn btn-pagination' style='display:inline'><i class='fa fa-angle-left'></i></button>
+            <div *ngFor="let number of numbers[i];let ip = index" style='display:inline'>
+                <button (tap)="changePage('page',ip+1,i)" [style.display]="pages < 6 || (currentPage[i] < 4 && ip < 5) || (pages[i] - currentPage[i] < 3 && pages[i] - ip < 6) || (currentPage[i] - 4 < ip && ip < currentPage[i]) || (ip-2 < currentPage[i] && currentPage[i] < (ip+1)) ? 'inline':'none'" class='btn btn-pagination {{i}}' [ngClass]="{ 'active' : ip + 1 == currentPage[i] }">
+                    <div [style.margin-left.px]="math.floor(math.log10(ip+1)) % 1 === 0 ? -1 - (5*math.floor(math.log10(ip+1))) : 1">{{ip + 1}}</div>
+                </button>
+            </div>
+            <button (tap)="changePage('next',currentPage[i] + 1,i)" *ngIf="pages[i] > 1" class='btn btn-pagination' [disabled]='currentPage[i] == pages[i]' style='display:inline'><i class='fa fa-angle-right'></i></button>
+            <button (tap)="changePage('end',pages[i],i)" *ngIf="pages[i] > 2" [disabled]='currentPage[i] == pages[i]' class='btn btn-pagination' style='display:inline'><i class='fa fa-angle-double-right'></i></button>
+        </div>
+    </div>
+</div>

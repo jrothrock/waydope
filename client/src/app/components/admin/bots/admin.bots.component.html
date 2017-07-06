@@ -1,0 +1,44 @@
+<div class='row col m8 offset-m2' id='post-type' style='border:1px solid rgba(0,0,0,0.2)'>
+    <h5 class='center'>Find Post:</h5>
+    
+    <div class='row col m10 offset-m1'>
+        <label>Post Type:</label>
+        <select class="form-control" id="pt" required class='validate' name="power" style='display:block !important'>
+            <option *ngFor="let pt of post_types" [value]="pt">{{pt}}</option>
+        </select> 
+    </div>
+    <div *ngIf="comment" class='row col m10 offset-m1' id='category-container'>
+        <label>Post Type:</label>
+        <select class="form-control" id="pt2" required class='validate' name="power" style='display:block !important'>
+            <option *ngFor="let pt of post_types_comments" [value]="pt">{{pt}}</option>
+        </select> 
+    </div>
+    <div *ngIf="type != 'apparel' && type != 'technology' " class='row col m10 offset-m1' id='category-container'>
+        <label>Category:</label>
+        <input id="category">
+    </div>
+    <div *ngIf="type === 'apparel' || type === 'technology' " class='row col m10 offset-m1' id='category-container'>
+        <label>Category:</label>
+        <input id="category-dropdown">
+    </div>
+    <div class='row col m10 offset-m1' id='sub-category-container' style='display:none'>
+        <label>Sub Category:</label>
+        <input id="sub-category">
+    </div>
+    <div class='row col m10 offset-m1' id='post-search-container' style='display:none'>
+        <label>Post Title:</label>
+        <input id="post-search">
+    </div>
+    <div class='row col m10 offset-m1' id='comment-search-container' style='display:none'>
+        <label>Comment:</label>
+        <input id="comment-search">
+    </div>
+</div>
+<div class='row col m8 offset-m2' id='bot-type' style='display:none;margin-top:10p;border:1px solid rgba(0,0,0,0.2)'>
+    <h6 class='center'>Type</h6>
+    <select class="form-control" id="type" required class='validate' name="power" style='display:block !important;margin: 10px 2px;'>
+		<option *ngFor="let type of types" [value]="type">{{type}}</option>
+	</select> 
+</div>
+<div class='col m12' id='content'>
+</div>

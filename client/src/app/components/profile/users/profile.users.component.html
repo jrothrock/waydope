@@ -1,0 +1,300 @@
+<div *ngIf="banned" id='user-banned-message' class="messages card-panel center-align red darken-1" data-showing='false'>
+	<em style='color:white'>This User Has Been Banned</em>
+</div>
+<div class='row' style='margin-top:40px;'>
+	<h2 class='username' style='font-size:2.5em !important'>{{user}}</h2>
+</div>
+<div class='row col ps12' style='text-align: center;padding-bottom: 10px;border-bottom: 1px solid rgba(0,0,0,0.3);margin-bottom: -10px;'>
+	<div class='col ps4'>
+		Post Karma: {{karma}}
+	</div>
+	<div class='col ps4'>
+		Comment Karma: {{comment_karma}}
+	</div>
+	<div class='col ps4'>
+		<button class="fa fa-envelope-o btn-message" [ngClass]="{'btn-message-disabled':noUser || banned}" aria-hidden="true" style='font-size:1.8em;background-color: transparent;color: rgba(0,0,0,0.65);border: 1px solid rgba(0,0,0,0.3);margin-top:-12px' (tap)="messageUser()"></button>
+	</div>
+</div>
+<div *ngIf="!noUser" id="profile-container" style='min-height: 300px;opacity:0;transition: all 125ms'>
+	<div *ngIf="comments && comments.length" class='row col ps12'>
+		<h3 class='center profile-links' [routerLink]="['/user', user,'comments']">Comments</h3>
+		<div class="col ps12" *ngFor="let comment of comments; let i = index" [style.display]="i > 5 ? 'none':'block'" [style.border-top]="i != 0 ? '1px solid rgba(0,0,0,0.1)' : 'none' ">
+			<div class='col ps1 comment-vote-info'>
+				<div class='col ps8 comment-vote-actions'>
+					<div [ngClass]="{ 'vote' : comment.user_voted == 1}" class='comment-upvote'><i id='comment-upvote-{{comment.uuid}}' [ngClass]="{ 'clickable' : !comment.deleted }" [style.color]="comment.user_voted === 1? '#ef6837' : 'black'" (tap)="setVote(1,i,'comment',comment.user_voted, comment.average_vote,comment.deleted)" class='fa fa-chevron-up' aria-hidden="true"></i></div><div [ngClass]="{ 'vote' : comment.user_voted == -1}" class='comment-downvote'><i [ngClass]="{ 'clickable' : !comment.deleted }" [style.color]="comment.user_voted === -1? '#ef6837' : 'black'" id='comment-downvote-{{comment.uuid}}' (tap)="setVote(-1, i, 'comment', comment.average_vote,comment.user_voted)" class='fa fa-chevron-down' aria-hidden="true"></i></div>
+				</div>
+				<div [style.left.px]="math.floor(math.log10(comment.average_vote)) % 1 === 0 ? 0 - (4*math.floor(math.log10(comment.average_vote))) : 0" style='position:relative;margin-top:-47px;margin-left:3px' class='col s4 comment-votes' id='comment-vote-{{comment.uuid}}'>
+					{{comment.average_vote}}
+				</div>
+			</div>
+			<div class='col ps11 comment-content'>
+				<div>
+					<a *ngIf="!subcategory" [routerLink]="['/' + comment.post_type,comment.category, comment.url]">{{comment.title}}</a>
+					<a *ngIf="subcategory" [routerLink]="['/' + comment.post_type,comment.category, comment.subcategory, comment.url]">Title</a>
+				</div>
+				<div class='comment-author' id='comment-author-{{comment.uuid}}'>
+					<a [routerLink]="['/user', comment.submitted_by]">{{comment.submitted_by}}</a>
+					<div style='display:inline;' *ngIf="comment.styled">[<span *ngIf="comment.admin" style='color:red;padding:1px' title='Admin'>A</span><span *ngIf="comment.submitter" style='color:blue;padding:1px' title='Submitter'>S</span>]</div>
+					<div style='display:inline'><span style='font-size:0.8em;color:grey;padding:5px' class='capitalize'> Submitted {{comment.time_ago}}</span></div>
+				</div>
+				<div class='comment-body' id='comment-body-{{comment.uuid}}' [innerHTML]="comment.marked">
+				</div>
+			</div>
+		</div>
+		<div *ngIf="comments && comments.length === 5" style='position:relative;bottom:20px;margin-bottom:10px;float:right;'>
+			<a [routerLink]="['/user',user,'comments']">All Comments</a>
+		</div>
+	</div>
+	<div *ngIf="music && music.length" class='row col m12'>
+		<hr>
+		<h3 class='center profile-links' [routerLink]="['/user', user,'music']">Music</h3>
+					<div class="col ps6 m3 home-music-post" *ngFor="let song of music; let ic = index"  id="{{name}}-music">
+					<div class="row music-title-info-container">
+						<div (mouseenter)="marqueeToggle(1,'song',song.uuid)" (mouseleave)="marqueeToggle(0,'song',song.uuid)" class='title link-title'>
+							<div class='col ps1' id='inner-link-span'>Title:</div><div class='col ps11' id='inner-link-title'><a id='profile-title-link-song-{{song.uuid}}' [routerLink]="['/music',song.main_genre, song.url]">{{song.title}}</a></div>
+						</div>
+						<div class='artist'>
+							Artist: <span style='color: #4c03db;cursor:pointer' (tap)="searchArtist(song.artist)">{{song.artist}}</span>
+						</div>
+						<div class='song-info' style='color:grey;font-size:0.7em;margin-left: 12px;'>
+								<div *ngIf="song.nsfw" style="display:inline;border:1px solid #ff4040;padding:2px;border-radius:2px;font-size:0.88em">NSFW</div>
+								Posted <span>{{song.time_ago}}</span>
+								by <a [routerLink]="['/user',song.submitted_by]">{{song.submitted_by}}</a>
+								in <a [routerLink]="['/music',song.main_genre]" class='capitalize'>{{song.main_genre}}</a>
+						</div>
+					</div>
+					<div *ngIf="!song.clicked" class='music-home-photo-container' (mouseenter)="photoHover(1,song.uuid,'music')" (mouseleave)="photoHover(0,song.uuid,'music')" (tap)="photoClicked(ic,song.uuid,'music')">
+						<img class='play-button-home' id='play-button-home-music-{{song.uuid}}' style='opacity:0.8' src="/assets/images/blackbutton.svg" alt="Play Button">
+						<img *ngIf="song.form == 0 && song.link_artwork" style='opacity:0.6;cursor:pointer' id='music-artwork-home-{{song.uuid}}' src='{{song.link_artwork}}' height="100%" width="100%"/>
+						<img *ngIf="song.form == 1 && !song.nsfw && song.upload_artwork_url" style='opacity:0.6;cursor:pointer' id='music-artwork-home-{{song.uuid}}' [src]="song.upload_artwork_url | safeurl" height="100%" width="100%"/>
+						<img *ngIf="song.form == 1 && song.nsfw && song.upload_artwork_url_nsfw" style='opacity:0.6;cursor:pointer' id='music-artwork-home-{{song.uuid}}' [src]="song.upload_artwork_url_nsfw | safeurl" height="100%" width="100%"/>
+						<img *ngIf="(song.form == 0 && !song.link_artwork) || (song.form == 1 && !song.upload_artwork_url)" style='opacity:0.6;cursor:pointer' id='music-artwork-home-{{song.uuid}}' class='music-featured-artwork-default-container' src="/assets/images/background-music.png" height="100%" width="100%"/>
+					</div>
+					<div *ngIf="song.clicked && song.form == 0" class='music-home-frame-container' [innerHTML]="song.link | safe"></div>
+					<div *ngIf="song.clicked && song.form == 1" class='music-home-frame-container'>
+						<div class='music-home-photo-container gradient-wrap' style='cursor: initial;'>
+							<img src="{{song.upload_artwork_url}}" cross-origin="anonymous" style='height: 100%;width: 100%;background-size: 100% 100%;background-repeat: no-repeat;opacity:0.350;'>
+							<a rel='nofollow' id="song-{{song.uuid}}-download-link" download="{{song.upload_url}}"><audio id='song-{{song.uuid}}' [src]="song.upload_url ? song.upload_url : null | safeurl" [attr.data-value]="0"></audio></a>
+							<button id="song-play-{{song.uuid}}" class='btn song-music-frame-button' (tap)="playAudio(song.uuid,song.upload_url)"><i class='fa fa-play' id='play-icon-{{song.uuid}}' style='opacity:1'></i></button>
+							<div id="song-waveform-{{song.uuid}}" class='song-music-frame' style='border-bottom:0;top:-85%'></div>
+							<div id='song-playing-time-{{song.uuid}}' style='height:0px;color:white;position:relative;top:-220px;font-size:0.9em;display:none'><span id='current-time-{{song.uuid}}'>0:00</span>/<span id='duration-{{song.uuid}}'></span></div>
+							<div id='song-{{song.uuid}}-actions' class='row col ps12 song-music-frame-actions' style='border-top:1px solid white;padding:0px'>
+								<div class='col ps4' style='padding:0px'>
+									<div id='song-{{song.uuid}}-volumne' style='display:inline;position:relative;'><i class='fa fa-volume-up fa-song-actions'></i></div>
+									<div id='song-{{song.uuid}}-volumn-range' style='margin-top:-35px'><p style='height: 3px;padding: 0px;margin: 0px; margin-left: 5px;' class='volume'><input (mousedown)="checkVolume(1,song.uuid)" (mouseup)="checkVolume(0,song.uuid)" (click)="checkVolume(0,song.uuid,true)" type="range" id="{{song.uuid}}-volume-range" min="0" max="100" style='width: 85%;left: 20px;top: -2px;' value="100" /></p></div>
+								</div>
+								<div class='col ps4' style='text-align:center'>
+									<div id='song-{{song.uuid}}-repeat' style='display:inline;position:relative;' class='repeat-icon' [attr.data-loop]="0" (tap)="loop(song.uuid,name)"><i class='fa fa-refresh fa-song-actions'></i></div>
+								</div>
+								<div class='col ps4' style='text-align:right;white-space:nowrap;padding:0px'>
+									<div *ngIf="song.download === 1" id='song-{{song.uuid}}-download' style='display:inline;position:relative;cursor:pointer' (tap)="download(song.uuid,song.uuid,song.download)"><i class='fa fa-cloud-download fa-song-actions'></i></div>
+									<div *ngIf="song.download === 2" id='song-{{song.uuid}}-download' style='display:inline;position:relative;top:-5px;' (tap)="download(song.uuid,song.uuid,song.download)"><a href='{{song.download_url}}' target="_blank" rel="noopener" style="font-size: 1rem;color: white !important;">{{song.download_text}}</a></div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div></div>
+					<div class='row col ps12 music-info'>
+						<div class='col ps3' style='padding:0px'>
+							<div class='home-music-vote-actions-container' style='margin-top:-13px'><i [style.color]="song.user_voted === 1? '#ef6837' : 'black'" class='fa fa-chevron-up' id='music-upvote-{{song.uuid}}' (tap)="setVote(1, song.uuid,'music', song.average_vote, song.user_voted)" style='cursor:pointer'></i><div class='home-music-average-vote' id='music-vote-{{song.uuid}}' [style.margin-left.px]="math.floor(math.log10(song.average_vote)) % 1 === 0 ? 4 - (4*math.floor(math.log10(song.average_vote))) : 4">{{song.average_vote}}</div><i [style.color]="song.user_voted === -1? '#ef6837' : 'black'" class='fa fa-chevron-down' id='music-downvote-{{song.uuid}}' (tap)="setVote(-1, song.uuid,'music', song.average_vote, song.user_voted)" style='position:absolute;cursor:pointer'></i></div>
+							<button (tap)="like(song.uuid, song.user_liked, song.likes_count,ic,song.post_type  )" [ngClass]="{ 'liked' : song.user_liked }" id='likes-button-{{song.uuid}}' class="btn btn-like">
+								<div class='row' style='margin-top:-5px'>
+									<i id='icon-likes-{{song.uuid}}-music' [ngClass]="{ 'liked-icon fa-heart' : song.user_liked, 'fa-heart-o' : !song.user_liked }" class="fa" style='float:left;width:100%' aria-hidden="true"><span class='btn-like-text' id='likes-{{song.uuid}}' style='font-size:0.9em;margin:4px;font-family: "Roboto", sans-serif;font-weight:500;color:#111'>{{song.likes_count}}</span></i>
+								</div>
+							</button>
+						</div>
+						<div class="col ps6 average-rating-container"><span class='average-rating'>Rating: [{{song.ratings_count}}]</span><div style='margin-left:8px;margin-top:-11px' class='star-ratings-css col ps10'><div [style.transform]="transformRating(song.average_rating)" class="inner-star-ratings-css" ></div></div><div class='col ps2' style='float:right;margin-top:-5px;white-space: nowrap;'>{{song.average_rating}}</div></div>
+						<div class='col ps3 comment-count-container'><i class="fa fa-comment-o comment-count-icon" aria-hidden="true"><span class='comment-count-span'>{{song.comment_count}}</span></i></div>
+					</div>
+				</div>
+	</div>
+	<div *ngIf="videos && videos.length" class='row col ps12'>
+		<hr>
+		<h3 class='center profile-links' [routerLink]="['/user', user,'videos']">Videos</h3>
+				<div class="col ps6 m3 home-videos-post" *ngFor="let vid of videos; let ic = index" id="{{name}}-videos">
+					<div class="row video-title-info-container">
+						<div (mouseenter)="marqueeToggle(1,'video',vid.uuid)" (mouseleave)="marqueeToggle(0,'video',vid.uuid)" class='title link-title'>
+							<div class='col ps1' id='inner-link-span'>Title:</div><div class='col ps11' id='inner-link-title'><a id='profile-title-link-video-{{vid.uuid}}' [routerLink]="['/videos',vid.main_category, vid.url]">{{vid.title}}</a></div>
+						</div>
+						<div class='video-info' style='color:grey;font-size:0.7em;margin-left: 12px !important;margin-top:0px'>
+								<div *ngIf="vid.nsfw" style="display:inline;border:1px solid #ff4040;padding:2px;border-radius:2px;font-size:0.88em">NSFW</div>
+								Posted <span>{{vid.time_ago}}</span>
+								by <a [routerLink]="['/user',vid.submitted_by]">{{vid.submitted_by}}</a>
+								in <a [routerLink]="['/videos',vid.main_category]" class='capitalize'>{{vid.main_category}}</a>
+						</div>
+					</div>
+					<div *ngIf="!vid.clicked" class='video-home-photo-container' (mouseenter)="photoHover(1,vid.uuid,'videos')" (mouseleave)="photoHover(0,vid.uuid,'videos')" (tap)="photoClicked(ic,vid.uuid,'videos')">
+						<img class='play-button-home' id='play-button-home-videos-{{vid.uuid}}' style='opacity:0.8' src="/assets/images/blackbutton.svg" alt="Play Button">
+						<img *ngIf="vid.form == 0 && vid.link_artwork" style='opacity:0.6;cursor:pointer' id='videos-artwork-home-{{vid.uuid}}' src='{{vid.link_artwork}}' height="100%" width="100%"/>
+						<img *ngIf="vid.form == 1 && !vid.nsfw && vid.upload_artwork_url" style='opacity:0.6;cursor:pointer' id='videos-artwork-home-{{vid.uuid}}' [src]="vid.upload_artwork_url ? vid.upload_artwork_url : null | safeurl" height="100%" width="100%"/>
+						<img *ngIf="vid.form == 1 && vid.nsfw && vid.upload_artwork_url_nsfw" style='opacity:0.6;cursor:pointer' id='videos-artwork-home-{{vid.uuid}}' [src]="vid.upload_artwork_url_nsfw ? vid.upload_artwork_url_nsfw : null | safeurl" height="100%" width="100%"/>
+						<img *ngIf="(vid.form == 0 && !vid.link_artwork) || (vid.form == 1 && !vid.upload_artwork_url)" style='opacity:0.7;cursor:pointer' id='videos-artwork-home-{{vid.uuid}}' class='video-featured-artwork-default-container' src="/assets/images/background-video.png" height="100%" width="100%"/>
+					</div>
+					<div *ngIf="vid.clicked && vid.form == 0">
+						<img *ngIf="vid.link_type === 2" [src]="vid.link | safeurl">
+						<div class='videos-home-video-container' *ngIf="vid.link_type === 1" [innerHTML]="vid.link | safe"></div>
+					</div>
+					<div *ngIf="vid.clicked && vid.form == 1">
+						<video id="profile-video-{{ic}}-{{vid.uuid}}" class="video-js vjs-default-skin vjs-big-play-centered home-video-{{vid.uuid}} video-js-thumbnail" data-setup='{"fluid": true, "playbackRates": [0.5, 1, 1.5, 2], "autoplay":true}' controls preload="auto">
+							<source [src]="vid.video && vid.upload_url ? vid.upload_url : null | safeurl" type="video/mp4" />
+							<p class="vjs-no-js">To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="http://videojs.com/html5-video-support/" target="_blank" rel="noopener">supports HTML5 video</a></p>
+						</video>
+					</div>
+					<div class='row col ps12 video-info'>
+						<div class='col ps3' style='padding:0px'>
+							<div class='home-videos-vote-actions-container' style='margin-top:-13px'><i [style.color]="vid.user_voted === 1? '#ef6837' : 'black'" class='fa fa-chevron-up' id='videos-upvote-{{vid.uuid}}' (tap)="setVote(1, vid.uuid,'videos', vid.average_vote, vid.user_voted)" style='cursor:pointer'></i><div class='home-video-average-vote' id='videos-vote-{{vid.uuid}}' [style.margin-left.px]="math.floor(math.log10(vid.average_vote)) % 1 === 0 ? 4 - (4*math.floor(math.log10(vid.average_vote))) : 4">{{vid.average_vote}}</div><i [style.color]="vid.user_voted === -1? '#ef6837' : 'black'" class='fa fa-chevron-down' id='videos-downvote-{{vid.uuid}}' (tap)="setVote(-1, vid.uuid,'videos', vid.average_vote, vid.user_voted)" style='position:absolute;cursor:pointer'></i></div>
+							<button id='likes-button-videos-{{vid.uuid}}' class='btn btn-like' [ngClass]="{ 'liked' : vid.user_liked }" (tap)="like(vid.uuid, vid.user_liked, vid.likes_count, ic,vid.post_type  )"  style="float:left;margin-top:-25px"><div class='row' style='margin-top:-5px'><i [ngClass]="{ 'liked-icon fa-heart' : vid.user_liked, 'fa-heart-o' : !vid.user_liked  }" class='fa' id='icon-likes-videos-{{vid.uuid}}' style='float:left;width:100%' aria-hidden="true"><span class='btn-like-text' id='likes-videos-{{vid.uuid}}' style='font-size:0.9em;margin:4px;font-family: "Roboto", sans-serif;font-weight:500;color:#111'>{{vid.likes_count}}</span></i></div></button>
+						</div>
+						<div class="col ps6 average-rating-container"><span class='average-rating'>Rating: [{{vid.ratings_count}}]</span><div style='margin-left:8px;margin-top:-11px' class='star-ratings-css col ps10'><div [style.transform]="transformRating(vid.average_rating)" class="inner-star-ratings-css" ></div></div><div class='col ps2' style='float:right;margin-top:-5px;white-space: nowrap;'>{{vid.average_rating}}</div></div>
+						<div class='col ps3 comment-count-container'><i class="fa fa-comment-o comment-count-icon" aria-hidden="true"><span class='comment-count-span'>{{vid.comment_count}}</span></i></div>
+					</div>
+				</div>
+		<div *ngIf="videos && videos.length === 3" style='position:relative;bottom:20px;margin-bottom:10px;float:right;'>
+			<a [routerLink]="['/user',user,'videos']">All Videos</a>
+		</div>
+	</div>
+	<div *ngIf="apparel && apparel.length" class='row col m12'>
+		<hr>
+		<h3 class='center profile-links' [routerLink]="['/user', user,'apparel']">Apparel</h3>
+			<div class="col ps6 m3 apparel-content-container" *ngFor="let post of apparel; let ic = index" id="{{category}}-apparel">
+				<div class='technology-info'>
+					<div id='' class='col ps9' style='padding:0px !important'>
+						<div class='link-title' (mouseenter)="marqueeToggle(1,'apparel',post.uuid)" (mouseleave)="marqueeToggle(0,'apparel',post.uuid)"><a id='profile-title-link-apparel-{{post.uuid}}' [routerLink]="['/apparel', post.main_category, post.sub_category, post.url]">{{post.title}}</a></div>
+						<div>{{post.creator}}</div>
+					</div>
+					<div class='col ps3'>
+						<div>{{post.sale_price ? post.sale_price : post.price}}</div>
+					</div>
+					<div class='col ps12 apparel-info' style='color:grey;font-size:0.7em;margin-left:0px !important;margin-top:0px'>
+						<div *ngIf="post.nsfw" style="display:inline;border:1px solid #ff4040;padding:2px;border-radius:2px;font-size:0.88em">NSFW</div>
+						Posted by <a [routerLink]="['/user',post.submitted_by]">{{post.submitted_by}}</a>
+						in <a [routerLink]="['/apparel',post.main_category]" class='capitalize'>{{post.main_category}}</a> - <a [routerLink]="['/apparel',post.main_category, post.sub_category]" class='capitalize'>{{post.sub_category}}</a> 
+					</div>
+				</div>
+				<div id='profile-apparel-images-container-{{ic}}'>
+					<div *ngIf="!post.nsfw" id='profile-apparel-sfw-container-{{ic}}'>
+						<div *ngIf="post.upload_urls.length" class='main-image col ps12' id='main-photo-apparel-container' style='text-align:center;margin-top:10px'>
+							<img id='main-photo-apparel-{{ic}}' class="cloudzoom" (mouseenter)="photoZoom('apparel',ic)" src='{{post.upload_urls[0]}}' height="100%" width="100%" style='cursor:zoom-in;'/>
+						</div>
+						<div class='all-images col ps12' style='text-align:center;margin-top:10px'>
+							<div class='col ps3' *ngFor="let photo of post.upload_urls; let ip = index" style='cursor:pointer' id>
+									<img id='rest-photos-apparel-{{ic}}-{{ip}}' class='rest-photos rest-photos-apparel-{{ic}}' (tap)="changePhoto('apparel',ic,ip)" src='{{photo}}' [ngClass]="{ 'active-photo' : ip === 0 }" height="100%" width="100%"/>
+							</div>
+						</div>
+					</div>
+					<div *ngIf="post.nsfw" id='profile-apparel-nsfw-container-{{ic}}'>
+						<div *ngIf="post.upload_urls_nsfw.length" class='main-image col ps12' id='main-photo-apparel-container' style='text-align:center;margin-top:10px'>
+							<img id='main-photo-apparel-{{ic}}' class="cloudzoom" (mouseenter)="photoZoom('apparel',ic)" src='{{post.upload_urls_nsfw[0]}}' height="100%" width="100%" style='cursor:zoom-in;'/>
+						</div>
+						<div class='all-images col ps12' style='text-align:center;margin-top:10px'>
+							<div class='col ps3' *ngFor="let photo of post.upload_urls_nsfw; let ip = index" style='cursor:pointer' id>
+									<img id='rest-photos-apparel-{{ic}}-{{ip}}' class='rest-photos rest-photos-apparel-{{ic}}' (tap)="changePhoto('apparel',ic,ip)" src='{{photo}}' [ngClass]="{ 'active-photo' : ip === 0 }" height="100%" width="100%"/>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class='row col ps12 apparel-info' style='margin-top:-10px'>
+					<div class='col ps3' style='padding:0px'>
+						<div class='home-music-vote-actions-container' style='margin-top:-13px'>
+							<i [style.color]="post.user_voted === 1? '#ef6837' : 'black'" class='fa fa-chevron-up' id='apparel-upvote-{{post.uuid}}' (tap)="setVote(1, post.uuid,'apparel', post.average_vote, post.user_voted)" style='cursor:pointer'></i>
+							<div class='home-music-average-vote' id='apparel-vote-{{post.uuid}}' [style.margin-left.px]="math.floor(math.log10(post.average_vote)) % 1 === 0 ? 4 - (4*math.floor(math.log10(post.average_vote))) : 4">{{post.average_vote}}</div>
+							<i [style.color]="post.user_voted === -1? '#ef6837' : 'black'" class='fa fa-chevron-down' id='apparel-downvote-{{post.uuid}}' (tap)="setVote(-1, post.uuid,'apparel', post.average_vote, post.user_voted)" style='position:absolute;cursor:pointer'></i>
+						</div>
+						<button (tap)="like(post.uuid, post.user_liked,post.likes_count,ic,post.post_type  )" [ngClass]="{ 'liked' : post.user_liked }" id='likes-button-{{post.uuid}}' class="btn btn-like">
+							<div class='row' style='margin-top:-5px;white-space: nowrap' [style.font-size.pct]="math.floor(math.log10(post.likes_count)) === 2 ? 0.95 : -1" [style.margin-left.px]="math.floor(math.log10(post.likes_count)) === 2 ? -17 : null">
+								<i id='icon-likes-{{post.uuid}}' [ngClass]="{ 'liked-icon fa-heart' : post.user_liked, 'fa-heart-o' : !post.user_liked }" class="fa" style='float:left;width:100%' aria-hidden="true">
+									<span class='btn-like-text' id='likes-{{post.uuid}}' style='font-size:0.9em;margin:4px;font-family: "Roboto", sans-serif;font-weight:500;color:#111' [style.margin-left.px]="math.floor(math.log10(post.likes_count)) === 2 ? -2 : 0">{{post.likes_count}}</span>
+								</i>
+							</div>
+						</button>
+					</div>
+					<div class="col ps6 average-rating-container"><span class='average-rating'>Rating: [{{post.ratings_count}}]</span><div style='margin-left:8px;margin-top:-11px' class='star-ratings-css col ps10'><div [style.transform]="transformRating(post.average_rating)" class="inner-star-ratings-css" ></div></div><div class='col ps2' style='float:right;margin-top:-5px;white-space: nowrap;'>{{post.average_rating}}</div></div>
+					<div class='col ps3 comment-count-container'><i class="fa fa-comment-o comment-count-icon" aria-hidden="true"><span class='comment-count-span'>{{post.comment_count}}</span></i></div>
+				</div>
+			</div>
+		<div *ngIf="apparel && apparel.length === 3" style='position:relative;bottom:20px;margin-bottom:10px;float:right;'>
+			<a [routerLink]="['/user',user,'apparel']">All Apparel</a>
+		</div>
+	</div>
+	<div *ngIf="technology && technology.length" class='row col m12'>
+		<hr>
+		<h3 class='center profile-links' [routerLink]="['/user', user,'technology']">Technology</h3>
+		<div class="col m3 ps6 technology-content-container" *ngFor="let post of technology; let ic = index" id="{{ic}}-technology">
+			<div class='technology-info'>
+				<div id='' class='col ps9' style='padding:0px !important'>
+					<div class='link-title' (mouseenter)="marqueeToggle(1,'technology',post.uuid)" (mouseleave)="marqueeToggle(0,'technology',post.uuid)"><a id='profile-title-link-technology-{{post.uuid}}' [routerLink]="['/technology', post.main_category, post.sub_category, post.url]">{{post.title}}</a></div>
+					<div>{{post.creator}}</div>
+				</div>
+				<div class='col ps3'>
+					<div>{{post.sale_price ? post.sale_price : post.price}}</div>
+				</div>
+				<div class='col ps12 apparel-info' style='color:grey;font-size:0.7em;margin-left:0px !important;margin-top:0px'>
+					<div *ngIf="post.nsfw" style="display:inline;border:1px solid #ff4040;padding:2px;border-radius:2px;font-size:0.88em">NSFW</div>
+					Posted by <a [routerLink]="['/user',post.submitted_by]">{{post.submitted_by}}</a>
+					in <a [routerLink]="['/technology',post.main_category]" class='capitalize'>{{post.main_category}}</a> - <a [routerLink]="['/technology',post.main_category, post.sub_category]" class='capitalize'>{{post.sub_category}}</a> 
+				</div>
+			</div>
+			<div id='profile-technology-images-container-{{ic}}'>
+				<div *ngIf="!post.nsfw" id='profile-technology-sfw-container-{{ic}}'>
+					<div *ngIf="post.upload_urls.length" class='main-image col ps12' id='main-photo-technology-container-{{ic}}' style='text-align:center;margin-top:10px;height:100%;width:100%'>
+						<img id='main-photo-technology-{{ic}}' class="cloudzoom" (mouseenter)="photoZoom('technology',ic)" src='{{post.upload_urls[0]}}' height="100%" width="100%" style='cursor:zoom-in;margin:auto'/>
+					</div>
+					<div class='all-images col ps12' style='margin-bottom:10px;margin-top:10px'>
+						<div class='col ps3' *ngFor="let photo of post.upload_urls; let ip = index" style='cursor:pointer;margin-top:10px' id>
+							<img id='rest-photos-technology-{{ic}}-{{ip}}' class='rest-photos rest-photos-technology-{{ic}}' (tap)="changePhoto('technology',ic,ip)" src='{{photo}}' [ngClass]="{ 'active-photo' : ip === 0 }" height="100%" width="100%" style='margin:auto'/>
+						</div>
+					</div>
+				</div>
+				<div *ngIf="post.nsfw" id='profile-technology-nsfw-container-{{ic}}'>
+					<div *ngIf="post.upload_urls_nsfw.length" class='main-image col ps12' id='main-photo-technology-container-{{ic}}' style='text-align:center;margin-top:10px;height:100%;width:100%'>
+						<img id='main-photo-technology-{{ic}}' class="cloudzoom" (mouseenter)="photoZoom('technology',ic)" src='{{post.upload_urls_nsfw[0]}}' height="100%" width="100%" style='cursor:zoom-in;margin:auto'/>
+					</div>
+					<div class='all-images col ps12' style='margin-bottom:10px;margin-top:10px'>
+						<div class='col ps3' *ngFor="let photo of post.upload_urls_nsfw; let ip = index" style='cursor:pointer;margin-top:10px' id>
+							<img id='rest-photos-technology-{{ic}}-{{ip}}' class='rest-photos rest-photos-technology-{{ic}}' (tap)="changePhoto('technology',ic,ip)" src='{{photo}}' [ngClass]="{ 'active-photo' : ip === 0 }" height="100%" width="100%" style='margin:auto'/>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class='row col ps12 technology-info' style='margin-top:-10px'>
+				<div class='col ps3' style='padding:0px'>
+					<div class='home-music-vote-actions-container' style='margin-top:-13px'>
+						<i [style.color]="post.user_voted === 1? '#ef6837' : 'black'" class='fa fa-chevron-up' id='technology-upvote-{{post.uuid}}' (tap)="setVote(1, post.uuid,'technology', post.average_vote, post.user_voted)" style='cursor:pointer'></i>
+						<div class='home-music-average-vote' id='technology-vote-{{post.uuid}}' [style.margin-left.px]="math.floor(math.log10(post.average_vote)) % 1 === 0 ? 4 - (4*math.floor(math.log10(post.average_vote))) : 4">{{post.average_vote}}</div>
+						<i [style.color]="post.user_voted === -1? '#ef6837' : 'black'" class='fa fa-chevron-down' id='technology-downvote-{{post.uuid}}' (tap)="setVote(-1, post.uuid,'technology', post.average_vote, post.user_voted)" style='position:absolute;cursor:pointer'></i>
+					</div>
+					<button (tap)="like(post.uuid, post.user_liked,post.likes_count,ic,post.post_type  )" [ngClass]="{ 'liked' : post.user_liked }" id='likes-button-{{post.uuid}}' class="btn btn-like">
+						<div class='row' style='margin-top:-5px;white-space: nowrap' [style.font-size.pct]="math.floor(math.log10(post.likes_count)) === 2 ? 0.95 : -1" [style.margin-left.px]="math.floor(math.log10(post.likes_count)) === 2 ? -17 : null">
+							<i id='icon-likes-{{post.uuid}}' [ngClass]="{ 'liked-icon fa-heart' : post.user_liked, 'fa-heart-o' : !post.user_liked }" class="fa" style='float:left;width:100%' aria-hidden="true">
+								<span class='btn-like-text' id='likes-{{post.uuid}}' style='font-size:0.9em;margin:4px;font-family: "Roboto", sans-serif;font-weight:500;color:#111' [style.margin-left.px]="math.floor(math.log10(post.likes_count)) === 2 ? -2 : 0">{{post.likes_count}}</span>
+							</i>
+						</div>
+					</button>
+				</div>
+				<div class="col ps6 average-rating-container"><span class='average-rating'>Rating: [{{post.ratings_count}}]</span><div style='margin-left:8px;margin-top:-11px' class='star-ratings-css col ps10'><div [style.transform]="transformRating(post.average_rating)" class="inner-star-ratings-css" ></div></div><div class='col ps2' style='float:right;margin-top:-5px;white-space: nowrap;'>{{post.average_rating}}</div></div>
+				<div class='col ps3 comment-count-container'><i class="fa fa-comment-o comment-count-icon" aria-hidden="true"><span class='comment-count-span'>{{post.comment_count}}</span></i></div>
+			</div>
+		</div>
+		<div *ngIf="technology && technology.length === 3" style='position:relative;bottom:20px;margin-bottom:10px;float:right;'>
+			<a [routerLink]="['/user',user,'technology']">All Technology</a>
+		</div>
+	</div>
+	<div *ngIf="!comments.length && !music.length && !videos.length && !apparel.length && !technology.length" style='text-align: center;padding: 20px;font-size: 1.2em;margin-top: 50px;'>
+		Damn, looks like this user hasn't had much activity.
+	</div>
+</div>
+<div *ngIf="noUser">
+	<div style='width:40%;height:65px;border:1px solid rgba(0,0,0,0.1);margin:auto;text-align:center;margin-top:70px'>
+		<div style='padding-top:20px'>No User By This Name Was Found</div>
+	</div>
+</div>
+<!--<div id='loading-spinner-profile'>
+	<h4 class='center'>Loading User...</h4>
+	<div class="spinner">
+		<div class="rect1"></div>
+		<div class="rect2"></div>
+		<div class="rect3"></div>
+		<div class="rect4"></div>
+		<div class="rect5"></div>
+    </div>
+<div>-->

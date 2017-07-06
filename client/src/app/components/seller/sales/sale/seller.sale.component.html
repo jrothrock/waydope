@@ -1,0 +1,23 @@
+<div class='row'>
+    <h5 class='center'>Context:</h5>
+    <div class='center'>{{firstname}} just placed an order for {{quantity}} <a [routerLink]="['/' + type, category, sub_category, url]">{{name}}</a>
+    for {{total}} (product cost: {{sub_total}} and shipping: {{shipping}})
+    </div>
+    <hr>
+    <div>
+        <span class='center'><h5>Information:</h5></span>
+        <div class='row'><h6 style='display:inline'>Firstname:</h6>  {{firstname}}</div>
+        <div class='row'><h6 style='display:inline'>Lastname:</h6>  {{lastname}}</div>
+        <div class='row'><h6 style='display:inline'>Address:</h6>  {{address}}</div>
+        <div class='row'><h6 style='display:inline'>Address - cont:</h6>  {{address_two}}</div>
+        <div class='row'><h6 style='display:inline'>City:</h6>  {{city}}</div>
+        <div class='row'><h6 style='display:inline'>State:</h6> {{state}}</div>
+        <div class='row'><h6 style='display:inline'>Zip:</h6> {{zip}}</div>
+    </div>
+
+</div>
+<div style='text-align:center;margin:auto'>
+    <button class='btn' [routerLink]="['/seller']">Back To Sales</button>
+    <button class='btn' [routerLink]="['/seller', 'sales', id,'update']">{{tracking ? 'Update' : 'Send'}} Tracking Number</button>
+</div>
+<hr>

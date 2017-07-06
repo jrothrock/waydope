@@ -1,0 +1,86 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "project": {
+    "version": "1.0.0-beta.32.3",
+    "name": "client1"
+  },
+  "apps": [
+    {
+      "root": "src",
+      "outDir": "dist",
+      "assets": [
+        "assets",
+        "favicon.ico"
+      ],
+      "index": "index.html",
+      "main": "main.ts",
+      "polyfills": "polyfills.ts",
+      "test": "test.ts",
+      "tsconfig": "tsconfig.json",
+      "prefix": "app",
+      "styles": [
+        "../node_modules/materialize-css/dist/css/materialize.min.css",
+        "./assets/scss/materialize_sizes_overwrites.scss",
+        "./assets/scss/main.scss",
+        "../node_modules/font-awesome/css/font-awesome.min.css",
+        "../node_modules/font-awesome/fonts/fontawesome-webfont.ttf",
+        "../node_modules/font-awesome/fonts/fontawesome-webfont.woff",
+        "../node_modules/font-awesome/fonts/fontawesome-webfont.woff2",
+        "../node_modules/selectize/dist/less/selectize.less",
+        "../node_modules/selectize/dist/less/selectize.default.less",
+        "../node_modules/video.js/dist/video-js.min.css",
+        "../node_modules/videojs-resolution-switcher/lib/videojs-resolution-switcher.css"
+      ],
+      "scripts": [
+        "../node_modules/jquery/dist/jquery.min.js",
+        "../node_modules/materialize-css/dist/js/materialize.js",
+        "../node_modules/selectize/dist/js/standalone/selectize.js",
+        "../node_modules/jquery-ui/ui/widget.js",
+        "../node_modules/jquery-ui/ui/data.js",
+        "../node_modules/jquery-ui/ui/scroll-parent.js",
+        "../node_modules/jquery-ui/ui/widgets/mouse.js",
+        "../node_modules/jquery-ui/ui/widgets/sortable.js",
+        "../node_modules/video.js/dist/video.min.js",
+        "../node_modules/marked/lib/marked.js",
+        "../node_modules/videojs-resolution-switcher/lib/videojs-resolution-switcher.js",
+        "./assets/js/vendor/wavesurfer.min.js/",
+        "./assets/js/vendor/jquery.flip.min.js",
+        "./assets/js/vendor/jquery.iframe-transport.js",
+        "./assets/js/vendor/jquery.fileupload.js",
+        "./assets/js/vendor/cloudzoom.js",
+        "./assets/js/vendor/jsmediatags.min.js",
+        "./assets/js/vendor/jquery.backstretch.min.js",
+        "./assets/js/other/metachange.js"
+      ],
+      "environmentSource": "environments/environment.ts",
+      "environments": {
+        "dev": "environments/environment.ts",
+        "prod": "environments/environment.prod.ts"
+      }
+    }
+  ],
+  "e2e": {
+    "protractor": {
+      "config": "./protractor.conf.js"
+    }
+  },
+  "lint": [
+    {
+      "files": "src/**/*.ts",
+      "project": "src/tsconfig.json"
+    },
+    {
+      "files": "e2e/**/*.ts",
+      "project": "e2e/tsconfig.json"
+    }
+  ],
+  "test": {
+    "karma": {
+      "config": "./karma.conf.js"
+    }
+  },
+  "defaults": {
+    "styleExt": "css",
+    "component": {}
+  }
+}

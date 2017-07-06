@@ -1,0 +1,22 @@
+<div style='display:block !important' class="navbar-fixed" #boards>
+  <nav>
+    <div class="nav-wrapper" style='background-color:#ef6837'>
+      <ul class="left hide-on-med-and-down" style='margin-left: 20px;'>
+        <li (mouseenter)="addDropDown(1,'home')" (click)="closeDropDown()" id='home-menu'><a [routerLink]="['/']">Home</a></li> 
+        <li (mouseenter)="addDropDown(1,'boards')" (click)="closeDropDown()" id='boards-menu'><a [routerLink]="['boards']">Boards</a></li> 
+        <li (mouseenter)="addDropDown(1,'music')" (click)="closeDropDown()" id='music-menu'><a [routerLink]="['music']">Music</a></li> 
+        <li (mouseenter)="addDropDown(1,'videos')" (click)="closeDropDown()" id='videos-menu'><a [routerLink]="['videos']">Videos</a></li> 
+        <li (mouseenter)="addDropDown(1,'apparel')" (click)="closeDropDown()" id='apparel-menu'><a [routerLink]="['apparel']">Apparel</a></li> 
+        <li (mouseenter)="addDropDown(1,'technology')" (click)="closeDropDown()" id='technology-menu'><a [routerLink]="['technology']">Technology</a></li> 
+      </ul>
+      <a class="brand-logo center"[routerLink]="['/']">Way Dope</a>
+      <ul class="right hide-on-med-and-down">
+        <li *ngIf="!isLoggedIn" [routerLinkActive]="['active']"><a [routerLink]="['signin']" [queryParams]="{}">Sign In</a></li>
+        <li *ngIf="!isLoggedIn" [routerLinkActive]="['active']"><a [routerLink]="['signup']" [queryParams]="{}">Sign Up</a></li>
+        <li *ngIf="isLoggedIn"><a (click)="logout()">Logout</a></li>
+        <li *ngIf="isLoggedIn" [routerLinkActive]="['active']"><a [routerLink]="['/user', currentUser]">Profile</a></li>
+         <li *ngIf="isAdmin" [routerLinkActive]="['active']"><a [routerLink]="['/admin']">Admin</a></li>
+      </ul>
+    </div>
+  </nav>
+</div>

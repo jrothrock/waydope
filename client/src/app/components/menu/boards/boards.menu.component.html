@@ -1,0 +1,36 @@
+<div [style.margin-left.px]='offset' class='row col s12 menu-drop-down' id='boards-drop-down' (mouseenter)="mouseEnter()" (mouseleave)="mouseLeft()">
+	<h4 class='menu-titles' style='color:white' (tap)="clickedLink('header')">Boards</h4>
+	<hr class='menu-divider'>
+	<div class="row">
+	    <div class="tabs-vertical">
+	        <div class="col s4 m3 l3 xl2">
+	            <ul class="menu-tabs" id='boards-menu-tabs'>
+		            <div class='menu-tab-container' *ngFor="let name of names; let i = index" id="menu-tab-name-boards-{{name}}" [attr.data-name]="giveDataName(name)" [attr.data-type]="'boards'" (mouseenter)="hoveringItem(name)">
+		                <li class="menu-tab" id='menu-tab-boards-{{name}}'  (dblclick)="menuClick(name)" [ngClass]="{'active-tab':i===0}">
+		                    <a id='menu-tab-link' [ngClass] = "{'active': i == 0}" href="#menu-{{name}}-boards" style='text-transform:capitalize'>{{name}}</a>
+		                </li>
+		            </div>
+	            </ul>
+	        </div>
+	        <div class="col s8 m9 l8 xl6 menu-tab-output" id='menu-tab-output-boards' style='min-height:300px'>
+	            <div *ngFor="let name of names; let i = index" id="menu-{{name}}-boards" class='menu-tab-content' [style.display]="i === 0 ? 'block' : 'none'">
+					<div class='row col m12' style='border-bottom:1px solid white'><h4 class='center capitalize link' (tap)="clickedLink('category', name)">{{name}}</h4></div>
+					<div *ngIf="posts && posts[i] && initiated" id="menu-{{name}}-boards-container"  class='row col m12 menu-boards-container' style='margin-left: 0.75rem; margin-top:-10px;opacity:0;transition: all 125ms'>
+						<div class="col m4" *ngFor="let post of posts[i]; let ic = index" id="menu-{{name}}-boards">
+							<div class='link-title menu-boards-title' (mouseenter)="marqueeToggle(1,name,ic)" (mouseleave)="marqueeToggle(0,name,ic)"><a id='boards-menu-title-link-{{name}}-{{ic}}' (tap)="clickedLink('post',post.main_category, post.url)" style='cursor:pointer'>{{post.title}}</a></div>
+							<div style='color:grey;font-size:0.7em;'>
+									<div *ngIf="post.nsfw" style="display:inline;border:1px solid #ff4040;padding:2px;border-radius:2px;font-size:0.88em">NSFW</div>
+									Posted by <a (tap)="clickedLink('user',post.submitted_by)" style='cursor:pointer'>{{post.submitted_by}}</a> <br>
+									<span>{{post.time_ago}}</span> in <a class='capitalize' (tap)="clickedLink('category', post.main_category)" style='cursor:pointer'>{{post.main_category}}</a>
+							</div>
+							<div class='menu-vote-actions'>
+				              <div class='menu-upvote'><i [ngClass]="{ 'active' : post.user_voted === 1}" (tap)="setVote(1, post.uuid,name, post.average_vote, post.user_voted)" id='{{name}}-upvote-{{post.uuid}}' class='fa fa-chevron-up' style='cursor:pointer' aria-hidden="true"></i></div><div class='menu-downvote'><i [ngClass]="{ 'active' : post.user_voted === -1}" (tap)="setVote(-1, post.uuid,name, post.average_vote, post.user_voted)" class='fa fa-chevron-down' style='cursor:pointer' id='{{name}}-downvote-{{post.uuid}}' aria-hidden="true"></i></div>
+				              <div [style.margin-left.px]="math.floor(math.log10(post.average_vote)) % 1 === 0 ? 3 - (4*math.floor(math.log10(post.average_vote))) : 3" class='average_votes' id='{{name}}-vote-{{post.uuid}}'>{{post.average_vote}}</div>
+				            </div>
+						</div>
+					</div>
+	            </div>
+	        </div>
+	    </div>
+	</div>
+</div>

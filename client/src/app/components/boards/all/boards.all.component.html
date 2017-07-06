@@ -1,0 +1,173 @@
+<div class='row col s12 boards-container'>
+	<div class="row">
+		<div class="col s12">
+			<ul class="tabs" materialize="tabs">
+				<li *ngFor="let tab of tabTypes; let i = index" class="tab col s6" id='tab-output-music'>
+					<a id='boards-tab-link' href="#{{tab}}-boards-all">{{tab}}</a>
+				</li>
+			</ul>
+		</div>
+	</div>
+	<hr>
+	<div id='news-boards-all'>
+		<div class='music-category-sorting row'>
+			<div class='col m1 ps2' style='margin-top:20px'><h5>Sort:</h5>
+			</div>
+			<form [formGroup]="sortPosts" (ngSubmit)="getSorting('news',sortPosts.value)" class="col m9 ps10">
+    			<div class='col ps4 sort'> 
+    				<label for="options">Order</label>
+    				<select (change)="onOptionsChange('news',$event.target.value)" id="options" required [formControl]="sortPosts.controls['options']" style='display:block'>
+    					<option *ngFor="let option of optionsNews" [value]="option">{{option}}</option>
+    				</select>
+    			</div>
+    			<div class='col ps4 sort'>
+    				<label for="time">Time</label>
+    				<select id="time-news" required [formControl]="sortPosts.controls['time']" style='display:block'>
+	    				<option *ngFor="let times of timings" [value]="times">{{times}}</option>
+	    			</select>
+    			</div> 
+    			<div class='col ps4 sort'>
+    				<label for="type">Type</label>
+    				<select id="type-news" required [formControl]="sortPosts.controls['type']" style='display:block'>
+    					<option *ngFor="let type of newsTypes; let i = index" [value]="newsTypesValues[i]">{{type}}</option>
+    				</select>
+    			</div>
+			</form>
+			<div class='col m2 ps12 sort-button'>
+				<button style='margin-top:25px' type="submit" [disabled]='!sortPosts.valid || !posts' class="waves-effect waves-light btn" (tap)="getSorting('news',sortPosts.value)">Sort Posts</button>
+			</div>
+		</div>
+		<hr>
+		<div id='boards-posts-container-all' style='display:none'>
+			<div *ngIf="all && all.length > 0" class='content'>
+				<div class="col ps12 home-board-post" *ngFor="let allpost of all; let iac = index" id="{{name}}-boards">
+                    <div class='vote-actions'>
+                    <div class='home-upvote'><i [style.color]="allpost.user_voted === 1? '#ef6837' : 'black'" (tap)="setVote(1, allpost.uuid, allpost.average_vote, allpost.user_voted)" id='allpost-upvote-{{allpost.uuid}}' class='fa fa-chevron-up' style='cursor:pointer' aria-hidden="true"></i></div><div class='home-downvote'><i [style.color]="allpost.user_voted === -1? '#ef6837' : 'black'" (tap)="setVote(-1, allpost.uuid, allpost.average_vote, allpost.user_voted)" class='fa fa-chevron-down' style='cursor:pointer' id='allpost-downvote-{{allpost.uuid}}' aria-hidden="true"></i></div>
+                    </div>
+                    <div [style.margin-left.px]="math.floor(math.log10(allpost.average_vote)) % 1 === 0 ? -27 - (4*math.floor(math.log10(allpost.average_vote))) : -27" class='average_votes' id='allpost-vote-{{allpost.uuid}}'>{{allpost.average_vote}}</div>
+                    <div class='home-news-content'>
+                        <div class='row'>
+                            <a *ngIf="allpost.form == 1" href='{{allpost.link}}' style='font-size:1.1em' target="_blank" rel="noopener">{{allpost.title}}</a>
+                            <a *ngIf="allpost.form == 0" [routerLink]="['/boards',allpost.main_category, allpost.url]" style='font-size:1.1em' target="_blank" rel="noopener">{{allpost.title}}</a>
+                            <div *ngIf="allpost.title" style='color:grey;font-size:0.8em;display:inline-flex'>(<span style='padding: 0 1px 0 1px'>{{allpost.hostname != 'waydope.com' ? allpost.hostname : "text." + allpost.main_category }}</span>)</div>
+                        </div>
+                        <div class='row description-boards-container'><div class='description-boards' style='font-size:0.97em'>{{allpost.teaser}}</div></div>
+                    </div>
+                    <div class='row col ps12'>
+                        <div class='comment_count'><a [routerLink]="['/boards',allpost.main_category, allpost.url]"><i class="fa fa-comment-o" aria-hidden="true"><span style='margin-left:2px;font-family: "Roboto", sans-serif;font-size:0.9em'>{{allpost.comment_count}} comments</span></i></a></div>
+                    </div>
+                    <div class='row col ps12' style='color:grey;font-size:0.7em;margin-top:-20px;margin-left: -12px;'>
+							<div *ngIf="allpost.nsfw" style="display:inline;border:1px solid #ff4040;padding:2px;border-radius:2px;font-size:0.88em">NSFW</div>
+                            Posted <span>{{allpost.time_ago}}</span>
+                            by <a [routerLink]="['/user',allpost.submitted_by]">{{allpost.submitted_by}}</a>
+                            in <a [routerLink]="['/boards',allpost.main_category]" class='capitalize'>{{allpost.main_category}}</a>
+                    </div>
+				</div>
+				<div *ngIf="pagesNews >= 2" class='row col ps12 center pagination-container' style='position:relative;bottom:50px;'>
+					<div class='pages-text'>Page {{currentPageNews}} of {{pagesNews}}</div>
+					<button (tap)="changePage('news','start',1)" *ngIf="pagesNews > 2" [disabled]='currentPageNews == 1' class='btn btn-pagination' style='display:inline'><i class='fa fa-angle-double-left'></i></button>
+					<button (tap)="changePage('news','back',currentPageNews - 1)" *ngIf="pagesNews > 1" [disabled]='currentPageNews == 1' class='btn btn-pagination' style='display:inline'><i class='fa fa-angle-left'></i></button>
+					<div *ngFor="let number of numbersNews;let i = index" style='display:inline'>
+						<button (tap)="changePage('news','page',i+1)" [style.display]="pagesNews < 6 || (currentPageNews < 4 && i < 5) || (pagesNews - currentPageNews < 3 && pagesNews - i < 6) || (currentPageNews - 4 < i && i < currentPageNews) || (i-2 < currentPageNews && currentPageNews < (i+1)) ? 'inline':'none'" class='btn btn-pagination btn-pagination-news' [ngClass]="{ 'active' : i + 1 == currentPageNews }"><div [style.margin-left.px]="i > 0 ? '-1' : '0'">{{i + 1}}</div></button>
+					</div>
+					<button (tap)="changePage('news','next',currentPageNews + 1)" *ngIf="pagesNews > 1" class='btn btn-pagination' [disabled]='currentPageNews == pagesNews' style='display:inline'><i class='fa fa-angle-right'></i></button>
+					<button (tap)="changePage('news','end',pagesNews)" *ngIf="pagesNews > 2" [disabled]='currentPageNews == pagesNews' class='btn btn-pagination' style='display:inline'><i class='fa fa-angle-double-right'></i></button>
+				</div>
+			</div>
+			<div *ngIf="!all || !all.length" style='text-align:center'>
+				<span>Damn. No dank posts have been added to this site. Like, at all. Be the first do so</span>
+			</div>
+		</div>
+	</div>
+	<div id='categories-boards-all' style='display:none'>
+		<div class='music-category-sorting row'>
+			<div class='col m1 ps2' style='margin-top:20px'><h5>Sort:</h5>
+			</div>
+			<form [formGroup]="sortCategories" (ngSubmit)="getSorting('categories',sortCategories.value)" class="col m9 ps10">
+				<div class='col ps4 sort'> 
+					<label for="options">Options</label>
+					<select id="rank" (change)="onOptionsChange('categories',$event.target.value)" required [formControl]="sortCategories.controls['options']" style='display:block'>
+						<option *ngFor="let option of options;let i = index" [value]="optionsValues[i]">{{option}}</option>
+					</select>
+				</div>
+				<div class='col ps4 sort'>
+					<label for="time">Time</label>
+					<select id="time" required [formControl]="sortCategories.controls['time']" style='display:block'>
+							<option *ngFor="let times of timings" [value]="times">{{times}}</option>
+						</select>
+				</div> 
+				<div class='col ps4 sort'>
+					<label for="type">Type</label>
+					<select id="type" required [formControl]="sortCategories.controls['type']" style='display:block'>
+						<option *ngFor="let type of types; let i = index" [value]="typesValues[i]">{{type}}</option>
+					</select>
+				</div>
+			</form>
+			<div class='col m2 ps12 sort-button'>
+				<button style='margin-top:25px' type="submit" [disabled]='!sortCategories.valid' class="waves-effect waves-light btn" (tap)="getSorting('categories',sortCategories.value)">Sort Categories</button>
+			</div>
+		</div>
+		<hr>
+		<div id='boards-posts-container-categories' style='display:none'>
+			<div *ngFor="let board of boards; let i = index" id="{{board}}">
+				<div>
+					<h2 [routerLink]="['/boards', board.url]" class='category-links capitalize'>{{board.title}}</h2>
+					<span class='board-count'>Number of posts: {{board.count}}</span>
+					<div class='toggle'><button (tap)="transition(i)" class='btn btn-toggle'><i class='fa fa-chevron-down btn-toggle-icon' [attr.data-value]="0" id='post-toggle-button-{{i}}'></i></button></div>
+				</div>
+				<div id='post-block-{{i}}' style='display:none'>
+					<div *ngIf="posts[i] && posts[i].length > 0">
+						<div class="col ps12 home-board-post" *ngFor="let post of posts[i]; let ic = index" id="{{name}}-boards">
+							<div class='vote-actions'>
+							<div class='home-upvote'><i [style.color]="post.user_voted === 1? '#ef6837' : 'black'" (tap)="setVote(1, post.uuid, post.average_vote, post.user_voted)" id='post-upvote-{{post.uuid}}' class='fa fa-chevron-up' style='cursor:pointer' aria-hidden="true"></i></div><div class='home-downvote'><i [style.color]="post.user_voted === -1? '#ef6837' : 'black'" (tap)="setVote(-1, post.uuid, post.average_vote, post.user_voted)" class='fa fa-chevron-down' style='cursor:pointer' id='post-downvote-{{post.uuid}}' aria-hidden="true"></i></div>
+							</div>
+							<div [style.margin-left.px]="math.floor(math.log10(post.average_vote)) % 1 === 0 ? -27 - (4*math.floor(math.log10(post.average_vote))) : -27" class='average_votes' id='post-vote-{{post.uuid}}'>{{post.average_vote}}</div>
+							<div class='home-news-content'>
+								<div class='row'>
+									<a *ngIf="post.form == 1" href='{{post.link}}' style='font-size:1.1em' target="_blank" rel="noopener">{{post.title}}</a>
+									<a *ngIf="post.form == 0" [routerLink]="['/boards',post.main_category, post.url]" style='font-size:1.1em' target="_blank" rel="noopener">{{post.title}}</a>
+									<div *ngIf="post.title" style='color:grey;font-size:0.8em;display:inline-flex'>(<span style='padding: 0 1px 0 1px'>{{post.hostname != 'waydope.com' ? post.hostname : "text." + post.main_category }}</span>)</div>
+								</div>
+								<div class='row description-boards-container'><div class='description-boards' style='font-size:0.97em'>{{post.teaser}}</div></div>
+							</div>
+							<div class='row col ps12'>
+								<div class='comment_count'><a [routerLink]="['/boards',post.main_category, post.url]"><i class="fa fa-comment-o" aria-hidden="true"><span style='margin-left:2px;font-family: "Roboto", sans-serif;font-size:0.9em'>{{post.comment_count}} comments</span></i></a></div>
+							</div>
+							<div class='row col ps12' style='color:grey;font-size:0.7em;margin-top:-20px;margin-left: -12px;'>
+									<div *ngIf="post.nsfw" style="display:inline;border:1px solid #ff4040;padding:2px;border-radius:2px;font-size:0.88em">NSFW</div>
+									Posted <span>{{post.time_ago}}</span>
+									by <a [routerLink]="['/user',post.submitted_by]">{{post.submitted_by}}</a>
+									in <a [routerLink]="['/boards',post.main_category]" class='capitalize'>{{post.main_category}}</a>
+							</div>
+						</div>
+					</div>
+					<div *ngIf="!posts[i] || !posts[i].length">
+						<span>No Dank Posts In This Category. Be The First To Add One!</span>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div *ngIf="pages >= 2" class='row col ps12 center pagination-container' style='position:relative;bottom:50px;'>
+			<div class='pages-text'>Page {{currentPage}} of {{pages}}</div>
+			<button (tap)="changePage('categories','start',1)" *ngIf="pages > 2" [disabled]='currentPage == 1' class='btn btn-pagination' style='display:inline'><i class='fa fa-angle-double-left'></i></button>
+			<button (tap)="changePage('categories','back',(currentPage - 1))" *ngIf="pages > 1" [disabled]='currentPage == 1' class='btn btn-pagination' style='display:inline'><i class='fa fa-angle-left'></i></button>
+			<div *ngFor="let number of numbers;let i = index" style='display:inline'>
+				<button (tap)="changePage('categories','page',i+1)" [style.display]="pages < 6 || (currentPage < 4 && i < 5) || (pages - currentPage < 3 && pages - i < 6) || (currentPage - 4 < i && i < currentPage) || (i-2 < currentPage && currentPage < (i+1)) ? 'inline':'none'" class='btn btn-pagination btn-pagination-categories' [ngClass]="{ 'active' : i + 1 == currentPage }">
+					<div [style.margin-left.px]="math.floor(math.log10(i+1)) % 1 === 0 ? -1 - (5*math.floor(math.log10(i+1))) : 1">{{i + 1}}</div>
+				</button>
+			</div>
+			<button (tap)="changePage('categories','next',(currentPage + 1))" *ngIf="pages > 1" class='btn btn-pagination' [disabled]='currentPage == pages' style='display:inline'><i class='fa fa-angle-right'></i></button>
+			<button (tap)="changePage('categories','end',pages)" *ngIf="pages > 2" [disabled]='currentPage == pages' class='btn btn-pagination' style='display:inline'><i class='fa fa-angle-double-right'></i></button>
+		</div>
+	</div>
+</div>
+<div id='loading-spinner-boards'>
+	<h4 class='center'>Loading Posts...</h4>
+	<div class="spinner">
+		<div class="rect1"></div>
+		<div class="rect2"></div>
+		<div class="rect3"></div>
+		<div class="rect4"></div>
+		<div class="rect5"></div>
+	</div>
+</div>

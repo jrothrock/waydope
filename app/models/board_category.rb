@@ -1,0 +1,2 @@
+class BoardCategory < ApplicationRecord
+end

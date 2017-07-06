@@ -1,0 +1,295 @@
+<div id='loading-spinner-apparel-post' style='display:none;position:absolute;left:50%;transform:translateX(-50%)'>
+	<h4 class='center'>Loading Product...</h4>
+	<div class="spinner">
+		<div class="rect1"></div>
+		<div class="rect2"></div>
+		<div class="rect3"></div>
+		<div class="rect4"></div>
+		<div class="rect5"></div>
+	</div>
+</div>
+<div id='apparel-post-container' style='opacity:0;transition: all 175ms'>
+	<div *ngIf="locked" id='messages-locked' class="messages card-panel center-align deep-purple" style='display:block'>
+		<em style='color:white'><i class='fa fa-lock'></i> This Post Has Been Locked.</em>
+	</div>
+	<div *ngIf="archived" id='messages-archived' class="messages card-panel center-align deep-purple" style='display:block'>
+		<em style='color:white'><i class='fa fa-archive'></i> This Post Has Been Archived.</em>
+	</div>
+	<div *ngIf="flagged" id='messages-archived' class="messages card-panel center-align red darken-1" style='display:block'>
+		<em style='color:white'><i class='fa fa-lock'></i> Your post has been flagged and is being reviewed.</em>
+	</div>
+	<div *ngIf="!approved && worked" id='messages-archived' class="messages card-panel center-align deep-purple" style='display:block'>
+		<em style='color:white'><i class='fa fa-lock'></i> You currently aren't an approved seller, you're reviewal will occur shortly. This post is not visible.</em>
+	</div>
+	<system_posts_modal [datanotify]="datanotify" (lockApparelOutput)="lockPost($event)" (removeApparelOutput)="removePost($event)"></system_posts_modal>
+	<admin_posts_modal [dataadmin]="dataadmin"></admin_posts_modal>
+	<a href="https://waydope.com/apparel/{{category}}/{{sub_category}}/{{id}}"><h1 class='center capitalize'>{{title}}</h1></a>
+	<div class='row' style='border-top: 1px solid rgba(0,0,0,0.1);border-bottom: 1px solid rgba(0,0,0,0.1);padding: 10px;text-align:center'>
+		<div *ngIf='nsfw' style='float:left;width:0px;padding:0px;'>
+			<div class='nsfw-container-post'>
+				<h6 style='text-align: center;position: relative;top: -50%;transform: translatey(50%);'>NSFW</h6>
+			</div>
+		</div>
+		<div class="col ps4">
+			<h6 class='apparel-info'>Submitted By: <a [routerLink]="['/user', submitted_by]" class='product-top-links'>{{submitted_by}}</a></h6>
+		</div>
+		<div class="col ps4">
+			<h6 class='apparel-info'>Category: <a class="music-links capitalize"[routerLink]="['/apparel', category | lowercase]" class='product-top-links' style='text-transform:capitalize'>{{category}}</a></h6>
+		</div>
+		<div class="col ps4">
+			<h6 class='apparel-info'>Sub Category: <a class="music-links capitalize"[routerLink]="['/apparel', category | lowercase, sub_category | lowercase]" class='product-top-links' style='text-transform:capitalize'>{{sub_category}}</a></h6>
+		</div>
+	</div>
+	<div class="row" *ngIf="worked">
+		<div class='col ps12 m6' id='apparel-post-images-container'>
+			<div *ngIf="!nsfw || (nsfw && nsfw_ok)" id='sfw-images-container' style='display:none'>
+				<div *ngIf="photos && photos.length" class='main-image col ps12' id='main-photo-apparel-container' style='text-align:center;margin-top:10px'>
+					<img class = "cloudzoom" id='main-photo-apparel' src='{{photos[0]}}'  height="100%" width="100%" style='cursor:zoom-in;display:none'/>
+				</div>
+				<div *ngIf="nsfw_ok" class='col ps12' style='position: relative;top: -43px;height:0px'>
+					<button class='btn nsfw-button' (mouseover)="hoverNSFWButton()" (tap)="toggleNSFW(false)">Hide NSFW</button>
+				</div>
+				<div  *ngIf="photos && photos.length > 1"  class='rest-photos-containers col ps12'>
+					<div class='col ps{{photos.length < 4 ? "4" : "3"}} rest-images' *ngFor="let photo of photos; let ip = index" [attr.data-index]="ip" style='cursor:pointer;text-align:center'>
+						<img id='rest-photos-apparel-{{ip}}' class='rest-photos' (tap)="changePhoto(ip)" src='{{photo}}' [attr.data-index]="ip"  [ngClass]="{ 'active-photo' : ip === 0 }" height="100%" width="100%" style='display:none'/>
+					</div>
+				</div>
+			</div>
+			<div *ngIf="nsfw && !nsfw_ok" id='nsfw-images-container' style='display:none'>
+				<div *ngIf="photos_nsfw && photos_nsfw.length" class='main-image col ps12' id='main-photo-apparel-container' style='text-align:center;margin-top:10px'>
+					<img class = "cloudzoom" id='main-photo-apparel' src='{{photos_nsfw[0]}}'  height="100%" width="100%" style='cursor:zoom-in;display:none'/>
+				</div>
+				<div class='col ps12' style='position: relative;top: -43px;height:0px'>
+					<button class='btn nsfw-button' (mouseover)="hoverNSFWButton()"  (tap)="toggleNSFW(true)">Show NSFW</button>
+				</div>
+				<div  *ngIf="photos_nsfw && photos_nsfw.length > 1"  class='rest-photos-containers col ps12'>
+					<div class='col ps{{photos_nsfw.length < 4 ? "4" : "3"}} rest-images' *ngFor="let photo of photos_nsfw; let ip = index" [attr.data-index]="ip" style='cursor:pointer;text-align:center'>
+						<img id='rest-photos-apparel-{{ip}}' class='rest-photos' (tap)="changePhoto(ip)" src='{{photo}}' [attr.data-index]="ip"  [ngClass]="{ 'active-photo' : ip === 0 }" height="100%" width="100%" style='display:none'/>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class='col ps6 m3 product-info'>
+			<div><h6> Price: {{price}}</h6></div>
+			<div><h6 style='font-size:1.05em'> Shipping: {{shipping}}</h6></div>	
+			<div><h6> Quantity: {{quantity}}</h6></div>
+			<div *ngIf="sizes.length > 1"><h6> 
+				<label>Size:</label>
+				<select id="sizes" required [(ngModel)]="sizeSelected" (change)="sizeChange($event)" style='display:block;box-shadow:none !important;' class='enabled quantity-select'>
+					<option *ngFor="let size of sizes" [value]="size">{{size}}</option>
+				</select>
+			</h6></div>
+			<div *ngIf="sizes.length === 1 && sizes[0] != 'default' && !length && !depth && !height">
+				<h6>Size: {{sizes[0]}}</h6>
+			</div>
+			<div *ngIf="colors.length > 1 || sizes.length > 1"><h6 id='color-h6'> 
+				<label>Color:</label>
+				<select id="colors" required [(ngModel)]="colorSelected" (change)="colorChange($event)" style='display:block' class='enabled quantity-select {{colorSelected || sold_out ? "no-select-border" : "select-border"}}'>
+					<option *ngFor="let color of colors" [value]="color">{{color}}</option>
+				</select>
+			</h6></div>
+			<div *ngIf="sizes.length === 1 && colors.length === 1 && colors[0] != 'default'">
+				<h6>Color: {{colors[0]}}</h6>
+			</div>
+			<div *ngIf="depth"><h6> Length: {{depth}}</h6></div>
+			<div *ngIf="width"><h6> Width: {{width}}</h6></div>
+			<div *ngIf="height"><h6> Height: {{height}}</h6></div>
+		</div>
+		<div class='col ps6 m3 sale-actions'>
+			<div *ngIf="!addedToCart" class='quantity'>
+				<div *ngIf="sold_out" style='color:red;'>Sorry, but this item is currently sold out.</div>
+				<span *ngIf="quantity != 0" style='font-size:0.8em;color:gray;margin-left:5px'>Quantity:</span>
+				<select id="quantity" required [(ngModel)]="quantitySelected" style='display:block;box-shadow:none !important' class='enabled quantity-select'>
+					<option *ngFor="let q of quantities" [value]="q">{{q}}</option>
+				</select>
+				<div class='sales-buttons' style='padding:5px'>
+					<div><button [disabled]="sold_out || !colors.length || !quantities.length" class='btn buy-now' style='padding:5px;' (tap)="buyNow()">Buy Now</button></div>
+					<div><button [disabled]="quantitySelected == null || sold_out || !colors.length || !quantities.length"  class='btn add-to-cart' style='padding:5px;margin-top:5px' (tap)="addToCart()">Add To Cart</button></div>
+				</div>
+			</div>
+			<div *ngIf="addedToCart" class='quantity'>
+				<span style='font-size:0.8em;color:gray;margin-left:5px;'>Quantity:</span>
+				<select id="quantity" required [(ngModel)]="quantitySelected" style='display:block;box-shadow:none !important' class='enabled quantity-select'>
+					<option *ngFor="let q of quantities" [value]="q">{{q}}</option>
+				</select>
+				<div class='sales-buttons' style='padding:5px'>
+					<div><button class='btn buy-now' style='padding:5px' (tap)="removeFromCart()">Remove Item</button></div>
+					<div><button [disabled]="quantitySelected == null"  class='btn add-to-cart' style='padding:5px;margin-top:5px;white-space:nowrap;' (tap)="addToCart()">Update Quantity</button></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div *ngIf="!worked" style='height:250px;border:1px solid rgba(0,0,0,0.3)'>
+		<div style='padding:25px;text-align:center'>
+		<h4>Your Product Is Still Processing. You'll be notified when it is ready.</h4>
+		<h5>This usually only takes a minute or so...</h5>
+		</div>
+	</div>
+	<div class='row col m12 videos-container' style='border-bottom: 1px solid rgba(0,0,0,0.1);padding-bottom: 10px;'>
+		<div class='left-post-buttons'>
+			<div class='col m2 l4'>
+				<div class='col m6 song-vote-actions' style='font-size:1.1em;margin-top: 9px'>
+					<i (tap)="setVote(1)" [style.color]="user_voted === 1? '#ef6837' : 'black'" class='fa fa-chevron-up' style='cursor:pointer;position: absolute;margin-top: -16px;margin-left: -4px;' id='upvote'></i>
+					<div class='music-post-average-vote' id='vote' [style.margin-left.px]="math.floor(math.log10(average_vote)) % 1 === 0 ? 0 - (5*math.floor(math.log10(average_vote))) : 0" >{{average_vote}}</div
+					><i [style.color]="user_voted === -1? '#ef6837' : 'black'" (tap)="setVote(-1)" id='downvote' class='fa fa-chevron-down' style='cursor:pointer;position:absolute;margin-top:-5px;margin-left:-4px;'></i>
+				</div>
+				<div class='col m6'>
+					<button (tap)="like(id,user_liked,likes_count,category,post_type)" [ngClass]="{ 'liked' : user_liked }" id='likes-button-{{id}}' class="btn btn-like-post" style="float:left">
+						<div class='row' style='margin-top:-5px;white-space: nowrap;' [style.font-size.pct]="math.floor(math.log10(likes_count)) === 2 ? 0.95 : -1" [style.margin-left.px]="math.floor(math.log10(likes_count)) === 2 ? -17 : null">
+							<i id='icon-likes-{{id}}' [ngClass]="{ 'liked-icon fa-heart' : user_liked, 'fa-heart-o' : !user_liked  }" class="fa" aria-hidden="true">
+							<span id='likes-{{id}}' style='font-size:0.9em;font-family: "Roboto", sans-serif;font-weight:500;color:#111' [style.margin-left.px]="math.floor(math.log10(likes_count)) === 2 ? -2 : 0">{{likes_count}}</span></i>
+						</div>
+					</button>
+				</div>
+			</div>
+			<div class="col m5 l4 star-ratings-css-container" style='margin-top: -4px;overflow: hidden'>
+				<div>Overall Rating:</div><div class='star-ratings-css col m10'><div class='inner-star-ratings-css' [style.transform]="transformRating(average_rating)"></div></div><div class='col m2 average-rating-value' style='float:right;white-space:nowrap'>{{average_rating}} [{{average_rating_count}}]</div>
+			</div>
+		</div>
+		<div *ngIf="!has_rated && !rateOpen" style='text-align: center' class='right-post-buttons'>
+			<button class='btn btn-stats' style='float:left' (tap)='showAdvancedStatistics()'><i [ngClass]="advancedStatisticsShow ? 'fa fa-times' : 'fa fa-tasks'"></i></button>
+			<button type='submit' class='waves-effect waves-light btn' (tap)="toggleRateForm()">Add Rating</button>
+			<button class='dropdown-button btn btn-flag' style='float:right;' materialize='dropdown' data-activates='dropdown1'><i class='fa fa-ellipsis-h'></i></button>
+				<ul id='dropdown1' class='dropdown-content'>
+					<li (tap)='toggleReportForm()'><i class='fa fa-flag report-icon'></i> Report</li>
+					<li *ngIf="submitted_by == currentUser" (tap)='editPost()'><i class='fa fa-pencil report-icon'></i> Edit</li>
+					<li *ngIf="submitted_by == currentUser" (tap)='toggleDeleteForm()'><i class='fa fa-trash report-icon'></i> Delete</li>
+					<li *ngIf="isAdmin" (tap)='lockInit()'><i class='fa fa-lock report-icon'></i> Lock</li>
+					<li *ngIf="isAdmin" (tap)='removeInit()'><i class='fa fa-close report-icon'></i> Remove</li>
+					<li *ngIf="isAdmin" (tap)='adminInit()'><i class='fa fa-cogs report-icon'></i> Admin</li>
+				</ul>
+		</div>
+		<div *ngIf="!has_rated && rateOpen" class='col m4 right-post-buttons'>
+			<button (tap)='showAdvancedStatistics()' class='btn btn-stats' style='float:left'><i [ngClass]="advancedStatisticsShow ? 'fa fa-times' : 'fa fa-tasks'" ></i></button>
+			<button class='dropdown-button btn btn-flag' style='float:right;' materialize='dropdown' data-activates='dropdown1'><i class='fa fa-ellipsis-h'></i></button>
+				<ul id='dropdown1' class='dropdown-content'>
+					<li (tap)='toggleReportForm()'><i class='fa fa-flag report-icon'></i> Report</li>
+					<li *ngIf="submitted_by == currentUser" (tap)='editPost()'><i class='fa fa-pencil report-icon'></i> Edit</li>
+					<li *ngIf="submitted_by == currentUser" (tap)='toggleDeleteForm()'><i class='fa fa-trash report-icon'></i> Delete</li>
+					<li *ngIf="isAdmin" (tap)='lockInit()'><i class='fa fa-lock report-icon'></i> Lock</li>
+					<li *ngIf="isAdmin" (tap)='removeInit()'><i class='fa fa-close report-icon'></i> Remove</li>
+					<li *ngIf="isAdmin" (tap)='adminInit()'><i class='fa fa-cogs report-icon'></i> Admin</li>
+				</ul>
+			<div *ngIf="!advancedForm">
+				<form [formGroup]="rating" (ngSubmit)="submitRating(rating.value, post_type)" class="col ps12 fit">
+					<div class="row range-field rating col ps12">
+					<div class='col s12'>Overall Rating: {{rating.controls.rating._value}}</div>
+					<input [formControl]="rating.controls['rating']" type="range" id="test5" min="0" max="100" />
+					</div>
+
+					<div class='col s12'>Fit:</div>
+					<select id="options" required [formControl]="rating.controls['fit']" style='display:block'>
+						<option *ngFor="let option of options; let i = index" [value]="option">{{option}}</option>
+					</select>
+
+				</form>
+			</div>
+			<div class='row song-rate-actions-container col ps12'>
+					<div class='col ps4 song-rate-actions'>
+						<button type="submit" class="waves-effect waves-light btn" (tap)="toggleRateForm()">Cancel</button>
+					</div>
+					<div class='col ps4 offset-ps4 song-rate-actions'>
+						<button *ngIf="!advancedForm" type="submit" class="waves-effect waves-light btn" (tap)="submitRating(rating.value, post_type)">Submit Rating</button>
+					</div>
+			</div>
+		</div>
+		<div *ngIf="showReportForm" class='col ps4'>
+			<div *ngIf="!has_reported">
+				<form [formGroup]="reportForm" (ngSubmit)="submitReport(reportForm.value)" class="col ps12" style='margin-bottom:15px'>
+					<h5 class='center'>Report Video:</h5>
+					<p>
+						<input class="with-gap" type="radio" [formControl]="reportForm.controls['foul']" name="foul" id="report-1" [value]="1">
+						<label for="report-1">Spam</label>
+					</p>
+					<p>
+						<input class="with-gap" type="radio" [formControl]="reportForm.controls['foul']" name="foul" id="report-2" [value]="2">
+						<label for="report-2">Wrong Category</label>
+					</p>
+					<p>
+						<input class="with-gap" type="radio" [formControl]="reportForm.controls['foul']" name="foul" id="report-3" [value]="3">
+						<label for="report-3">Hateful and/or abusive content</label>
+					</p>
+					<p>
+						<input class="with-gap" type="radio" [formControl]="reportForm.controls['foul']" name="foul" id="report-4" [value]="4">
+						<label for="report-4">Child Abuse</label>
+					</p>
+					<p>
+						<input class="with-gap" type="radio" [formControl]="reportForm.controls['foul']" name="foul" id="report-5" [value]="5">
+						<label for="report-5">Infringes on my rights</label>
+					</p>
+				</form>
+				<button class='btn' (tap)='toggleReportForm()'>Cancel</button>
+				<button class='btn' (tap)='submitReport(reportForm.value)'>Submit Report</button>
+			</div>
+			<div *ngIf="has_reported" style='margin-top:15px'>
+				<span>Thanks for reporting. We will be looking into your report shortly.</span>
+			</div>
+		</div>
+		<div *ngIf="showDeleteForm" class='col ps4'>
+			<h6>Are you sure you want to delete this video?</h6>
+			<button class='btn' (tap)='toggleDeleteForm()'>Cancel</button>
+			<button class='btn' (tap)='deleteVideo()'>Delete Video</button>
+		</div>
+		<div *ngIf="advancedStatisticsShow" class='col' [ngClass]="rateOpen ? 'ps8 advanced-stats-with-form':'ps12'">
+			<hr *ngIf="!rateOpen">
+			<div class='col' [ngClass]="rateOpen ? 'ps6' : 'ps4'"  style='margin-top: 40px;'>
+				<h5 style='text-align: center; margin-top:-20px'>Overall Scores:</h5>
+				<div class='row'>
+					<div>Upvote Percentage:</div><div class='star-ratings-css col ps10'><div class='inner-star-ratings-css' [style.transform]="transformRating(average_vote_width)"></div></div><div class='col ps2' style='float:right;white-space: nowrap'>{{average_vote_width}} [{{votes_count}}]</div>
+				</div>
+				<div *ngIf="averageSimplifiedRatingCount" class='row'>
+					<div>Overall Simplified Rating:</div><div class='star-ratings-css col ps10'><div class='inner-star-ratings-css' [style.transform]="transformRating(averageSimplifiedRating)"></div></div><div class='col ps2' style='float:right; white-space: nowrap'>{{averageSimplifiedRating}} [{{averageSimplifiedRatingCount}}]</div>
+				</div>
+				<div *ngIf="averageAdvancedRatingCount" class='row'>
+					<div>Overall Advanced Rating:</div><div class='star-ratings-css col ps10'><div class='inner-star-ratings-css' [style.transform]="transformRating(averageAdvancedRating)"></div></div><div class='col ps2' style='float:right;white-space: nowrap'>{{averageAdvancedRating}} [{{averageAdvancedRatingCount}}]</div>
+				</div>
+			</div>
+			<div class='col' [ngClass]="rateOpen ? 'ps6 second-column-stats' : 'ps4'" style='margin-top: 40px;'>
+				<h5 style='text-align: center;margin-top:-20px'>Attribute Scores:</h5>
+				<div *ngIf="averageMessageRatingCount" class='row'>
+					<div>Song's Message Rating:</div><div class='star-ratings-css col ps10'><div class='inner-star-ratings-css' [style.transform]="transformRating(averageMessageRating)"></div></div><div class='col ps2' style='float:right;white-space: nowrap'>{{averageMessageRating}} [{{averageMessageRatingCount}}]</div>
+				</div>
+				<div *ngIf="averageProductionRatingCount" class='row'>
+					<div>Song's Production Rating:</div><div class='star-ratings-css col ps10'><div class='inner-star-ratings-css' [style.transform]="transformRating(averageProductionRating)"></div></div><div class='col ps2' style='float:right;white-space: nowrap'>{{averageProductionRating}} [{{averageProductionRatingCount}}]</div>
+				</div>
+
+				<div *ngIf="averageOriginalityRatingCount" class='row'>
+					<div>Song's Originality Rating:</div><div class='star-ratings-css col ps10'><div class='inner-star-ratings-css' [style.transform]="transformRating(averageOriginalityRating)"></div></div><div class='col ps2' style='float:right;white-space: nowrap'>{{averageOriginalityRating}} [{{averageOriginalityRatingCount}}]</div>
+				</div>
+				<div *ngIf="averageWhinynessRatingCount" class='row'>
+					<div>Overall Whinyness Rating:</div><div class='star-ratings-css col ps10'><div class='inner-star-ratings-css' [style.transform]="transformRating(averageWhinynessRating)"></div></div><div class='col ps2' style='float:right;white-space: nowrap'>{{averageWhinynessRating}} [{{averageWhinynessRatingCount}}]</div>
+				</div>
+			</div>
+		</div>
+		<div *ngIf="has_rated" class='col ps4'>
+			Thank you for rating.
+		</div>
+	</div>
+	<span><h5>Description:</h5></span>
+	<div class='row col ps12' style='padding-top:20px'>
+		<div class='post-content'>
+			<span [innerHTML]="marked"></span>
+		</div>
+	</div>
+
+
+	<div class='row comments'>
+		<comments [post]="post"></comments>
+	</div>
+</div>
+<div class="fixed-action-btn horizontal click-to-toggle" style="bottom: 45px; left: 24px;" id='share-button-apparel-post'>
+		<a class="btn-floating btn-large blue darken-1">
+		<i class="fa fa-navicon fa-2x"></i>
+		</a>
+		<ul class='share-button-container'>
+			<li style='margin: 8px 10px 0 0;'><a class="btn-floating blue darken-3" href="https://facebook.com/sharer/sharer.php?u={{encode(window.location.href)}}" onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;" id='facebook-share-a'><i class="fa fa-facebook"></i></a></li>
+			<li style='margin: 8px 10px 0 0;'><a class="btn-floating blue" href="https://twitter.com/share?text={{title}}&amp;url={{encode(window.location.href)}}" onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;"><i class="fa fa-twitter"></i></a></li>
+			<li style='margin: 8px 10px 0 0;'><a href="https://www.tumblr.com/widgets/share/tool/preview?shareSource=legacy&canonicalUrl=&url={{encode(window.location.href)}}&_format=html" style='background-color:#36465D' class="btn-floating" onclick="window.open(this.href, 'tumblr-share', 'width=490,height=530');return false;"><i class="fa fa-tumblr"></i></a></li>
+			<li style='margin: 8px 10px 0 0;'><a href="javascript:void((function()%7Bvar%20e=document.createElement('script');e.setAttribute('type','text/javascript');e.setAttribute('charset','UTF-8');e.setAttribute('src','https://assets.pinterest.com/js/pinmarklet.js?r='+Math.random()*99999999);document.body.appendChild(e)%7D)());" class="btn-floating" style='background-color: rgb(255, 45, 0) !important;'><i class="fa fa-pinterest rippler"></i></a></li>
+			<li style='margin: 8px 10px 0 0;display:none' class='hidden-socials'><a href="https://www.reddit.com/submit?url={{encode(window.location.href)}}&title={{title}}" onclick="window.open(this.href, 'reddit-share','width=850,height=296');return false;" class="btn-floating" style='background-color: rgb(255, 80, 0) !important;'><i class="fa fa-reddit-alien" aria-hidden="true"></i></a></li>
+			<li style='margin: 8px 10px 0 0;display:none' class='hidden-socials'><a href="//www.linkedin.com/shareArticle?url={{encode(window.location.href)}}&title={{encode(title)}}&summary={{encode(description)}}&source=WayDope" class="btn-floating" style='background-color:#007BB6' onclick="window.open(this.href, 'linkedin-share', 'width=490,height=530');return false;"><i class="fa fa-linkedin"></i></a></li>
+			<li style='margin: 8px 10px 0 0;display:none' class='hidden-socials'><a href="https://plus.google.com/share?url={{encode(window.location.href)}}" onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;" class="btn-floating" style='background-color: rgb(255, 30, 0) !important;'><i class="fa fa-google-plus rippler rippler-bs-default"></i></a></li>
+			<li style='margin: 8px 10px 0 0;'><a href="mailto:?Subject={{encode(title)}}&body=Check this out: {{encode(window.location.href)}}" class="btn-floating blue"><i class="fa fa-envelope-o"></i></a></li>
+			<li style='margin:8px 10px 0 0;' (click)="showSocials()"><a class='btn-floating' style='background-color:white;'><i  class='fa fa-chevron-{{window.outerWidth > 600 ? "right" : "up"}}' style='color: rgb(30, 136, 229) !important;' id='show-socials-icon'></i></a></li>
+		</ul>
+</div>

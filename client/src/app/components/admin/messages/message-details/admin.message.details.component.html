@@ -1,0 +1,31 @@
+<div class='row col s12'>  
+  <h4>Music Details</h4>
+  <hr>
+  	<h5 class='center'>Message Details</h5>
+  	<div class="row">
+  		<span>Message ID: {{id}}</span>
+  	</div>
+  	<div class="row">
+  		<span>Message Subject: {{title}}</span>
+  	</div>
+    <div class='row'>
+      <span>Submitter's email: {{email}}</span>
+    </div>
+  	<div class="row">
+  		<span>Message Category: {{category}}</span>
+  	</div>
+  	<div class="row">
+  		<span>Submitted By: {{submitted_by}}</span>
+  	</div>
+  	<div class="row">
+  		<span>Message: {{body}}</span>
+  	</div>
+  	<hr>
+
+  <div class="row">
+    <div class="center-align">
+      <button class="waves-effect waves-light btn" [routerLink]="['/admin','messages']">Go Back</button>
+      <a href="{{mail}}"><button type="submit" class="waves-effect waves-light btn">Reply</button></a>
+    </div>
+  </div>
+</div>

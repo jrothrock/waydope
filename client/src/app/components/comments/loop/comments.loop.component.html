@@ -1,0 +1,103 @@
+<comments_admin [dataadmin]="dataadmin"></comments_admin>
+<comments_report [datareport]="datareport" (reportReplyOutput)="submitReport($event)"></comments_report>
+<comments_delete [datadelete]="datadelete" (deleteReplyOutput)="deleteComment($event)"></comments_delete>
+<div *ngIf="!newCommentFlag && childComments && childComments.children">
+	<div *ngFor="let comment of childComments.children; let i = index" class='comment-reply' id="reply-{{comment.uuid}}">
+		<div *ngIf="!comment.deleted || (comment.deleted && comment.children)" class='row col ps12 inner-reply-container'>
+			<div class='col ps1 comment-vote-info'>
+				<div class='col ps8 comment-vote-actions'>
+					<div class='comment-upvote'><i id='reply-upvote-{{comment.uuid}}' [ngClass]="{ 'clickable' : !comment.deleted && !comment.removed }" [style.color]="comment.user_voted === 1? '#ef6837' : 'black'" (tap)="setVote(1, 'reply', comment.uuid, comment.user_rated, comment.deleted)" class='fa fa-chevron-up' style='opacity:0.6' aria-hidden="true"></i></div><div class='comment-downvote'><i id='reply-downvote-{{comment.uuid}}' [ngClass]="{ 'clickable' : !comment.deleted && !comment.removed }" style='opacity:0.6' [style.color]="comment.user_voted === -1? '#ef6837' : 'black'" (tap)="setVote(-1, 'reply', comment.uuid, comment.user_rated, comment.deleted)" class='fa fa-chevron-down' aria-hidden="true"></i></div>
+				</div>
+				<div *ngIf="comment.average_vote > -1" [style.left.px]="math.floor(math.log10(math.abs(comment.average_vote))) % 1 === 0 ? 0 - (4*math.floor(math.log10(math.abs(comment.average_vote)))) : 0" class='col s4 comment-votes' id='reply-votes-{{comment.uuid}}'>
+					{{comment.average_vote}}
+				</div>
+				<div *ngIf="comment.average_vote <= -1" [style.left.px]="math.floor(math.log10(math.abs(comment.average_vote))) % 1 === 0 ? -4 - (4*math.floor(math.log10(math.abs(comment.average_vote)))) : 0" class='col s4 comment-votes' id='reply-votes-{{comment.uuid}}'>
+					{{comment.average_vote}}
+				</div>
+			</div>
+			<div class='col ps11 comment-content'>
+				<div *ngIf="!comment.deleted && !comment.removed"  class='reply-author' id='reply-author-{{comment.uuid}}'>
+					<a [routerLink]="['/user', comment.submitted_by]" style='cursor:pointer'>{{comment.submitted_by}}</a>
+					<div style='display:inline;' *ngIf="comment.styled">[<span *ngIf="comment.admin" style='color:red;padding:1px' title='Admin'>A</span><span *ngIf="comment.submitter" style='color:blue;padding:1px' title='Submitter'>S</span>]</div>
+					<div style='display:inline'><span style='font-size:0.8em;color:grey;padding:5px' class='capitalize'>{{comment.time_ago}}</span></div>
+				</div>
+				<div *ngIf="comment.deleted || comment.removed"  class='deleted-comment-author'>
+				</div>
+				<div class='comment-body' id='reply-body-{{comment.uuid}}' [innerHTML]="comment.marked">
+				</div>
+				<div *ngIf="!comment.deleted && !comment.removed" class='comment-actions' id="reply-actions-{{comment.uuid}}" #replyLink>
+					<div class='comment-link-actions'>
+						<a (tap)="commentReply(comment.uuid, comment.generation, comment.uuid,i)">Reply</a>
+					</div>
+					<div *ngIf="comment.submitted_by === username && !comment.locked" class='comment-link-actions'>
+						<a (tap)="edit(comment.uuid,comment.generation,comment.child,i,comment.body)">Edit</a>
+					</div>
+					<div class='comment-link-actions'>
+						<a (tap)="reportInit(comment.uuid,comment.user_flagged)">Report</a>
+					</div>
+					<div *ngIf="comment.submitted_by === username" class='comment-link-actions'>
+						<a (tap)="deleteInit(comment.uuid,false)">Delete</a>
+					</div>
+					<div *ngIf="isAdmin" class='comment-link-actions'>
+							<a (tap)="deleteInit(comment.uuid,true)">Remove</a>
+					</div>
+					<div *ngIf="isAdmin" class='comment-link-actions'>
+							<a (tap)="adminInit(comment.uuid,true)">Admin</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div  *ngIf="comment && comment.children"  id="comment-{{comment.uuid}}-children" #replyChildren>
+			<commentsLoop [childComments]="comment" [type]="type" [id]="id" [category]="category" [subcategory]="subcategory" [url]="url" [isAdmin]="isAdmin" class='reply-container'></commentsLoop>
+		</div>
+		<div *ngIf="comment && comment.load_more" class='reply-container load-more-comments'>
+			<a (tap)='continueComments(comment.uid)' style='cursor:pointer'>Continue Thread <i class="fa fa-long-arrow-right"></i></a>
+		</div>
+	</div>
+</div>
+<div *ngIf="newCommentFlag" class='reply-container'>
+	<div id="reply-{{newComment.uuid}}" class='comment-reply'>
+		<div class='row col ps12 inner-reply-container'>
+			<div class='col ps1 comment-vote-info'>
+				<div class='col ps8 comment-vote-actions'>
+					<div class='comment-upvote'><i id='reply-upvote-{{newComment.uuid}}' [ngClass]="{ 'clickable' : !newComment.deleted && !newComment.removed }" [style.color]="newComment.user_voted === 1? '#ef6837' : 'black'" (tap)="setVote(1, 'reply', newComment.uuid, newComment.user_rated, newComment.deleted)" class='fa fa-chevron-up' aria-hidden="true"></i></div><div class='comment-downvote'><i id='reply-downvote-{{newComment.uuid}}' [ngClass]="{ 'clickable' : !newComment.deleted && !newComment.removed }" [style.color]="newComment.user_voted === -1? '#ef6837' : 'black'" (tap)="setVote(-1, 'reply', newComment.uuid, newComment.user_rated, newComment.deleted)" class='fa fa-chevron-down' aria-hidden="true"></i></div>
+				</div>
+				<div [style.left.px]="math.floor(math.log10(newComment.average_vote)) % 1 === 0 ? 0 - (4*math.floor(math.log10(newComment.average_vote))) : 0" style='position:relative;margin-top:-47px;margin-left:3px' class='col s4 comment-votes' id='reply-votes-{{newComment.uuid}}'>
+					{{newComment.average_vote}}
+				</div>
+			</div>
+			<div class='col ps11 comment-content'>
+				<div class='comment-author' id='reply-author-{{newComment.uuid}}'>
+					<a [routerLink]="['/user', newComment.submitted_by]" style='cursor:pointer'>{{newComment.submitted_by}}</a>
+					<div style='display:inline;' *ngIf="newComment.styled">[<span *ngIf="newComment.admin" style='color:red;padding:1px' title='Admin'>A</span><span *ngIf="newComment.submitter" style='color:blue;padding:1px' title='Submitter'>S</span>]</div>
+					<div style='display:inline'><span style='font-size:0.8em;color:grey;padding:5px' class='capitalize'>{{newComment.time_ago}}</span></div>
+				</div>
+				<div class='comment-body' id='reply-body-{{newComment.uuid}}' [innerHTML]="newComment.marked">
+				</div>
+				<div class='comment-actions' id="reply-actions-{{newComment.uuid}}" #replyLink>
+					<div class='comment-link-actions'>
+						<a (tap)="commentReply(newComment.comment_id, newComment.generation, newComment.uuid,0)">Reply</a>
+					</div>
+					<div *ngIf="newComment.submitted_by === username" class='comment-link-actions'>
+						<a (tap)="edit(newComment.uuid,newComment.generation,newComment.child,0,newComment.body)">Edit</a>
+					</div>
+					<div class='comment-link-actions'>
+						  <a (tap)="reportInit(newComment.uuid, newComment.user_flagged)">Report</a>
+					</div>
+					<div *ngIf="newComment.submitted_by === username" class='comment-link-actions'>
+						<a (tap)="deleteInit(newComment.uuid,false)">Delete</a>
+					</div>
+					<div *ngIf="isAdmin" class='comment-link-actions'>
+							<a (tap)="deleteInit(comment.uuid,true)">Remove</a>
+					</div>
+					<div *ngIf="isAdmin" class='comment-link-actions'>
+							<a (tap)="adminInit(comment.uuid)">Admin</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div  *ngIf="newComment && newComment.children"  id="comment-{{newComment.uuid}}-children">
+			<commentsLoop [childComments]="newComment" [type]="type" [id]="id" [category]="category" [subcategory]="subcategory" [url]="url" [isAdmin]="isAdmin" class='reply-container' #replyChildren></commentsLoop>
+		</div>
+	</div>
+</div>

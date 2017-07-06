@@ -1,0 +1,8 @@
+The files that are ignored are:
+jquery.fileupload.js
+jquery.iframe-transport.js
+wavesurfer.min.js
+wavesurfer.min.js.map
+jsmediatags.min
+jquery.backstretch.min
+cloudzoom.js

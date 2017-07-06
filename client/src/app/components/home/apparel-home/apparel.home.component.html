@@ -1,0 +1,81 @@
+<h1 class='home-links' [routerLink]="['/apparel']">Apparel</h1>
+<div class="row">
+    <div>
+      	<ul class="tabs" materialize="tabs">
+			<li *ngFor="let category of categories; let i = index" class="tab col ps4" id='tabs-home-apparel' id="tab-name-{{category}}" (dblclick)="tabClick(category)">
+				<a id='apparel-tab-link' href="#{{category}}-apparel" [ngClass]="{'active':i==0}">{{category}}</a>
+			</li>
+		</ul>
+    </div>
+</div>
+<div id='tab-output-apparel-container' style='min-height:500px'>
+	<div id='tab-output-apparel' class='row col ps12' style='opacity:0;transition:all 200ms'>
+		<div *ngFor="let category of categories; let i = index" id="{{category}}-apparel">
+			<div class='center pagination-container' id='apparel-home-pagination-{{i}}' [attr.data-count]="count[i]" [attr.data-pages]="count[i] % 5" [attr.data-currentPage]="0">
+				<div class='paginate-back-container' *ngIf="count[i] > 3 && currentPage[i] > 0"><i class='fa paginate-back' (tap)="paginate('back',i)" [ngClass]="window.outerWidth > 1080 ? 'fa-chevron-left' : 'fa-chevron-up'" style='text-align:center;font-size:2em;color:#ff6100;cursor:pointer'></i></div>           
+			</div>
+			<div *ngIf="apparel_posts && apparel_posts[i]" class='row'>
+				<div class="col ps6 m3 home-videos-post" *ngFor="let post of currentPosts[i]; let ic = index" id="{{category}}-apparel">
+					<div class='technology-info'>
+						<div id='' class='col ps9' style='padding:0px !important'>
+							<div class='link-title' (mouseenter)="marqueeToggle(1,category,ic)" (mouseleave)="marqueeToggle(0,category,ic)"><a id='apparel-title-link-{{category}}-{{ic}}' [routerLink]="['/apparel', post.main_category, post.sub_category, post.url]">{{post.title}}</a></div>
+							<div>{{post.creator}}</div>
+						</div>
+						<div class='col ps3'>
+							<div>{{post.sale_price ? post.sale_price : post.price}}</div>
+						</div>
+						<div class='col ps12 apparel-info' style='color:grey;font-size:0.7em;margin-left:0px !important;margin-top:0px;margin-bottom:2px'>
+							<div *ngIf="post.nsfw" style="display:inline;border:1px solid #ff4040;padding:2px;border-radius:2px;font-size:0.88em">NSFW</div>
+							Posted by <a [routerLink]="['/user',post.submitted_by]">{{post.submitted_by}}</a>
+							in <a [routerLink]="['/apparel',post.main_category]" class='capitalize'>{{post.main_category}}</a> - <a [routerLink]="['/apparel',post.main_category, post.sub_category]" class='capitalize'>{{post.sub_category}}</a> 
+						</div>
+					</div>
+					<div id='apparel-home-images-container-{{category}}-{{ic}}'>
+						<div *ngIf="!post.nsfw" id='apparel-home-sfw-container-{{category}}-{{ic}}'>
+							<div *ngIf="post && post.upload_urls && post.upload_urls.length" class='main-image col ps12' id='main-photo-apparel-container-{{category}}-{{ic}}' style='text-align:center;'>
+								<img id='main-photo-apparel-{{category}}-{{ic}}' class="cloudzoom" (mouseenter)="photoZoom(category,ic)" src='{{post.upload_urls[0]}}' height="100%" width="100%" style='cursor:zoom-in;'/>
+							</div>
+							<div class='all-images col ps12' style='text-align:center;margin-top:10px'>
+								<div class='col ps3' *ngFor="let photo of post.upload_urls; let ip = index" style='cursor:pointer' id='rest-photos-apparel-container--{{category}}-{{ic}}-{{ip}}'>
+										<img id='rest-photos-apparel-{{category}}-{{ic}}-{{ip}}' class='rest-photos rest-photos-apparel-{{category}}-{{ic}}' (tap)="changePhoto(category,ic,ip)" src='{{photo}}' [ngClass]="{ 'active-photo' : ip === 0 }" height="100%" width="100%"/>
+								</div>
+							</div>
+						</div>
+						<div *ngIf="post.nsfw" id='apparel-home-nsfw-container-{{category}}-{{ic}}'>
+							<div *ngIf="post && post.upload_urls_nsfw && post.upload_urls_nsfw.length" class='main-image col ps12' id='main-photo-apparel-container-{{category}}-{{ic}}' style='text-align:center;'>
+								<img id='main-photo-apparel-{{category}}-{{ic}}' class="cloudzoom" (mouseenter)="photoZoom(category,ic)" src='{{post.upload_urls_nsfw[0]}}' height="100%" width="100%" style='cursor:zoom-in;'/>
+							</div>
+							<div class='all-images col ps12' style='text-align:center;margin-top:10px'>
+								<div class='col ps3' *ngFor="let photo of post.upload_urls_nsfw; let ip = index" style='cursor:pointer' id='rest-photos-apparel-container--{{category}}-{{ic}}-{{ip}}'>
+										<img id='rest-photos-apparel-{{category}}-{{ic}}-{{ip}}' class='rest-photos rest-photos-apparel-{{category}}-{{ic}}' (tap)="changePhoto(category,ic,ip)" src='{{photo}}' [ngClass]="{ 'active-photo' : ip === 0 }" height="100%" width="100%"/>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class='row col ps12 apparel-info' style='margin-top:-10px'>
+						<div class='col ps3' style='padding:0px'>
+							<div class='home-music-vote-actions-container' style='margin-top:-13px'>
+								<i [style.color]="post.user_voted === 1? '#ef6837' : 'black'" class='fa fa-chevron-up' id='post-apparel-upvote-{{post.uuid}}' (tap)="setVote(1, post.uuid,'post-apparel', post.average_vote, post.user_voted)" style='cursor:pointer'></i>
+								<div class='home-music-average-vote' id='post-apparel-vote-{{post.uuid}}' [style.margin-left.px]="math.floor(math.log10(post.average_vote)) % 1 === 0 ? 4 - (4*math.floor(math.log10(post.average_vote))) : 4">{{post.average_vote}}</div>
+								<i [style.color]="post.user_voted === -1? '#ef6837' : 'black'" class='fa fa-chevron-down' id='post-apparel-downvote-{{post.uuid}}' (tap)="setVote(-1, post.uuid,'post-apparel', post.average_vote, post.user_voted)" style='position:absolute;cursor:pointer'></i>
+							</div>
+							<button (tap)="like(post.uuid, post.user_liked, post.post_type,post.likes_count,i,ic  )" [ngClass]="{ 'liked' : post.user_liked }" id='likes-button-{{post.uuid}}' class="btn btn-like">
+								<div class='row' style='margin-top:-5px;white-space: nowrap' [style.font-size.pct]="math.floor(math.log10(post.likes_count)) === 2 ? 0.95 : -1" [style.margin-left.px]="math.floor(math.log10(post.likes_count)) === 2 ? -17 : null">
+									<i id='icon-likes-{{post.uuid}}' [ngClass]="{ 'liked-icon fa-heart' : post.user_liked, 'fa-heart-o' : !post.user_liked }" class="fa" style='float:left;width:100%' aria-hidden="true">
+										<span class='btn-like-text' id='likes-{{post.uuid}}' style='font-size:0.9em;margin:4px;font-family: "Roboto", sans-serif;font-weight:500;color:#111' [style.margin-left.px]="math.floor(math.log10(post.likes_count)) === 2 ? -2 : 0">{{post.likes_count}}</span>
+									</i>
+								</div>
+							</button>
+						</div>
+						<div class="col ps6 average-rating-container"><span class='average-rating'>Rating: [{{post.ratings_count}}]</span><div style='margin-left:8px;margin-top:-11px' class='star-ratings-css col ps10'><div [style.transform]="transformRating(post.average_rating)" class="inner-star-ratings-css" ></div></div><div class='col ps2' style='float:right;margin-top:-5px;white-space: nowrap;'>{{post.average_rating}}</div></div>
+						<div class='col ps3 comment-count-container'><i class="fa fa-comment-o comment-count-icon" aria-hidden="true"><span class='comment-count-span'>{{post.comment_count}}</span></i></div>
+					</div>
+				</div>
+				<div class='center pagination-container' id='boards-home-pagination-{{i}}' [attr.data-count]="count[i]" [attr.data-pages]="count[i] % 4" [attr.data-currentPage]="0">
+					<div class='paginate-next-container' *ngIf="count[i] > 4 && ((currentPage[i]*4) + currentPosts[i].length) != count[i]"><i class='fa paginate-next' (tap)="paginate('next',i)" [ngClass]="window.outerWidth > 1080 ? 'fa-chevron-right' : 'fa-chevron-down'" style='text-align:center;font-size:2em;color:#ff6100;cursor:pointer'></i></div>           
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<hr>

@@ -1,0 +1,19 @@
+<h4 class='center'>Add Tracking Number</h4>
+<div class='row'>
+    <div class='col m8 offset-m2' style='border:1px solid rgba(0,0,0,0.1)'>
+        <form [formGroup]="saleUpdateForm" (ngSubmit)="submitTracking(saleUpdateForm.value)" class="col s12">
+            <div class="row">
+                <div class="input-field col s12">
+                    <input [ngClass]="{ 'has-error-input' : ((saleUpdateForm.get('tracking').hasError('required') || saleUpdateForm.get('tracking').hasError('pattern') )&& saleUpdateForm.get('tracking').touched) }" [formControl]="saleUpdateForm.get('tracking')" id="tracking" type="text" class="validate">
+                    <label for="tracking" id='tracking-label'>tracking</label>
+                    <em *ngIf="saleUpdateForm.get('tracking').hasError('required') && saleUpdateForm.get('tracking').touched" class='has-error'> Required </em>
+                    <em *ngIf="saleUpdateForm.get('tracking').hasError('pattern') && saleUpdateForm.get('tracking').touched" class='has-error'> Enter a valid tracking code </em>
+                </div>
+            </div>
+        </form>
+        <div class='row' style='text-align:center;margin:auto'>
+            <button class='btn' [routerLink]="['/seller']">Go Back</button>
+            <button class='btn' [disabled]="!saleUpdateForm.valid" (tap)="submitTracking(saleUpdateForm.value)">{{tracking ? 'Update' : 'Submit'}} Tracking</button>
+        </div>
+    </div>
+</div>

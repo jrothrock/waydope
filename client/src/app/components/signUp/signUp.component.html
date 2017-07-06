@@ -1,0 +1,54 @@
+<div class='container'>
+  <h4>Sign Up</h4>
+
+  <div class="row">
+    <form [formGroup]="signUpForm" (ngSubmit)="onSubmit(signUpForm.value)" class="col s12">
+      <div class="row">
+        <div class="input-field col s12">
+          <input [ngClass]="{ 'has-error-input' : (((signUpForm.get('username').hasError('pattern') && signUpForm.get('username').dirty) || signUpForm.get('username').hasError('required')) && signUpForm.get('username').touched) || usernameError || usernameLengthError}"  formControlName="username" id="username-signup-page" type="text" class="validate">
+          <label for="username">username</label>
+          <em class='has-error' *ngIf="signUpForm.get('username').hasError('required')  && signUpForm.get('username').touched">Required</em>
+          <em class='has-error' *ngIf="signUpForm.get('username').hasError('pattern') && signUpForm.get('username').touched && signUpForm.get('username').dirty">Enter a valid username</em>
+          <em class='has-error' *ngIf="usernameError">Username already in use</em>
+          <em class='has-error' *ngIf="usernameLengthError">Maximum username length is 20.</em>
+        </div>
+      </div>
+      <div formGroupName="passwords">
+        <div class='row'>
+          <div class="input-field col s12 m6">
+            <input [ngClass]="{ 'has-error-input' : ((signUpForm.get('passwords').errors?.areEqual && signUpForm.get('passwords').get('confirmPassword').dirty && signUpForm.get('passwords').get('confirmPassword').touched) || (signUpForm.get('passwords').get('password').hasError('required') && signUpForm.get('passwords').get('password').touched))  }" formControlName="password" id="password" type="password" class="validate">
+            <label for="password">Password</label>
+            <em class='has-error' *ngIf="(signUpForm.get('passwords').get('password').hasError('required') && signUpForm.get('passwords').get('password').touched)"> Required </em>
+             <em class='has-error' *ngIf="(signUpForm.get('passwords').get('password').errors?.minlength && signUpForm.get('passwords').get('password').touched && signUpForm.get('passwords').get('password').dirty)"> Needs to be atleast 6 characters </em>
+             <em class='has-error' *ngIf="(signUpForm.get('passwords').get('password').hasError('pattern') && signUpForm.get('passwords').get('password').touched && signUpForm.get('passwords').get('password').dirty)"> Can only use letters, numbers, and special characters. </em>
+          </div>
+          <div class="input-field col s12 m6">
+            <input [ngClass]="{ 'has-error-input' : (signUpForm.get('passwords').get('confirmPassword').errors ||  (signUpForm.get('passwords').errors?.areEqual && signUpForm.get('passwords').get('confirmPassword').dirty))  && signUpForm.get('passwords').get('confirmPassword').touched}" formControlName="confirmPassword" id="password" type="password" class="validate">
+            <label for="confirmPassword">Confirm Password</label>
+            <em class='has-error' *ngIf="(signUpForm.get('passwords').get('confirmPassword').hasError('required') && signUpForm.get('passwords').get('confirmPassword').touched)"> Required </em>
+            <em class='has-error' *ngIf="signUpForm.get('passwords').errors?.areEqual && signUpForm.get('passwords').get('confirmPassword').touched && signUpForm.get('passwords').get('confirmPassword').dirty"> Passwords must match </em>
+          </div>
+        </div>
+      </div>
+      
+      <div class='row'>
+        <div class="input-field col s12">
+          <input [ngClass]="{ 'has-error-input' : (signUpForm.get('email').hasError('pattern') && signUpForm.get('email').dirty && signUpForm.get('email').touched) || emailError}" formControlName="email" id="email-signup-page" type="text" class="validate" ngControl="username">
+          <label for="email">Email</label>
+          <p class='email-label' *ngIf="!signUpForm.get('email').hasError('pattern') && signUpForm.get('email').pristine">Not required, but recommended for account recovery.</p>
+          <em class='has-error' *ngIf="signUpForm.get('email').hasError('pattern') && signUpForm.get('email').touched && signUpForm.get('email').dirty">Enter a valid email address</em>
+          <em class='has-error' *ngIf="emailError">Email already in use, try resetting your password.</em>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="row">
+    <div class="center-align">
+      <button type="submit" class="waves-effect waves-light btn" [disabled]='!signUpForm.valid && (signUpForm.get("email").touched ||signUpForm.get("email").pristine) || submitted ' (tap)="onSubmit(signUpForm.value)">Create Account</button>
+      <svg class="spinner-circle" id='submit-signup' viewBox="0 0 50 50">
+        <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+      </svg>
+    </div>
+  </div>
+</div>
