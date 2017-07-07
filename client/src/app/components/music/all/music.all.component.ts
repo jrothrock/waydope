@@ -171,9 +171,7 @@ export class MusicAllComponent implements OnInit {
 		headers.append('morder', this.musicOptionValues);
 		headers.append('mtime', this.musicTimeValues);
 		headers.append('mtype', this.musicTypeValues);
-		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/music/all`, {headers:headers}).subscribe(data => {
-			
-			if(data.json().success){
+		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/music`, {headers:headers}).subscribe(data => {
 				this.genres = data.json().genres;
 				this.songs = data.json().songs;
 				this.setIds('posts');
@@ -193,9 +191,8 @@ export class MusicAllComponent implements OnInit {
 					this.transition(0);
 					this.displayAll();
 				},300)
-			} else {
-				this.error = true;
-			}
+		},error=>{
+			this.error = true;
 		});
 	};
 
@@ -446,19 +443,19 @@ export class MusicAllComponent implements OnInit {
 	    });
 	    var body = type === 'genres' ? {'sort':'genres','options':this.optionValues, 'time':this.timeValues, 'type':this.typeValues } : 
 		{'sort':'music','music_options':this.musicOptionValues, 'music_time':this.musicTimeValues, 'music_type':this.musicTypeValues }
-	    this.sortSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/music/sort`, body, {headers: headers}).subscribe(data => {
-	        if(data.json().success){
-				if(type === 'genres'){ 
-					this.genres = data.json().genres;
-					this.songs = data.json().songs;	
-					this.setIds('songs');
-				} else {
-					this.all = data.json().songs;
-					this.setIds('all');
-				}
-	     		this.setState();
-	        }
-	      });
+	    this.sortSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/music`, body, {headers: headers}).subscribe(data => {
+			if(type === 'genres'){ 
+				this.genres = data.json().genres;
+				this.songs = data.json().songs;	
+				this.setIds('songs');
+			} else {
+				this.all = data.json().songs;
+				this.setIds('all');
+			}
+			this.setState();
+	      },error=>{
+
+		  });
 	}
 	getOffset(type,page){
 		let data = [];
@@ -497,25 +494,24 @@ export class MusicAllComponent implements OnInit {
 	            'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 	    });
 	    var body = tab === 'genres' ? {'sort':'genres','offset':pageData[0], 'options':this.optionValues, 'time':this.timeValues, 'type':this.typeValues} : {'sort':tab,'music_offset':pageData[0], 'music_options':this.musicOptionValues, 'music_time':this.musicTimeValues, 'music_type':this.musicTypeValues}
-		this.paginateSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/music/paginate`, body, {headers: headers}).subscribe(data => {
-			
-	    	if(data.json().success){
-				if(tab === 'genres'){
-					this.genres = data.json().genres;
-					this.songs = data.json().songs;
-					this.setIds('songs');
-					this.offset = data.json().offset;
-					this.transition(0);
-					this.currentPage = pageData[1];
-				} else {
-					this.all = data.json().songs;
-					this.setIds('all');
-					this.currentPageMusic = pageData[1];
-					this.musicOffset = data.json().offset;
-				}
-	    		this.setState();
-	    	}
-	    });
+		this.paginateSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/music`, body, {headers: headers}).subscribe(data => {
+			if(tab === 'genres'){
+				this.genres = data.json().genres;
+				this.songs = data.json().songs;
+				this.setIds('songs');
+				this.offset = data.json().offset;
+				this.transition(0);
+				this.currentPage = pageData[1];
+			} else {
+				this.all = data.json().songs;
+				this.setIds('all');
+				this.currentPageMusic = pageData[1];
+				this.musicOffset = data.json().offset;
+			}
+			this.setState();
+	    },error=>{
+
+		});
 	}
 	setState(){
 		let orderString, musicOrderString;
@@ -559,34 +555,32 @@ export class MusicAllComponent implements OnInit {
 	    });
 	    var body = {"id":id, "liked" : liked, "type" : type}
 	    let songs = index != 'all' ? this.songs[index][childIndex] : this.all[childIndex];
-	    this.likeSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/likes/new`, body, {headers: headers}).subscribe(data => {
-	      if(data.json().success){
-	        if(data.json().success && !liked){
-	            $(`#icon-likes-${id}`).addClass(' liked-icon fa-heart');
-	            $(`#icon-likes-${id}`).removeClass('fa-heart-o');
-	            $(`#likes-button-${id}`).addClass(' liked');
-	            $(`#likes-${id}`).html(`${value + 1}`);
-	            songs.likes_count = songs.likes_count + 1;
-	            songs.user_liked = !songs.user_liked;
-	        }
-	        if(data.json().success && liked){
-	            $(`#icon-likes-${id}`).addClass('fa-heart-o');
-	            $(`#icon-likes-${id}`).removeClass('liked-icon fa-heart');
-	            $(`#likes-button-${id}`).removeClass('liked');
-	            $(`#likes-${id}`).html(`${value - 1}`);
-	            songs.likes_count = songs.likes_count - 1;
-	            songs.user_liked = !songs.user_liked;
-	        }
-
-	      }
-	      else if(data.json().status === 401){
+	    this.likeSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/likes`, body, {headers: headers}).subscribe(data => {
+			if(!liked){
+				$(`#icon-likes-${id}`).addClass(' liked-icon fa-heart');
+				$(`#icon-likes-${id}`).removeClass('fa-heart-o');
+				$(`#likes-button-${id}`).addClass(' liked');
+				$(`#likes-${id}`).html(`${value + 1}`);
+				songs.likes_count = songs.likes_count + 1;
+				songs.user_liked = !songs.user_liked;
+			}
+			if(liked){
+				$(`#icon-likes-${id}`).addClass('fa-heart-o');
+				$(`#icon-likes-${id}`).removeClass('liked-icon fa-heart');
+				$(`#likes-button-${id}`).removeClass('liked');
+				$(`#likes-${id}`).html(`${value - 1}`);
+				songs.likes_count = songs.likes_count - 1;
+				songs.user_liked = !songs.user_liked;
+			}
+	    },error=>{
+			if(error.status === 401){
 	          this._modal.setModal('music');
-	      } else if (data.json().locked){
-			  Materialize.toast("<i class='fa fa-lock'></i> This post has been locked", 3000, 'rounded')
-		  } else if(data.json().archived){
-			  Materialize.toast("<i class='fa fa-archive'></i>  This post has been archived", 3000, 'rounded')
-		  }
-	    });
+			} else if (error.locked){
+				Materialize.toast("<i class='fa fa-lock'></i> This post has been locked", 3000, 'rounded')
+			} else if(error.archived){
+				Materialize.toast("<i class='fa fa-archive'></i>  This post has been archived", 3000, 'rounded')
+			}
+		});
 	}
 
 	photoClicked(index,childIndex,name,form,id){
@@ -595,7 +589,7 @@ export class MusicAllComponent implements OnInit {
 	 	if(form){
 	 		setTimeout(()=>{
 	 			this.waveSurferCreate(name,childIndex, song.upload_url,id);
-				this.songPlay(song.uuid)
+				this.songPlay(song.main_genre,song.url)
 	 		},50);
 	 	}
 	}
@@ -605,24 +599,23 @@ export class MusicAllComponent implements OnInit {
 	            'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 	    });
 	    var body = {"id":id, "type":"music", "vote":vote, "already_voted":voted}
-	      this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes/vote`, body, {headers: headers}).subscribe(data => {
-	        if(data.json().success){
-				let change;
-				if(vote === 1 && voted) change = voted === 1 ? -1 : 2;
-				else if(vote === 1 && !voted) change = 1;
-				else if(vote === -1 && voted) change = voted === -1 ? +1 : -2;
-				else if(vote === -1 && !voted) change = -1;
-	         	this.voteChange(id,average_vote+change,data.json().user_vote)
-				this._voteService.change('music',id,average_vote+change,data.json().user_vote);
-	        }
-	        if(data.json().status === 401){
-	            this._modal.setModal('music');
-	        } else if (data.json().locked){
-			  	Materialize.toast("<i class='fa fa-lock'></i> This post has been locked", 3000, 'rounded')
-			} else if(data.json().archived){
-				Materialize.toast("<i class='fa fa-archive'></i>  This post has been archived", 3000, 'rounded')
-			}
-	      });
+	      this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes`, body, {headers: headers}).subscribe(data => {
+			let change;
+			if(vote === 1 && voted) change = voted === 1 ? -1 : 2;
+			else if(vote === 1 && !voted) change = 1;
+			else if(vote === -1 && voted) change = voted === -1 ? +1 : -2;
+			else if(vote === -1 && !voted) change = -1;
+			this.voteChange(id,average_vote+change,data.json().user_vote)
+			this._voteService.change('music',id,average_vote+change,data.json().user_vote);
+	      },error=>{
+			  	if(error.status === 401){
+	          	  this._modal.setModal('music');
+				} else if (error.json().locked){
+					Materialize.toast("<i class='fa fa-lock'></i> This post has been locked", 3000, 'rounded')
+				} else if(error.json().archived){
+					Materialize.toast("<i class='fa fa-archive'></i>  This post has been archived", 3000, 'rounded')
+				}
+		  });
 	      // upVoteSubscription.unsubscribe();
 	}
 	checkVolume(type,id,category,click=false){
@@ -638,25 +631,25 @@ export class MusicAllComponent implements OnInit {
 			if(index != null) this.wavesurfer[index].setVolume(parseInt($(`#${category}-${id}-volume-range`).val())/100)
 		}
 	}
-	download(id,title,type){
+	download(genre,url,title,type){
 		if(!this.downloading){
 			let headers = new Headers({
 					'Content-Type': 'application/json',
 					'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 			});
-			let body = {"song":id}
-			this.downloadSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/music/download`, body, {headers: headers}).subscribe(data => {
-				if(data.json().success){  
-					if(type===1){
-						// (<any>window).location = data.json().url;
-						let tag = document.createElement('a');
-						tag.setAttribute('href', data.json().url);
-						tag.setAttribute('target', "_blank");
-						tag.setAttribute('download', title);
-						tag.click();
-					}
-					this.downloading=false;
+			let body = {}
+			this.downloadSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/music/${genre}/${url}/download`, body, {headers: headers}).subscribe(data => { 
+				if(type===1){
+					// (<any>window).location = data.json().url;
+					let tag = document.createElement('a');
+					tag.setAttribute('href', data.json().url);
+					tag.setAttribute('target', "_blank");
+					tag.setAttribute('download', title);
+					tag.click();
 				}
+				this.downloading=false;
+			},error=>{
+
 			});
 		}
 	}
@@ -711,13 +704,13 @@ export class MusicAllComponent implements OnInit {
 	transformRating(average_rating){
 	    return `translateX(${average_rating}%)`
 	}
-	songPlay(id){
+	songPlay(genre,url){
 		let headers = new Headers({
 	              'Content-Type': 'application/json',
 	              'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 	    });
-	    let body = {"id":id}
-	    this.playSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/music/song/play`, body, {headers: headers}).subscribe(data => {
+	    let body = {}
+	    this.playSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/music/${genre}/${url}/play`, body, {headers: headers}).subscribe(data => {
 		});
 	}
 	getSongsRest(){

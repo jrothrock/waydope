@@ -57,12 +57,9 @@ export class ProfileOrdersComponent implements OnInit {
   getOrders(){
     var headersInit = new Headers();
     let offset = this.offset ? String(this.offset) : '0';
-    headersInit.append('user', this.user);
 		headersInit.append('offset', offset);
 		headersInit.append('Authorization', 'Bearer ' + this._auth.getToken()); headersInit.append('Signature', window.localStorage.getItem('signature'))
-		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/users/orders`,{headers: headersInit}).subscribe(data => {
-      
-      if(data.json().success){
+		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/user/${this.user}/orders`,{headers: headersInit}).subscribe(data => {
         this.totalCount = data.json().orders.length;
         this.offset = this.offset ? this.offset : data.json().offset;
         this.orders = data.json().orders;
@@ -75,11 +72,10 @@ export class ProfileOrdersComponent implements OnInit {
           this.getImageWidth();
           this.displayAll();
         },200)
-      } else {
+    },error=>{
         this._sysMessages.setMessages('unauthroized');
         this._router.navigateByUrl(`/users/${this.user}`);
         this.loaded = true;
-      }
     })
   }
    photoZoom(i,ic){
@@ -160,15 +156,12 @@ export class ProfileOrdersComponent implements OnInit {
       'offset':pageData[0]
 	  });
     this.paginateSubscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/users/orders`, {headers: headers}).subscribe(data => {
-      
-      if(data.json().success){
         this.totalCount = data.json().orders.length;
         this.orders = data.json().orders;
         this.offset = data.json().offset;
         this.currentPage = pageData[1];
         this.setState();
         this.setQuantities();
-      }
     });
 	}
   getTotal(quantity,price,shipping,sale,rate){

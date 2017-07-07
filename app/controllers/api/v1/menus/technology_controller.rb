@@ -12,6 +12,6 @@ class Api::V1::Menus::TechnologyController < ApplicationController
 		end
 		posts = JSON.parse(posts)
 		technology = Product.userCheck(posts, request.headers["Authorization"])
-		render json:{status:200, success:true, posts:technology}
+		render json:{posts:technology}, status: :ok
 	end
 end

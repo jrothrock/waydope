@@ -12,6 +12,6 @@ class Api::V1::Menus::MusicController < ApplicationController
 		end
 		posts = JSON.parse(posts)
 		songs = Song.userCheck(posts, request.headers["Authorization"])
-		render json:{status:200, success:true, posts:songs}
+		render json:{posts:songs}, status: :ok
 	end
 end

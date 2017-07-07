@@ -48,13 +48,12 @@ class Api::V1::Home::HomeController < ApplicationController
 		allposts = Json::Checker.checkUser(posts[0],posts[1],posts[2],posts[3],posts[4],request.headers["Authorization"])
 		
 		render json:{
-					status:200, success:true, 
 					news:[allposts[0][0],allposts[0][1],allposts[0][2]],
 					music: [allposts[1][0],allposts[1][1],allposts[1][2]],
 					videos: [allposts[2][0],allposts[2][1],allposts[2][2]],
 					apparel:[allposts[3][0],allposts[3][1],allposts[3][2]],
 					technology:[allposts[4][0],allposts[4][1],allposts[4][2]]
-				}
+				}, status: :ok
 	end
 
 	def read
@@ -74,12 +73,12 @@ class Api::V1::Home::HomeController < ApplicationController
 			checked = Json::Checker.singleCheck(posts, request.headers["type"], request.headers["Authorization"])
 
 			if posts 
-				render json:{status:200, success:true, posts:checked}
+				render json:{posts:checked}, status: :ok
 			else
-				render json:{status:404, success:false}
+				render json:{}, status: :not_found
 			end
 		else
-			render json:{status:400, success:false, message: 'type, offset, and category parameters are required'}
+			render json:{message: 'type, offset, and category parameters are required'}, status: :bad_request
 		end
 	end
 end

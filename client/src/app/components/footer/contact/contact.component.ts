@@ -45,7 +45,7 @@ export class ContactComponent implements OnInit {
 		var body = {"title": values.title,"email":values.email, "category" : values.category, "body" : values.body}
   		headers.append('Content-Type', 'application/json');
   		headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
-  		this.subscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/messages/new`, body, {headers: headers}).subscribe(data => {
+  		this.subscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/messages`, body, {headers: headers}).subscribe(data => {
 		  clearTimeout(failedRequest);
 	     if(data.json().success){
 			this._sysMessages.setMessages('contact');

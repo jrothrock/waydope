@@ -74,51 +74,10 @@ export class ProfileSettingsComponent implements OnInit {
             },5)
         }
     };
-    watchContactInputs(){
-        $(`#ssn-settings-input`).on('keyup', function(){
-            $(this).val(function (index, value) {
-              console.log(value);
-              return value.replace(/\W/gi, '').replace(/(.{3})/, '$1-').replace(/(.{6})/, '$1-')
-            });
-        })
-    }
-    updateSSN(values){
-        this.submitted = true;
-        let fadein = setTimeout(()=>{
-            $(`#submit-settings`).fadeIn().css("display","inline-block");
-        },750)
-        var headers = new Headers();
-		var creds = {'ssn':values.ssn};
-  		headers.append('Content-Type', 'application/json');
-  		headers.append('Authorization', 'Bearer ' + this._auth.getToken()); 
-        headers.append('Signature', window.localStorage.getItem('signature'))
-  		this.updateInfoSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/users/seller/ssn/update`, creds, {headers: headers}).subscribe(data => {
-              clearTimeout(failedRequest);
-              if(data.json().success){
-                  this._sysMessages.setMessages('updateInfo');
-                  Materialize.toast("Successfully Updated SSN", 3500, 'rounded-success');
-                  window.localStorage.removeItem("waydope_ssn_required")
-              } else {
-				this._sysMessages.setMessages('unathorized');
-				this._router.navigateByUrl('/');
-              }
-              if(fadein) clearTimeout(fadein);
-              $(`#submit-settings`).css({'display':'none'});
-              $('.waves-ripple').remove();
-              this.submitted = false;
-        })
-        let failedRequest = setTimeout(()=>{
-            $('.waves-ripple').remove();
-            this.submitted = false;
-            Materialize.toast("Something failed on our end. Please try again.", 3500, 'rounded-failure');
-            $(`#submit-settings`).css({'display':'none'});
-        },15000);
-    }
     getSettings(){
 		var headers = new Headers();
 		headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
-		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/users/settings`, {headers: headers}).subscribe(data => {
-            if(data.json().success){
+		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/users/${this.currentUser}/settings`, {headers: headers}).subscribe(data => {
                 if(data.json().email && data.json().email !== "Null"){
 					this.updateSettingsForm.patchValue({email:data.json().email})
 					$('#profile-email-settings').addClass('active');
@@ -169,12 +128,49 @@ export class ProfileSettingsComponent implements OnInit {
                     let $selector = $(`#hide-nsfw-${data.json().hide_nsfw}`)
                     $selector.prop('checked',true);
                 }
-            } else {
-				this._auth.destroySession();
-				this._sysMessages.setMessages('unathorized');
-				this._router.navigateByUrl('/');
-			}
+        },error=>{
+            this._auth.destroySession();
+			this._sysMessages.setMessages('unathorized');
+			this._router.navigateByUrl('/');
         })
+    }
+    watchContactInputs(){
+        $(`#ssn-settings-input`).on('keyup', function(){
+            $(this).val(function (index, value) {
+              console.log(value);
+              return value.replace(/\W/gi, '').replace(/(.{3})/, '$1-').replace(/(.{6})/, '$1-')
+            });
+        })
+    }
+    updateSSN(values){
+        this.submitted = true;
+        let fadein = setTimeout(()=>{
+            $(`#submit-settings`).fadeIn().css("display","inline-block");
+        },750)
+        var headers = new Headers();
+		var creds = {'ssn':values.ssn};
+  		headers.append('Content-Type', 'application/json');
+  		headers.append('Authorization', 'Bearer ' + this._auth.getToken()); 
+        headers.append('Signature', window.localStorage.getItem('signature'))
+  		this.updateInfoSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/users/seller/ssn/update`, creds, {headers: headers}).subscribe(data => {
+              clearTimeout(failedRequest);
+              this._sysMessages.setMessages('updateInfo');
+              Materialize.toast("Successfully Updated SSN", 3500, 'rounded-success');
+              window.localStorage.removeItem("waydope_ssn_required")
+              if(fadein) clearTimeout(fadein);
+              $(`#submit-settings`).css({'display':'none'});
+              $('.waves-ripple').remove();
+              this.submitted = false;
+        },error=>{
+            this._sysMessages.setMessages('unathorized');
+			this._router.navigateByUrl('/');
+        })
+        let failedRequest = setTimeout(()=>{
+            $('.waves-ripple').remove();
+            this.submitted = false;
+            Materialize.toast("Something failed on our end. Please try again.", 3500, 'rounded-failure');
+            $(`#submit-settings`).css({'display':'none'});
+        },15000);
     }
     updateInfo(values){
         this.submitted = true;
@@ -186,19 +182,17 @@ export class ProfileSettingsComponent implements OnInit {
   		headers.append('Content-Type', 'application/json');
   		headers.append('Authorization', 'Bearer ' + this._auth.getToken()); 
         headers.append('Signature', window.localStorage.getItem('signature'))
-  		this.updateInfoSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/users/settings/update`, creds, {headers: headers}).subscribe(data => {
+  		this.updateInfoSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/users/${this.currentUser}/settings`, creds, {headers: headers}).subscribe(data => {
               clearTimeout(failedRequest);
-              if(data.json().success){
-                  this._sysMessages.setMessages('updateInfo');
-                  Materialize.toast("Successfully Updated Info", 3500, 'rounded-success');
-              } else {
-				this._sysMessages.setMessages('unathorized');
-				this._router.navigateByUrl('/');
-              }
+              this._sysMessages.setMessages('updateInfo');
+              Materialize.toast("Successfully Updated Info", 3500, 'rounded-success');
               if(fadein) clearTimeout(fadein);
               $(`#submit-settings`).css({'display':'none'});
               $('.waves-ripple').remove();
               this.submitted = false;
+        },error=>{
+            this._sysMessages.setMessages('unathorized');
+			this._router.navigateByUrl('/');
         })
         let failedRequest = setTimeout(()=>{
             $('.waves-ripple').remove();
@@ -216,20 +210,18 @@ export class ProfileSettingsComponent implements OnInit {
 		var creds = {"type":"options","firstname":values.firstname,"lastname":values.lastname,"email":values.email,"address":values.address,"zipcode":values.zipcode,"phone_number":values.phone_number,"show_nsfw":values.show_nsfw,"hide_nsfw":values.hide_nsfw};
   		headers.append('Content-Type', 'application/json');
   		headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
-  		this.updateOptionsSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/users/settings/update`, creds, {headers: headers}).subscribe(data => {
+  		this.updateOptionsSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/users/${this.currentUser}/settings`, creds, {headers: headers}).subscribe(data => {
               clearTimeout(failedRequest);
-              if(data.json().success){
-                  this._sysMessages.setMessages('updateInfo');
-                  Materialize.toast("Successfully Updated Options", 3500, 'rounded-success');
-              } else {
-                this._auth.destroySession();
-				this._sysMessages.setMessages('unathorized');
-				this._router.navigateByUrl('/');
-              }
+              this._sysMessages.setMessages('updateInfo');
+              Materialize.toast("Successfully Updated Options", 3500, 'rounded-success');
               if(fadein) clearTimeout(fadein);
               $(`#submit-settings`).css({'display':'none'});
               $('.waves-ripple').remove();
               this.submitted = false;
+        },error=>{
+            this._auth.destroySession();
+            this._sysMessages.setMessages('unathorized');
+            this._router.navigateByUrl('/');
         })
         let failedRequest = setTimeout(()=>{
             $('.waves-ripple').remove();
@@ -247,21 +239,22 @@ export class ProfileSettingsComponent implements OnInit {
 		var creds = {"type":"password","current_password":values.current,"password":values.passwords.password};
   		headers.append('Content-Type', 'application/json');
   		headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
-  		this.updatePasswordSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/users/settings/update`, creds, {headers: headers}).subscribe(data => {
-              clearTimeout(failedRequest);
-              if(data.json().success){
-                  this._sysMessages.setMessages('updateInfo');
-                  Materialize.toast("Successfully Updated Password", 3500, 'rounded-success');
-                  $("#current-password-settings,#new-password-settings,#confirm-password-settings").removeClass('valid');
-                  $("#password-signup-page, #new-password, #current-password").removeClass('valid');
-                  this.updatePasswordForm.reset()
-              } else if(data.json().password) {
-                  this.passwordError = true;
-              }
-              if(fadein) clearTimeout(fadein);
-              $(`#submit-settings`).css({'display':'none'});
-              $('.waves-ripple').remove();
-              this.submitted = false;
+  		this.updatePasswordSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/users/${this.currentUser}/settings`, creds, {headers: headers}).subscribe(data => {
+            clearTimeout(failedRequest);
+            this._sysMessages.setMessages('updateInfo');
+            Materialize.toast("Successfully Updated Password", 3500, 'rounded-success');
+            $("#current-password-settings,#new-password-settings,#confirm-password-settings").removeClass('valid');
+            $("#password-signup-page, #new-password, #current-password").removeClass('valid');
+            this.updatePasswordForm.reset()
+        },error=>{
+            if(error.json().password) {
+                this.passwordError = true;
+            }
+        },()=>{
+            if(fadein) clearTimeout(fadein);
+            $(`#submit-settings`).css({'display':'none'});
+            $('.waves-ripple').remove();
+            this.submitted = false;
         })
         let failedRequest = setTimeout(()=>{
             $('.waves-ripple').remove();

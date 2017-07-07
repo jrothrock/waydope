@@ -92,9 +92,7 @@ export class ProfileCommentsComponent implements OnInit {
 		headersInit.append('order', this.optionValues);
 		headersInit.append('time', this.timeValues);
 		headersInit.append('type', this.typesValues);
-		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/users/comments`,{headers: headersInit}).subscribe(data => {
-			
-			if(data.json().success){
+		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/users/${this.user}/comments`,{headers: headersInit}).subscribe(data => {
 				this.totalCount = data.json().comments.length;
 				this.offset = this.offset ? this.offset : data.json().offset;
         this.comments = data.json().comments;
@@ -106,8 +104,8 @@ export class ProfileCommentsComponent implements OnInit {
          setTimeout(()=>{
                     this.displayAll();
           },150)
-			} 
-			else if(data.json().status === 404){
+		},error=>{
+			if(error.status === 404){
 				this.loaded = true;
 				setTimeout(()=>{
 						this.displayAll();
@@ -160,16 +158,18 @@ export class ProfileCommentsComponent implements OnInit {
 		this.typesValues = values.type ? values.type : null;
 		var headers = new Headers({
 	            'Content-Type': 'application/json',
-	            'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
+	            'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature'),
+							"featured":null, 
+							'options':values.options, 
+							'time':values.time, 
+							'type':values.type
 	    });
-	    var body = {'user':this.user,"featured":null, 'options':values.options, 'time':values.time, 'type':values.type}
-        this.sortSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/users/comments/sort`, body, {headers: headers}).subscribe(data => {
-        if(data.json().success){
-        this.comments = data.json().comments;
-        this.offset = data.json().offset;
-        this.currentPage = data.json().page;
-        this.setState();
-        }
+	    var body = {'user':this.user}
+        this.sortSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/users/${this.user}/comments`, body, {headers: headers}).subscribe(data => {
+        	this.comments = data.json().comments;
+        	this.offset = data.json().offset;
+        	this.currentPage = data.json().page;
+        	this.setState();
       });
 	}
   changePage(type,page){
@@ -177,16 +177,18 @@ export class ProfileCommentsComponent implements OnInit {
 		if(page != this.currentPage) $('.btn-pagination.active').removeClass('active')
 		var headers = new Headers({
 	            'Content-Type': 'application/json',
-	            'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
+	            'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature'),
+							'offset':pageData[0], 
+							'options':this.optionValues, 
+							'time':this.timeValues, 
+							'type':this.typesValues
 	    });
-	    var body = {'user':this.user,'offset':pageData[0], 'options':this.optionValues, 'time':this.timeValues, 'type':this.typesValues}
-				this.paginateSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/users/comments/paginate`, body, {headers: headers}).subscribe(data => {
-	    	if(data.json().success){
+	    var body = {'user':this.user}
+				this.paginateSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/users/${this.user}/comments`, body, {headers: headers}).subscribe(data => {
 	    		this.comments = data.json().comments;
 	    		this.offset = data.json().offset;
 	    		this.currentPage = pageData[1];
 	    		this.setState();
-	    	}
 	    });
  }
   getOffset(type,page){
@@ -231,7 +233,6 @@ export class ProfileCommentsComponent implements OnInit {
 		});
 		var body = {"id":id, "type":"comment", "vote":vote, "already_voted":voted}
     	this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes/vote`, body, {headers: headers}).subscribe(data => {
-    		if(data.json().success){
     			$(`#${type}-vote-${id}`).text(data.json().vote);
     			if(data.json().user_vote === 1){
     				$(`#${type}-upvote-${id}`).css({"color": "#ef6837"});
@@ -243,11 +244,11 @@ export class ProfileCommentsComponent implements OnInit {
     				$(`#${type}-upvote-${id}`).css({"color": "black"});
     				$(`#${type}-downvote-${id}`).css({"color": "black"});
     			}
-    		}
-    		if(data.json().status === 401){
+    	},error=>{
+					if(error.status === 401){
           		this._modal.setModal('user', this.user, 'comments');
       		}
-    	});
+			});
     	// upVoteSubscription.unsubscribe();
 	}
   displayAll(i=null){

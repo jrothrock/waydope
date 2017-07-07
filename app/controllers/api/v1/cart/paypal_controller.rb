@@ -97,13 +97,13 @@ class Api::V1::Cart::PaypalController < ApplicationController
         # Create Payment and return status
         if @payment.create
         # Redirect the user to given approval url
-            render json:{status:200, success:true, paymentID:@payment.id}
+            render json:{paymentID:@payment.id}, status: :ok
             # @redirect_url = @payment.links.find{|v| v.rel == "approval_url" }.href
             # logger.info "Payment[#{@payment.id}]"
             # logger.info "Redirect: #{@redirect_url}"
         else
             logger.error @payment.error.inspect
-            render json:{status:500, success:false}
+            render json:{}, status: :internal_server_error
         end
     end
 end

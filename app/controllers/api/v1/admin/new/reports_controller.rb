@@ -28,9 +28,9 @@ class Api::V1::Admin::New::ReportsController < ApplicationController
                 end
             end
 
-            render json: {status: 200, success: true, reports: [reported_comments,reported_news,reported_songs,reported_videos,reported_apparel,reported_technology]}
+            render json: {reports: [reported_comments,reported_news,reported_songs,reported_videos,reported_apparel,reported_technology]}, status: :ok
         else
-            render json: {status: 403, success:false}
+            render json: {}, status: :forbidden
         end
 	end
 
@@ -41,12 +41,12 @@ class Api::V1::Admin::New::ReportsController < ApplicationController
                 type = App.classGet(request.headers[:type])
                 offset = request.headers["offset"] ? request.headers["offset"].to_i : 0
                 posts = Object.const_get(type).where("#{type === 'products' ? 'post_type = ' + request.headers["type"] + ' AND' : ''} reported = true").order('report_created DESC, created_at DESC').offset(offset).limit(20)
-                render json:{status:200, success:true, posts:posts,offset:offset+20}
+                render json:{posts:posts,offset:offset+20}, status: :ok
             else
-                render json:{status:400, success:false, message:"type and offset request headers are required"}
+                render json:{message:"type and offset request headers are required"}, status: :bad_request
             end
 		else
-			render json: {status:403, success: false}
+			render json: {}, status: :forbidden
 		end
 	end
 
@@ -59,15 +59,15 @@ class Api::V1::Admin::New::ReportsController < ApplicationController
                 if post                
                     post.read = true
                     post.save
-                    render json:{status:200, success:true}
+                    render json:{}, status: :ok
                 else
-                    render json:{status:404, success:false}
+                    render json:{}, status: :not_found
                 end
             else
-                render json:{status:400, success:false, message:"type parameter is required." }
+                render json:{message:"type parameter is required." }, status: :bad_request
             end
 		else 
-			render json: {status: 403, success:false}
+			render json: {}, status: :forbidden
 		end
 	end
 

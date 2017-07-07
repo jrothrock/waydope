@@ -4,12 +4,12 @@ class Api::V1::Admin::MusicController < ApplicationController
 			user = User.find_by_token(request.headers["Authorization"].split(' ').last)
 
 			if user && user.admin
-				render json: {status: 200, success: true, songs: Song.all.order('created_at DESC')}
+				render json: {songs: Song.all.order('created_at DESC')}, status: :ok
 			else
-				render json: {status: 403, success:false}
+				render json: {}, status: :forbidden
 			end
 		else
-			render json: {status: 403, success:false}
+			render json: {}, status: :forbidden
 		end
 	end
 
@@ -17,18 +17,18 @@ class Api::V1::Admin::MusicController < ApplicationController
 		if request.headers["Authorization"]
 			admin = User.find_by_token(request.headers["Authorization"].split(' ').last)
 			if !admin || !admin.admin
-				render json: {status: 403, success:false}
+				render json: {}, status: :forbidden
 				return
 			end
 
 			song = Song.find(request.headers["id"])
 			if song
-				render json: {status: 200, success: true, song: song}
+				render json: {song: song}, status: :ok
 			else
-				render json: {status: 404, success: false}
+				render json: {}, status: :not_found
 			end
 		else
-			render json: {status:403, success: false}
+			render json: {}, status: :unauthorized
 		end
 	end
 
@@ -37,7 +37,7 @@ class Api::V1::Admin::MusicController < ApplicationController
 		if request.headers["Authorization"]
 			admin = User.find_by_token(request.headers["Authorization"].split(' ').last)
 			if !admin || !admin.admin
-				render json: {status: 403, success:false}
+				render json: {}, status: :forbidden
 				return
 			end
 
@@ -52,16 +52,16 @@ class Api::V1::Admin::MusicController < ApplicationController
 				song.description = params[:description]
 				
 				if song.save
-					render json: {status: 200, success:true}
+					render json: {}, status: :ok
 				else
-					render json: {status: 500, success:false}
+					render json: {}, status: :internal_server_error
 				end
 			else
-				render json: {status: 404, success:false}
+				render json: {}, status: :not_found
 			end
 
 		else 
-			render json: {status: 403, success:false}
+			render json: {}, status: :forbidden
 		end
 	end
 

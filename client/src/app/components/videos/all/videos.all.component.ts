@@ -229,31 +229,27 @@ export class VideosAllComponent implements OnInit {
 		headers.append('vtime', this.videosTimeValues);
 		headers.append('vtype', this.videosTypeValues);
 		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/videos/`, {headers:headers}).subscribe(data => {
-			
-			if(data.json().success){
-				
-				this.categories = data.json().categories;
-				this.videos = data.json().videos;
-				this.setIds('posts');
-				this.offset = this.offset ? this.offset : data.json().offset;
-				this.total = data.json().count;
-				this.pagesVideos = data.json().video_pages;
-				this.pages = data.json().pages;
-				this.all = data.json().all;
-				this.setIds('all');
-				this.totalVideos = data.json().videos_count;
-				this.numbers = Array(this.pages).fill(1);
-				this.numbersVideos = Array(this.pagesVideos).fill(1);
-				this.currentPage = this.currentPage ? this.currentPage : data.json().page;
-				this.currentPageVideos = this.currentPageVideos ? this.currentPageVideos : data.json().video_page;
-				this.getVideosRest();
-				setTimeout(()=>{
-					this.transition(0);
-					this.displayAll();
-				},300)
-			} else {
-				this.error = true;
-			}
+			this.categories = data.json().categories;
+			this.videos = data.json().videos;
+			this.setIds('posts');
+			this.offset = this.offset ? this.offset : data.json().offset;
+			this.total = data.json().count;
+			this.pagesVideos = data.json().video_pages;
+			this.pages = data.json().pages;
+			this.all = data.json().all;
+			this.setIds('all');
+			this.totalVideos = data.json().videos_count;
+			this.numbers = Array(this.pages).fill(1);
+			this.numbersVideos = Array(this.pagesVideos).fill(1);
+			this.currentPage = this.currentPage ? this.currentPage : data.json().page;
+			this.currentPageVideos = this.currentPageVideos ? this.currentPageVideos : data.json().video_page;
+			this.getVideosRest();
+			setTimeout(()=>{
+				this.transition(0);
+				this.displayAll();
+			},300)
+		},error=>{
+			this.error = true;
 		});
 	};
 	setIds(type){
@@ -306,26 +302,38 @@ export class VideosAllComponent implements OnInit {
 			this.videosTimeValues = values.time ? values.time : null;
 			this.videosTypeValues = values.type ? values.type : null;
 		}
-		var headers = new Headers({
-	            'Content-Type': 'application/json',
-	            'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
-	    });
-	    var body = type === 'categories' ? {'sort':'categories','options':this.optionValues, 'time':this.timeValues, 'type':this.typeValues } : 
-		{'sort':'videos','videos_options':this.videosOptionValues, 'videos_time':this.videosTimeValues, 'videos_type':this.videosTypeValues }
-	    this.sortSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/videos/sort`, body, {headers: headers}).subscribe(data => {
-	      	
-	        if(data.json().success){
-				if(type === 'categories'){ 
-					this.categories = data.json().categories;
-					this.videos = data.json().videos;	
-					this.setIds('posts');
-				} else {
-					this.all = data.json().videos;
-					this.setIds('all');
-				}
-	     		this.setState();
-	        }
-	      });
+		if(type === 'categories'){
+			var headers = new Headers({
+					'Content-Type': 'application/json',
+					'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature'),
+					'sort':'categories',
+					'options':this.optionValues, 
+					'time':this.timeValues, 
+					'type':this.typeValues
+			});
+		} else {
+			var headers = new Headers({
+					'Content-Type': 'application/json',
+					'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature'),
+					'sort':'videos',
+					'videos_options':this.videosOptionValues, 
+					'videos_time':this.videosTimeValues, 
+					'videos_type':this.videosTypeValues
+			});
+		}
+	    this.sortSubscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/videos`, {headers: headers}).subscribe(data => {
+			if(type === 'categories'){ 
+				this.categories = data.json().categories;
+				this.videos = data.json().videos;	
+				this.setIds('posts');
+			} else {
+				this.all = data.json().videos;
+				this.setIds('all');
+			}
+			this.setState();
+	      },error=>{
+
+		  });
 	}
 	transition(index){
 		let value = $(`#video-toggle-button-${index}`).data('value');
@@ -401,14 +409,32 @@ export class VideosAllComponent implements OnInit {
 		let pageData = this.getOffset(type,page);
 		if(tab === 'videos' && page != this.currentPageVideos) $('.btn-pagination-videos.active').removeClass('active')
 		else if (tab === 'categories' && page != this.currentPage) $('.btn-pagination-categories.active').removeClass('active')
-		var headers = new Headers({
-	            'Content-Type': 'application/json',
-	            'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
-	    });
-	    var body = tab === 'categories' ? {'sort':'categories','offset':pageData[0], 'options':this.optionValues, 'time':this.timeValues, 'type':this.typeValues} : {'sort':'videos','tab':tab,'video_offset':pageData[0], 'video_options':this.videosOptionValues, 'video_time':this.videosTimeValues, 'video_type':this.videosTypeValues ,'offset':pageData[0]}
-		this.paginateSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/videos/paginate`, body, {headers: headers}).subscribe(data => {
+		if(tab === 'categories'){
+			var headers = new Headers({
+					'Content-Type': 'application/json',
+					'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature'),
+					'sort':'categories',
+					'offset':pageData[0], 
+					'options':this.optionValues, 
+					'time':this.timeValues, 
+					'type':this.typeValues
+			});
+		} else {
+			var headers = new Headers({
+					'Content-Type': 'application/json',
+					'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature'),
+					'sort':'videos',
+					'tab':tab,
+					'video_offset':pageData[0], 
+					'video_options':this.videosOptionValues, 
+					'video_time':this.videosTimeValues, 
+					'video_type':this.videosTypeValues,
+					'offset':pageData[0]	
+			});
+		}
+	    
+		this.paginateSubscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/videos`, {headers: headers}).subscribe(data => {
 	    	
-	    	if(data.json().success){
 				if(tab === 'categories'){
 					this.categories = data.json().categories;
 					this.videos = data.json().videos;
@@ -423,8 +449,9 @@ export class VideosAllComponent implements OnInit {
 					this.videosOffset = data.json().offset;
 				}
 	    		this.setState();
-	    	}
-	    });
+	    },error=>{
+
+		});
 	}
 	setState(){
 		let orderString, videosOrderString;
@@ -449,9 +476,8 @@ export class VideosAllComponent implements OnInit {
 	    });
 	    var body = {"id":id, "liked" : liked, "type" : type}
 	    let videos = index != 'all' ? this.videos[index][childIndex] : this.all[childIndex];
-	    this.likeSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/likes/new`, body, {headers: headers}).subscribe(data => {
+	    this.likeSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/likes`, body, {headers: headers}).subscribe(data => {
 	      
-	      if(data.json().success){
 			let count = data.json().likes_count;
 			let liked = data.json().user_liked;
 	        if(liked){
@@ -467,11 +493,11 @@ export class VideosAllComponent implements OnInit {
 	            $(`#likes-${place}-${id}`).html(count);
 	        }
 
-	      }
-	      if(data.json().status === 401){
+	    },error=>{
+			if(error.status === 401){
 	          this._modal.setModal('videos');
-	      }
-	    });
+	      	}
+		});
 	}
 	setVote(vote,id,type,average_vote,voted){
 	    var headers = new Headers({
@@ -479,9 +505,8 @@ export class VideosAllComponent implements OnInit {
 	            'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 	    });
 	    var body = {"id":id, "type":"videos", "vote":vote, "already_voted":voted}
-	      this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes/vote`, body, {headers: headers}).subscribe(data => {
+	      this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes`, body, {headers: headers}).subscribe(data => {
 	      	
-	        if(data.json().success){
 			  let change;
 			  if(vote === 1 && voted) change = voted === 1 ? -1 : 2;
 			  else if(vote === 1 && !voted) change = 1;
@@ -489,11 +514,11 @@ export class VideosAllComponent implements OnInit {
 			  else if(vote === -1 && !voted) change = -1;
 	          this.voteChange(id,data.json().vote,data.json().user_vote)
 			  this._voteService.change('videos',id,data.json().vote,data.json().user_vote);
+	    },error=>{
+			if(error.status === 401){
+	            this._modal.setModal('videos');
 	        }
-	        if(data.json().status === 401){
-	              this._modal.setModal('videos');
-	        }
-	    });
+		});
 	      // upVoteSubscription.unsubscribe();
 	}
 	marqueeToggle(type,name,id){
@@ -537,7 +562,7 @@ export class VideosAllComponent implements OnInit {
 				video.clicked = true;
 				this.initVideo(type,id);
 			}
-			this.videoPlay(video.uuid)
+			this.videoPlay(video.main_category, video.url)
 		} else {
 			if(window.outerWidth > 780){
 				if(type === 'all'){
@@ -550,13 +575,13 @@ export class VideosAllComponent implements OnInit {
 			}
 		}
 	}
-	videoPlay(id){
+	videoPlay(category,url){
 		let headers = new Headers({
 				'Content-Type': 'application/json',
 				'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 		});
-		let body = {"id":id}
-		this.playSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/videos/post/play`, body, {headers: headers}).subscribe(data => {
+		let body = {}
+		this.playSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/videos/${category}/${url}/play`, body, {headers: headers}).subscribe(data => {
 		});
 	}
 	initVideo(type, id){
@@ -578,7 +603,6 @@ export class VideosAllComponent implements OnInit {
 		headers.append('time', this.timeValues);
 		headers.append('type', this.typeValues);
 		this.getRestSubscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/videos/rest`, {headers:headers}).subscribe(data => {
-			
 			if(data.json().success){
 				this.videos = this.videos.concat(data.json().videos);
 				this.setIds('posts');

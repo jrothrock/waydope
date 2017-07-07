@@ -79,7 +79,7 @@ class Api::V1::Search::SearchController < ApplicationController
             total =  ::Product.where("post_type = 'technology' AND worked = true AND uploaded = true AND flagged = false AND removed = false").search(request.headers['search']).count
             results = ::Product.where("post_type = 'technology' AND worked = true AND uploaded = true AND flagged = false AND removed = false").select_with(App.getGoodColumns("technology")).search(request.headers['search']).offset(offset).limit(20).as_json(include: :photos).to_a
 		else
-            render json: {status:400, success:false, message:'category parameter is required.'}
+            render json: {message:'category parameter is required.'}, status: :bad_request
 			return false
 		end
         if results
@@ -127,9 +127,9 @@ class Api::V1::Search::SearchController < ApplicationController
                     post["report_users"] = nil
                 end
             end
-            render json:{status:200, success:true, results:results,total:total,pages:pages,current_page:current_page,offset:offset}
+            render json:{results:results,total:total,pages:pages,current_page:current_page,offset:offset}, status: :ok
         else 
-            render json:{status:404, success:false}
+            render json:{}, status: :not_found
         end
     end
 end

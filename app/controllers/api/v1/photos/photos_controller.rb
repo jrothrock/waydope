@@ -43,8 +43,8 @@ class Api::V1::Photos::PhotosController < ApplicationController
     def delete
         user = request.headers["Authorization"] ? User.find_by_token(request.headers["Authorization"].split(' ').last) : nil
         if user
-            product = Product.where("uuid = ?", params[:product]).first
-            photo = Photo.where("uuid = ?", params[:photo]).first
+            photo = Photo.where("uuid = ?", params[:photo]).includes(:photoable).first
+            product = photo.photoable
             if product && photo
                 if product.user_id === user.id && photo.user_uuid === user.uuid
                     ### these lines need to be removed after moving to production

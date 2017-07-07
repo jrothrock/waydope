@@ -7,9 +7,9 @@ class Api::V1::Apparel::ApparelController < ApplicationController
     def read
         user = request.headers["Authorization"] ? User.find_by_token(request.headers["Authorization"].split(' ').last) : nil
         if user && user.admin
-            apparel = ::Product.where("post_type = 'apparel' AND url = ? AND main_category = ? AND sub_category = ? AND flagged = false AND removed = false", request.headers["id"], request.headers["maincategory"], request.headers["subcategory"]).first.as_json(include: :photos)
+            apparel = ::Product.where("post_type = 'apparel' AND url = ? AND main_category = ? AND sub_category = ? AND flagged = false AND removed = false", params["post"], params["category"], params["subcategory"]).first.as_json(include: :photos)
         else
-            apparel = ::Product.where("post_type = 'apparel' AND url = ? AND main_category = ? AND sub_category = ? AND flagged = false AND removed = false", request.headers["id"], request.headers["maincategory"], request.headers["subcategory"]).select_with(App.getGoodColumns('apparel',false,nil,true)).first.as_json(include: :photos)
+            apparel = ::Product.where("post_type = 'apparel' AND url = ? AND main_category = ? AND sub_category = ? AND flagged = false AND removed = false", params["id"], params["category"], params["subcategory"]).select_with(App.getGoodColumns('apparel',false,nil,true)).first.as_json(include: :photos)
         end
 		if apparel
             if !apparel["removed"]
@@ -33,14 +33,14 @@ class Api::V1::Apparel::ApparelController < ApplicationController
                 apparel["votes"] = nil
                 apparel["likes"] = nil
                 apparel["report_users"] = nil
-                render json: {status:200, success:true, post:apparel.as_json.except("id")}
+                render json: {post:apparel.as_json.except("id")}, status: :ok
                 user_id = user ? user.id : nil
                 ViewcountWorker.perform_async(apparel["uuid"],user_id,'apparel',request.remote_ip)
             else
-                render json:{status:410, success:false}
+                render json:{}, status: :gone
             end
 		else
-			render json: {status:404, success:false}
+			render json: {}, status: :not_found
 		end
 	end
     def create
@@ -53,7 +53,7 @@ class Api::V1::Apparel::ApparelController < ApplicationController
 		elsif params[:authorization]
 			auth = params[:authorization]
 		else
-			render json: {status:401, success:false}
+			render json: {}, status: :unauthorized
 			return false
 		end
 		user = User.find_by_token(auth.split(' ').last)
@@ -135,7 +135,7 @@ class Api::V1::Apparel::ApparelController < ApplicationController
                         end
                     end
                 rescue => e
-                    render json:{status:400, success:false, message:'You know what you did. Please only pass in a properties value that looks like such -> {"size"=>{*height:optional, *width:optional, *size:optional, "color"=>{price:price, quantity:quantity}}}.'}
+                    render json:{message:'You know what you did. Please only pass in a properties value that looks like such -> {"size"=>{*height:optional, *width:optional, *size:optional, "color"=>{price:price, quantity:quantity}}}.'}, status: :bad_request
                     return false
                 end
             else 
@@ -148,7 +148,7 @@ class Api::V1::Apparel::ApparelController < ApplicationController
             apparel.price = prices.length != 0 ?  '%.2f' % (prices.sum / prices.length) : 0
             apparel.submitted_by = user.username
             if apparel.save
-				render json: {status:200, success:true, id:apparel.uuid, stage:(user.admin ? 3 : user.info_stage), url:apparel.url}
+				render json: {category:apparel.main_category,subcategory:apparel.sub_category, stage:(user.admin ? 3 : user.info_stage), url:apparel.url}, status: :created
 				user_hash = user.apparel
                 user_hash[apparel.uuid] = true
                 user.apparel = user_hash
@@ -168,7 +168,7 @@ class Api::V1::Apparel::ApparelController < ApplicationController
 			end
 
         else 
-            render json:{status:401, success:false}
+            render json:{}, status: :unauthorized
         end
     end
     def update
@@ -177,15 +177,15 @@ class Api::V1::Apparel::ApparelController < ApplicationController
 		elsif params[:authorization]
 			auth = params[:authorization]
 		else
-			render json: {status:401, success:false}
+			render json: {}, status: :unauthorized
 			return false
 		end
 		user = User.find_by_token(auth.split(' ').last)
 		if user 
-            apparel = ::Product.where("uuid = ?", params[:id]).first
+            apparel = ::Product.where("url = ? AND main_category = ? AND sub_category = ?", params[:post],params[:category],params[:subcategory]).first
             if apparel
                 if !params[:properties] || !params[:properties].as_json.is_a?(Hash) || params[:properties].as_json.each.map{|key,value| value.is_a?(Hash)}.include?(false) || params[:properties].as_json.each.map{|key,value|value.each.map{|key_inner,value_inner| if(value_inner.is_a?(Hash)) then value_inner.keys.map(&:to_s) end}}.flatten.compact.sort.uniq != ["price", "quantity"]
-                    render json:{status:400, success:false, message:'Pinche. The properties param is required, and must be an object/hash, with the style being = {"size"=>{*height:optional, *width:optional, *size:optional, "color"=>{price:price, quantity:quantity}}}.'}
+                    render json:{message:'Pinche. The properties param is required, and must be an object/hash, with the style being = {"size"=>{*height:optional, *width:optional, *size:optional, "color"=>{price:price, quantity:quantity}}}.'}, status: :bad_request
                     return false
                 end
                 apparel.og_url_name = params[:title] ? params[:title].parameterize.gsub('_','-') : apparel.og_url_name
@@ -242,7 +242,7 @@ class Api::V1::Apparel::ApparelController < ApplicationController
                         end
                     end
                 rescue => e
-                    render json:{status:400, success:false, message:'You know what you did. Please only pass in a properties value that looks like such -> {"size"=>{*height:optional, *width:optional, *size:optional, "color"=>{price:price, quantity:quantity}}}.'}
+                    render json:{message:'You know what you did. Please only pass in a properties value that looks like such -> {"size"=>{*height:optional, *width:optional, *size:optional, "color"=>{price:price, quantity:quantity}}}.'}, status: :bad_request
                     return false
                 end
                 apparel.max_price = prices.length ? '%.2f' % prices.max : 0.00
@@ -268,7 +268,7 @@ class Api::V1::Apparel::ApparelController < ApplicationController
                 end
                 begin 
                     apparel.save!
-                    render json: {status:200, success:true, url:apparel.url}
+                    render json: {url:apparel.url, category:apparel.main_category, subcategory:apparel.sub_category}, status: :ok
                     sleep 2
                     if !apparel.uploaded then ProductuploadWorker.perform_async end
                     if new_photo then ProductphotouploadWorker.perform_async(apparel.id) end
@@ -280,24 +280,24 @@ class Api::V1::Apparel::ApparelController < ApplicationController
                     Rails.logger.info(apparel.errors.inspect)
                 end
             else
-                render json:{status:404, success:false}
+                render json:{}, status: :not_found
             end
         else
-            render json:{status:401, success:false}
+            render json:{}, status: :unauthorized
         end
     end
     def delete
         user = request.headers["Authorization"] ? User.find_by_token(request.headers["Authorization"].split(' ').last) : nil
 		if user 
-			apparel = ::Product.where("uuid = ?", params[:id]).first
+			apparel = technology = params[:post] && params[:category] && params[:subcategory] ? ::Product.where("url = ? AND main_category = ? AND sub_category = ?", params[:post], params[:category], params[:subcategory]).first : nil
             if apparel
                 apparel.destroy
                 # may want to change this to just hide, keep the data, like everything else.
             else
-                render json: {status:404, success:false}
+                render json: {}, status: :not_found
             end
         else
-            render json: {status:401, success:false}
+            render json: {}, status: :unauthorized
         end
     end
 end

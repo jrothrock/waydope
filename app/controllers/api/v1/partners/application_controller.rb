@@ -20,9 +20,9 @@ class Api::V1::Partners::ApplicationController < ApplicationController
 		partner.read = false
 		partner.accepted = false
 		if partner.save!
-			render json: {status:200, success:true}
+			render json: {}, status: :ok
 		else
-			render json: {status:500, success:false}
+			render json: {}, status: :internal_server_error
 		end
 
 	end

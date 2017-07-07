@@ -6,15 +6,15 @@ class Api::V1::Messages::Conversation::MessagesController < ApplicationControlle
             messages = Message.where('coversation_id = ?', user.username).offset(offset).limit(20)
             if messages != []
                 if(messages.first.receiver != user.username && messages.first.sender != user.username)
-                    render json:{status:401, success:false}
+                    render json:{}, status: :unauthorized
                 else
-                    render json:{status:200,success:true,messages:messages}
+                    render json:{messages:messages}, status: :ok
                 end
             else
-                render json:{status:404,success:false}
+                render json:{}, status: :not_found
             end
         else
-            render json:{status:401, success:false}
+            render json:{}, status: :unauthorized
         end
     end
 end

@@ -6,9 +6,9 @@ class Api::V1::Technology::TechnologyController < ApplicationController
     def read
         user = request.headers["Authorization"] ? User.find_by_token(request.headers["Authorization"].split(' ').last) : nil
         if user && user.admin
-		    technology = ::Product.where("post_type = 'technology' AND url = ?  AND main_category = ? AND sub_category = ?", request.headers["id"], request.headers["maincategory"], request.headers["subcategory"]).first.as_json(include: :photos)
+		    technology = ::Product.where("post_type = 'technology' AND url = ?  AND main_category = ? AND sub_category = ?", params["post"], params["category"], params["subcategory"]).first.as_json(include: :photos)
         else
-            technology = ::Product.where("post_type = 'technology' AND url = ?  AND main_category = ? AND sub_category = ?", request.headers["id"], request.headers["maincategory"], request.headers["subcategory"]).select_with(App.getGoodColumns('technology',false,nil,true)).first.as_json(include: :photos)
+            technology = ::Product.where("post_type = 'technology' AND url = ?  AND main_category = ? AND sub_category = ?", params["post"], params["category"], params["subcategory"]).select_with(App.getGoodColumns('technology',false,nil,true)).first.as_json(include: :photos)
         end
 		if technology
             if !technology["removed"]
@@ -32,14 +32,14 @@ class Api::V1::Technology::TechnologyController < ApplicationController
                 technology["ratings"] = nil
                 technology["likes"] = nil
                 technology["report_users"] = nil
-                render json: {status:200, success:true, post:technology.as_json.except("id")}
+                render json: {post:technology.as_json.except("id")}, status: :ok
                 user_id = user ? user.id : nil
                 ViewcountWorker.perform_async(technology["uuid"],user_id,'technology',request.remote_ip)
             else
-                render json:{status:410, success:false}
+                render json:{}, status: :gone
             end
 		else
-			render json: {status:404, success:false}
+			render json: {}, status: :not_found
 		end
 	end
     def create
@@ -52,7 +52,7 @@ class Api::V1::Technology::TechnologyController < ApplicationController
 		elsif params[:authorization]
 			auth = params[:authorization]
 		else
-			render json: {status:401, success:false}
+			render json: {}, status: :unauthorized
 			return false
 		end
 		user = User.find_by_token(auth.split(' ').last)
@@ -133,7 +133,7 @@ class Api::V1::Technology::TechnologyController < ApplicationController
                         end
                     end
                 rescue => e
-                    render json:{status:400, success:false, message:'You know what you did. Please only pass in a properties value that looks like such -> {"size"=>{*height:optional, *width:optional, *size:optional, "color"=>{price:price, quantity:quantity}}}.'}
+                    render json:{message:'You know what you did. Please only pass in a properties value that looks like such -> {"size"=>{*height:optional, *width:optional, *size:optional, "color"=>{price:price, quantity:quantity}}}.'}, status: :bad_request
                     return false
                 end
             else 
@@ -145,7 +145,7 @@ class Api::V1::Technology::TechnologyController < ApplicationController
             technology.price = prices.length != 0 ?  '%.2f' % (prices.sum / prices.length) : 0
             technology.submitted_by = user.username
             if technology.save
-				render json: {status:200, success:true, id:technology.uuid, stage:(user.admin ? 3 : user.info_stage), url:technology.url}
+				render json: {url:technology.url, category:technology.main_category, subcategory:technology.sub_category, stage:(user.admin ? 3 : user.info_stage)}, status: :created
                 user_hash = user.technology
                 user_hash[technology.uuid] = true
                 user.technology = user_hash
@@ -160,12 +160,12 @@ class Api::V1::Technology::TechnologyController < ApplicationController
 				user.votes_count += 1
 				user.save!
 			else
-				render json: {status:500, success:false}
+				render json: {}, status: :internal_server_error
 				Rails.logger.info(post.errors.inspect) 
 			end
 
         else 
-            render json:{status:401, success:false}
+            render json:{}, status: :unauthorized
         end
     end
     def update
@@ -174,15 +174,15 @@ class Api::V1::Technology::TechnologyController < ApplicationController
 		elsif params[:authorization]
 			auth = params[:authorization]
 		else
-			render json: {status:401, success:false}
+			render json: {}, status: :unauthorized
 			return false
 		end
 		user = User.find_by_token(auth.split(' ').last)
 		if user 
-            technology = params[:id] ? ::Product.where("uuid = ?", params[:id]).first : nil
-            if technology
+            technology = params[:post] && params[:category] && params[:subcategory] ? ::Product.where("url = ?, main_category = ?, sub_category = ?", params[:post], params[:category], params[:subcategory]).first : nil
+            if technology && technology.user_id === user.id
                 if !params[:properties] || !params[:properties].as_json.is_a?(Hash) || params[:properties].as_json.each.map{|key,value| value.is_a?(Hash)}.include?(false) || params[:properties].as_json.each.map{|key,value|value.each.map{|key_inner,value_inner| if(value_inner.is_a?(Hash)) then value_inner.keys.map(&:to_s) end}}.flatten.compact.uniq.sort != ["price","quantity"]
-                    render json:{status:400, success:false, message:'Pinche. The properties param is required, and must be an object/hash, with the style being = {"size"=>{*height:optional, *width:optional, *size:optional, "color"=>{price:price, quantity:quantity}}}.'}
+                    render json:{message:'Pinche. The properties param is required, and must be an object/hash, with the style being = {"size"=>{*height:optional, *width:optional, *size:optional, "color"=>{price:price, quantity:quantity}}}.'}, status: :bad_request
                     return false
                 end
                 technology.og_url_name = params[:title] ? params[:title].parameterize.gsub('_','-') : technology.og_url_name
@@ -238,7 +238,7 @@ class Api::V1::Technology::TechnologyController < ApplicationController
                         end
                     end
                 rescue => e
-                    render json:{status:400, success:false, message:'You know what you did. Please only pass in a properties value that looks like such -> {"size"=>{*height:optional, *width:optional, *size:optional, "color"=>{price:price, quantity:quantity}}}.'}
+                    render json:{message:'You know what you did. Please only pass in a properties value that looks like such -> {"size"=>{*height:optional, *width:optional, *size:optional, "color"=>{price:price, quantity:quantity}}}.'}, status: :bad_request
                     return false
                 end
                 technology.max_price = prices.length ? '%.2f' % prices.max : 0.00
@@ -262,37 +262,37 @@ class Api::V1::Technology::TechnologyController < ApplicationController
                 end
                 begin 
                     technology.save!
-                    render json: {status:200, success:true, url:technology.url}
+                    render json: {url:technology.url}, status: :ok
                     sleep 2
                     if !technology.uploaded then ProductuploadWorker.perform_async end
                     if new_photo then ProductphotouploadWorker.perform_async(technology.id) end
                     PurgecacheWorker.perform_async(technology.post_type,technology.uuid)
                 rescue ActiveRecord::StaleObjectError
-                    render json:{status:422, success:false, message:'Stale Object error, this product has most likely been updated recently.'} 
+                    render json:{message:'Stale Object error, this product has most likely been updated recently.'}, status: :unprocessable_entity
                 rescue ActiveRecord::RecordInvalid => exception
-                    render json: {status:500, success:false}
+                    render json: {}, status: :internal_server_error
                     Rails.logger.info(technology.errors.inspect)
                 end
             else
-                render json:{status:404, success:false}
+                render json:{}, status: :not_found
             end
         else
-            render json:{status:401, success:false}
+            render json:{}, status: :unauthorized
         end
     end
     def delete
         user = request.headers["Authorization"] ? User.find_by_token(request.headers["Authorization"].split(' ').last) : nil
 		if user 
-			technology = params[:id] ? ::Product.where("uuid = ?", params[:id]).first : nil
+			technology = params[:post] && params[:category] && params[:subcategory] ? ::Product.where("url = ?, main_category = ?, sub_category = ?", params[:post], params[:category], params[:subcategory]).first : nil
             if technology
                 technology.destroy
-                render json:{status: 203, success:true}
+                render json:{}, status: :non_authoritative_information
                 # may want to change this to just hide, keep the data, like everything else.
             else
-                render json: {status:404, success:false}
+                render json: {}, status: :not_found
             end
         else
-            render json: {status:401, success:false}
+            render json: {}, status: :unauthorized
         end
     end
 end

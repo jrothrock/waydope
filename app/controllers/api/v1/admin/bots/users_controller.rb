@@ -10,9 +10,9 @@ class Api::V1::Admin::Bots::UsersController < ApplicationController
                 user.save
                 users.push(user)
             end
-            render json:{status:200, success:true, users: users} 
+            render json:{users: users}, status: :ok
         else
-            render json:{status:403, success:false}
+            render json:{}, status: :forbidden
         end
     end
 
@@ -26,18 +26,18 @@ class Api::V1::Admin::Bots::UsersController < ApplicationController
                     user_to_update.gender = params[:gender] ? params[:gender] : ''
                     user_to_update.login_username = params[:username].downcase.strip()
                     if user_to_update.save
-                        render json:{status:200, success:true}
+                        render json:{}, status: :ok
                     else
-                        render json:{status:500, success:false}
+                        render json:{}, status: :bad_request
                     end
                 else
-                    render json:{status:409, success:false, message:"this username has been taken"}
+                    render json:{smessage:"this username has been taken"}, status: :conflict
                 end
             else
-                render json:{status:404, success:false}
+                render json:{}, status: :not_found
             end
         else
-            render json:{status:403, success:false}
+            render json:{}, status: :forbidden
         end
 
     end

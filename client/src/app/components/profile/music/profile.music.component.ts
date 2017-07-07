@@ -113,8 +113,7 @@ export class ProfileMusicComponent implements OnInit {
 		headersInit.append('order', this.optionValues);
 		headersInit.append('time', this.timeValues);
 		headersInit.append('type', this.typesValues);
-		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/users/music`,{headers: headersInit}).subscribe(data => {
-			if(data.json().success){
+		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/users/${this.user}/music`,{headers: headersInit}).subscribe(data => {
 				this.totalCount = data.json().posts.length;
 				this.music = data.json().posts;
 				this.setIds();
@@ -127,8 +126,8 @@ export class ProfileMusicComponent implements OnInit {
 				setTimeout(()=>{
 					this.displayAll();
 				})
-			} 
-			else if(data.json().status === 404){
+		},error=>{
+			if(error.status === 404){
 				this.loaded = true;
 				setTimeout(()=>{
 					this.displayAll();
@@ -304,16 +303,15 @@ export class ProfileMusicComponent implements OnInit {
 			if(index != null) this.wavesurfer[index].setVolume(parseInt($(`#${id}-volume-range`).val())/100)
 		}
 	}
-	download(id,title,type){
+	download(genre,url,title,type){
 		if(!this.downloading){
 			this.downloading=true;
 			let headers = new Headers({
 					'Content-Type': 'application/json',
 					'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 			});
-			let body = {"song":id}
-			this.downloadSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/music/download`, body, {headers: headers}).subscribe(data => {
-			if(data.json().success){  
+			let body = {}
+			this.downloadSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/music/${genre}/${url}/download`, body, {headers: headers}).subscribe(data => {
 				// (<any>window).location = data.json().url;
 				if(type === 1){
 					let tag = document.createElement('a');
@@ -323,7 +321,8 @@ export class ProfileMusicComponent implements OnInit {
 					tag.click();
 				}
 				this.downloading=false;
-			}
+		},error=>{
+
 		});
 	  }
 	}
@@ -356,8 +355,7 @@ export class ProfileMusicComponent implements OnInit {
 	              'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 	    });
 	    var body = {"id":id, "liked" : liked, "type" : type}
-	    this.likeSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/likes/new`, body, {headers: headers}).subscribe(data => {
-	      if(data.json().success){
+	    this.likeSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/likes`, body, {headers: headers}).subscribe(data => {
 	      	let song = this.music[index];
 			song.user_liked = data.json().user_liked;
 			song.likes_count = data.json().likes_count;
@@ -382,19 +380,19 @@ export class ProfileMusicComponent implements OnInit {
                     },1500)
 				}
               }
-	       }
-	      if(data.json().status === 401){
-	          this._modal.setModal('user', this.user, 'music');
-	      }
-	    });
+	    },error=>{
+			if(error.status === 401){
+	          	this._modal.setModal('user', this.user, 'music');
+	      	}
+		});
 	}
-	songPlay(id){
+	songPlay(genre,url){
 		let headers = new Headers({
 	              'Content-Type': 'application/json',
 	              'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 	    });
-	    let body = {"id":id}
-	    this.playSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/music/song/play`, body, {headers: headers}).subscribe(data => {
+	    let body = {}
+	    this.playSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/music/${genre}/${url}/play`, body, {headers: headers}).subscribe(data => {
 		});
 	}
 	transformRating(average_rating){
@@ -406,8 +404,7 @@ export class ProfileMusicComponent implements OnInit {
 	            'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 	    });
 	    var body = {"id":id, "type":"music", "vote":vote, "already_voted":voted}
-		  this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes/vote`, body, {headers: headers}).subscribe(data => {
-	        if(data.json().success){
+		  this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes`, body, {headers: headers}).subscribe(data => {
 			  let change;
 			  if(vote === 1 && voted) change = voted === 1 ? -1 : 2;
 			  else if(vote === 1 && !voted) change = 1;
@@ -415,11 +412,11 @@ export class ProfileMusicComponent implements OnInit {
 			  else if(vote === -1 && !voted) change = -1;
 	          this.voteChange(id,average_vote+change,data.json().user_vote)
 			  this._voteService.change('music',id,average_vote+change,data.json().user_vote);
-	        }
-	        if(data.json().status === 401){
+	      },error=>{
+			  if(error.status === 401){
 	              this._modal.setModal('user', this.user, 'music');
 	          }
-	      });
+		  });
 	      // upVoteSubscription.unsubscribe();
 	}
 	getSorting(values){
@@ -472,17 +469,19 @@ export class ProfileMusicComponent implements OnInit {
 		if(page != this.currentPage) $('.btn-pagination.active').removeClass('active')
 		var headers = new Headers({
 	            'Content-Type': 'application/json',
-	            'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
+	            'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature'),
+				'offset':pageData[0], 
+				'options':this.optionValues, 
+				'time':this.timeValues, 
+				'type':this.typesValues
 	    });
-	    var body = {'user':this.user,'offset':pageData[0], 'options':this.optionValues, 'time':this.timeValues, 'type':this.typesValues}
-	    this.paginateSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/users/music/paginate`, body, {headers: headers}).subscribe(data => {
-	    	if(data.json().success){
-	    		this.music = data.json().posts;
-				this.setIds();
-	    		this.offset = data.json().offset;
-	    		this.currentPage = pageData[1];
-	    		this.setState();
-	    	}
+	    var body = {'user':this.user}
+	    this.paginateSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/users/${this.user}/music`, body, {headers: headers}).subscribe(data => {
+			this.music = data.json().posts;
+			this.setIds();
+			this.offset = data.json().offset;
+			this.currentPage = pageData[1];
+			this.setState();
 	    });
 	}
     displayAll(){
@@ -527,7 +526,7 @@ export class ProfileMusicComponent implements OnInit {
 		if(form){
 	 		setTimeout(()=>{
 				this.waveSurferCreate(song.uuid,song.upload_url);
-				this.songPlay(song.uuid);
+				this.songPlay(song.genre,song.url);
 			},50);
 		}
 	}

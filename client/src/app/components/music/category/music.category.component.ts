@@ -106,30 +106,27 @@ export class MusicCategoryComponent implements OnInit {
 	};
 	getMusic(){
 		let headersInit = new Headers();
-		headersInit.append('Genre', this.category);
 		headersInit.append('Authorization', 'Bearer ' + this._auth.getToken()); headersInit.append('Signature', window.localStorage.getItem('signature'))
 		let offset = this.offset ? this.offset.toString() : null;
 		headersInit.append('offset', offset);
 		headersInit.append('order', this.optionValues);
 		headersInit.append('time', this.timeValues);
 		headersInit.append('type', this.typesValues);
-		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/music/genre`,{headers: headersInit}).subscribe(data => {
+		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/music/${this.category}`,{headers: headersInit}).subscribe(data => {
+			this.totalCount = data.json().songs.length;
+			this.songs = data.json().songs;
+			this.setIds();
+			this.offset = this.offset ? this.offset : data.json().offset;
+			this.total = data.json().count;
+			this.pages = data.json().pages;
+			this.numbers = Array(this.pages).fill(1);
+			this.currentPage = this.currentPage ? this.currentPage : data.json().page;
 			
-			if(data.json().success){
-				this.totalCount = data.json().songs.length;
-				this.songs = data.json().songs;
-				this.setIds();
-				this.offset = this.offset ? this.offset : data.json().offset;
-				this.total = data.json().count;
-				this.pages = data.json().pages;
-				this.numbers = Array(this.pages).fill(1);
-				this.currentPage = this.currentPage ? this.currentPage : data.json().page;
-				
-				setTimeout(()=>{
-					this.displayAll();
-				},150)
-			} 
-			else if(data.json().status === 404){
+			setTimeout(()=>{
+				this.displayAll();
+			},150)
+		},error=>{
+			if(error.status === 404){
 				this.songs = false; //this is done so that the *ngif doesn't have to double bang in the view.
 				setTimeout(()=>{
 					this.displayAll();
@@ -292,22 +289,21 @@ export class MusicCategoryComponent implements OnInit {
 			if(index != null) this.wavesurfer[index].setVolume(parseInt($(`#${category}-${id}-volume-range`).val())/100)
 		}
 	}
-	download(id,title){
+	download(genre,url,title,type){
 		let headers = new Headers({
 	              'Content-Type': 'application/json',
 	              'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 	    });
-	    let body = {"song":id}
-		this.downloadSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/music/download`, body, {headers: headers}).subscribe(data => {
-	      if(data.json().success){  
-			
+	    let body = {}
+		this.downloadSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/music/${genre}/${url}/download`, body, {headers: headers}).subscribe(data => {
 			// (<any>window).location = data.json().url;
 			let tag = document.createElement('a');
 			tag.setAttribute('href', data.json().url);
 			tag.setAttribute('target', "_blank");
 			tag.setAttribute('download', title);
 			tag.click();
-	      }
+		},error=>{
+
 		});
 	}
 	loop(id,category){
@@ -339,10 +335,9 @@ export class MusicCategoryComponent implements OnInit {
 	              'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 	    });
 	    var body = {"id":id, "liked" : liked, "type" : type}
-	    this.likeSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/likes/new`, body, {headers: headers}).subscribe(data => {
-	      if(data.json().success){
+	    this.likeSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/likes`, body, {headers: headers}).subscribe(data => {
 	      	let song = this.songs[index];
-	        if(data.json().success && !liked){
+	        if(!liked){
 	            $(`#icon-likes-${id}`).addClass(' liked-icon fa-heart');
 	            $(`#icon-likes-${id}`).removeClass('fa-heart-o');
 	            $(`#likes-button-${id}`).addClass(' liked');
@@ -350,7 +345,7 @@ export class MusicCategoryComponent implements OnInit {
 	            song.likes_count = song.likes_count + 1;
 	            song.user_liked = !song.user_liked;
 	        }
-	        if(data.json().success && liked){
+	        if(liked){
 	            $(`#icon-likes-${id}`).addClass('fa-heart-o');
 	            $(`#icon-likes-${id}`).removeClass('liked-icon fa-heart');
 	            $(`#likes-button-${id}`).removeClass('liked');
@@ -358,24 +353,23 @@ export class MusicCategoryComponent implements OnInit {
 	            song.likes_count = song.likes_count - 1;
 	            song.user_liked = !song.user_liked;
 	        }
-
-	      }
-	      else if(data.json().status === 401){
+	    },error=>{
+			if(error.status === 401){
 	          this._modal.setModal('music', this.category);
-	      } else if (data.json().locked){
-			  Materialize.toast("<i class='fa fa-lock'></i> This post has been locked", 3000, 'rounded')
-		  } else if(data.json().archived){
-			  Materialize.toast("<i class='fa fa-archive'></i>  This post has been archived", 3000, 'rounded')
-		  }
-	    });
+			} else if (error.json().locked){
+				Materialize.toast("<i class='fa fa-lock'></i> This post has been locked", 3000, 'rounded')
+			} else if(error.json().archived){
+				Materialize.toast("<i class='fa fa-archive'></i>  This post has been archived", 3000, 'rounded')
+			}
+		});
 	}
-	songPlay(id){
+	songPlay(genre,url){
 		let headers = new Headers({
 	              'Content-Type': 'application/json',
 	              'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 	    });
-	    let body = {"id":id}
-	    this.playSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/music/song/play`, body, {headers: headers}).subscribe(data => {
+	    let body = {}
+	    this.playSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/music/${genre}/${url}/play`, body, {headers: headers}).subscribe(data => {
 		});
 	}
 	transformRating(average_rating){
@@ -387,8 +381,7 @@ export class MusicCategoryComponent implements OnInit {
 	            'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 	    });
 	    var body = {"id":id, "type":"music", "vote":vote, "already_voted":voted}
-		  this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes/vote`, body, {headers: headers}).subscribe(data => {
-	        if(data.json().success){
+		  this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes`, body, {headers: headers}).subscribe(data => {
 			  let change;
 			  if(vote === 1 && voted) change = voted === 1 ? -1 : 2;
 			  else if(vote === 1 && !voted) change = 1;
@@ -396,15 +389,15 @@ export class MusicCategoryComponent implements OnInit {
 			  else if(vote === -1 && !voted) change = -1;
 	          this.voteChange(id,average_vote+change,data.json().user_vote)
 			  this._voteService.change('music',id,average_vote+change,data.json().user_vote);
-	        }
-	        else if(data.json().status === 401){
+	      },error=>{
+			  if(error.status === 401){
 	            this._modal.setModal('music', this.category);
-	        } else if (data.json().locked){
-			    Materialize.toast("<i class='fa fa-lock'></i> This post has been locked", 3000, 'rounded')
-			} else if(data.json().archived){
+			  } else if (error.json().locked){
+				Materialize.toast("<i class='fa fa-lock'></i> This post has been locked", 3000, 'rounded')
+			  } else if(error.json().archived){
 				Materialize.toast("<i class='fa fa-archive'></i>  This post has been archived", 3000, 'rounded')
-			}
-	      });
+			  }
+		  });
 	      // upVoteSubscription.unsubscribe();
 	}
 	getSorting(values){
@@ -512,7 +505,7 @@ export class MusicCategoryComponent implements OnInit {
 		if(form){
 	 		setTimeout(()=>{
 				this.waveSurferCreate(type,index,song.upload_url);
-				this.songPlay(song.uuid)
+				this.songPlay(song.main_genre,song.url)
 			},50);
 		}
 	}

@@ -136,11 +136,8 @@ export class BoardsPostComponent implements OnInit {
 			spinner = true;
 			$("#loading-spinner-boards-post").fadeIn();
 		},300)
-		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/news/post`,{headers: headersInit}).subscribe(data => {
-			if(data.json().success){
+		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/news/${this.category}/${this.id}`,{headers: headersInit}).subscribe(data => {
 				this.postId = data.json().post.uuid;
-				
-				
 				this.title = data.json().post.title;
 				this.link = data.json().post.link;
 				this.post_type = data.json().post.post_type;
@@ -209,10 +206,11 @@ export class BoardsPostComponent implements OnInit {
 					else this.watchScroll();
 					_setMeta.setPost(data.json().post.title,`${data.json().post.form === 1 ? data.json().post.teaser.substring(0,30) : data.json().post.description.substring(0,30) }...`,'news',data.json().post.main_category, null)
 				},100)
-			} else if(data.json().status === 404) {
+		},error=>{
+			if(error.status === 404) {
 				this._sysMessages.setMessages('noPost');
 				this._router.navigateByUrl('/boards', { replaceUrl: true });
-			} else if(data.json().status === 410){
+			} else if(error.status === 410){
 				this._sysMessages.setMessages('removedPost');
 				this._router.navigateByUrl('/boards', { replaceUrl: true });
 			} else {
@@ -264,30 +262,29 @@ export class BoardsPostComponent implements OnInit {
 	          'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 		});
 		var body = {"id":this.postId, "type":"news", "vote":vote}
-    	this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes/vote`, body, {headers: headers}).subscribe(data => {
-    		if(data.json().success){
-				let change;
-				if(vote === 1 && this.user_voted) change = this.user_voted === 1 ? -1 : 2;
-				else if(vote === 1 && !this.user_voted) change = 1;
-				else if(vote === -1 && this.user_voted) change = this.user_voted === -1 ? +1 : -2;
-				else if(vote === -1 && !this.user_voted) change = -1;
-				this.voteChange(this.postId,this.user_voted+change,data.json().user_vote)
-				this._voteService.change('boards',this.postId,this.user_voted+change,data.json().user_vote);
-	    		this.upvotes = data.json().upvotes;
-				this.downvotes = data.json().downvotes;
-			 	this.votes_count = data.json().votes_count;
-				this.average_vote_width = this.votes_count ? Math.round(((this.upvotes)/(this.votes_count)*100)) : 0;
-    		}
-    		if(data.json().status === 401){
+    	this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes`, body, {headers: headers}).subscribe(data => {
+			let change;
+			if(vote === 1 && this.user_voted) change = this.user_voted === 1 ? -1 : 2;
+			else if(vote === 1 && !this.user_voted) change = 1;
+			else if(vote === -1 && this.user_voted) change = this.user_voted === -1 ? +1 : -2;
+			else if(vote === -1 && !this.user_voted) change = -1;
+			this.voteChange(this.postId,this.user_voted+change,data.json().user_vote)
+			this._voteService.change('boards',this.postId,this.user_voted+change,data.json().user_vote);
+			this.upvotes = data.json().upvotes;
+			this.downvotes = data.json().downvotes;
+			this.votes_count = data.json().votes_count;
+			this.average_vote_width = this.votes_count ? Math.round(((this.upvotes)/(this.votes_count)*100)) : 0;
+    	},error=>{
+			if(error.status === 401){
     			this._modal.setModal('boards',this.category,this.id);
-    		} else if (data.json().locked){
+    		} else if (error.json().locked){
 				this.datanotify=[this.postId,'news','locked'];
-			} else if(data.json().archived){
+			} else if(error.json().archived){
 				this.datanotify=[this.postId,'news','archived'];
-			} else if(data.json().flagged){
+			} else if(error.json().flagged){
 				this.datanotify=[this.postId,'news','flagged'];
 			}
-    	});
+		});
 	}
 	like(id,value,genre,type){
 	    let headers = new Headers({
@@ -295,8 +292,7 @@ export class BoardsPostComponent implements OnInit {
 	              'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 	    });
 	    let body = {"id":this.postId, "type" : type}
-		this.likeSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/likes/new`, body, {headers: headers}).subscribe(data => {
-	      if(data.json().success){      
+		this.likeSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/likes`, body, {headers: headers}).subscribe(data => {
 	        if(!data.json().user_liked){
 	            let elementIcon = document.getElementById("icon-likes-" + id);
 	            elementIcon.className += ' liked-icon';
@@ -317,18 +313,17 @@ export class BoardsPostComponent implements OnInit {
 	            this.likes_count = this.likes_count - 1;
 	        }
 	        this.user_liked = !this.user_liked;
-
-	      }
-	      if(data.json().status === 401){
+	    },error=>{
+	      if(error.status === 401){
 	          this._modal.setModal('boards',this.category,this.id);
-	      } else if (data.json().locked){
+	      } else if (error.json().locked){
 				this.datanotify=[this.postId,'news','locked'];
-		  } else if(data.json().archived){
+		  } else if(error.json().archived){
 			this.datanotify=[this.postId,'news','archived'];
-		  } else if(data.json().flagged){
+		  } else if(error.json().flagged){
 				this.datanotify=[this.postId,'news','flagged'];
 		  }
-	    });
+		});
 	}
 	encode(string){
 		return encodeURIComponent(string);
@@ -357,22 +352,21 @@ export class BoardsPostComponent implements OnInit {
 	    // 		body = {"id":this.songId,"type":type,"advancedRating":this.current_average_rating,"message":null,"production":parseInt(value.production),"originality":parseInt(value.originality),"whinyness":null}
 	    // 	}
 	    // }
-	    this.ratingSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/ratings/new`, body, {headers: headers}).subscribe(data => {
-	    	if(data.json().success){
+	    this.ratingSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/ratings`, body, {headers: headers}).subscribe(data => {
 	    		this.rateOpen = false;
 	    		this.has_rated = true;
 	    		this.average_rating = data.json().average_rating;
 	    		this.average_rating_count = data.json().ratings_count;
-	    	}
-	    	if(data.json().status === 401){
+		},error=>{
+			if(error.status === 401){
          		 this._modal.setModal('boards',this.category,this.id);
-       		} else if (data.json().locked){
+       		} else if (error.json().locked){
 				this.datanotify=[this.postId,'news','locked'];
-			} else if(data.json().archived){
+			} else if(error.json().archived){
 				this.datanotify=[this.postId,'news','archived'];
-			} else if(data.json().poor_rating){
+			} else if(error.json().poor_rating){
 				Materialize.toast("It can't be that bad...", 3000, 'rounded-failure')
-			} else if(data.json().flagged){
+			} else if(error.json().flagged){
 				this.datanotify=[this.postId,'news','flagged'];
 			}
 		})
@@ -437,12 +431,12 @@ export class BoardsPostComponent implements OnInit {
 		var creds = {"post": this.postId, "upload":true}
 		headers.append('Content-Type', 'application/json');
 		headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
-		this.deleteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/news/delete`, creds, {headers: headers}).subscribe(data => {
-			if(data.json().success){
+		this.deleteSubscription = this._http.delete(`${this._backend.SERVER_URL}/api/v1/news/${this.category}/${this.id}`, {headers: headers}).subscribe(data => {
 				this._sysMessages.setMessages('deletePost');
 				this._router.navigateByUrl(`/boards`);
-			} else if(data.json().status === 401){
-	              this._modal.setModal('boards',this.category,this.id);
+		},error=>{
+			if(error.status === 401){
+	        	this._modal.setModal('boards',this.category,this.id);
 			} 
 		});
   }

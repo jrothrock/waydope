@@ -118,8 +118,7 @@ export class SearchAllComponent implements OnInit {
 				'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 		});
 		var body = {"id":id, "liked" : liked, "type" : type}
-		this.likeSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/likes/new`, body, {headers: headers}).subscribe(data => {
-		if(data.json().success){
+		this.likeSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/likes`, body, {headers: headers}).subscribe(data => {
 			let post;
 			post = this.results[index];
 			post.likes_count = data.json().likes_count;
@@ -135,10 +134,10 @@ export class SearchAllComponent implements OnInit {
 				$(`#likes-button-${id}-${type}`).removeClass('liked');
 				$(`#likes-${id}-${type}`).html(`${value-1}`);
 			}
-
-		} else if(data.json().status === 401){
-			this._modal.setModal();
-		}
+		},error=>{
+			if(error.status === 401){
+				this._modal.setModal();
+			}
 		});
 	}
 
@@ -148,8 +147,7 @@ export class SearchAllComponent implements OnInit {
 	            'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 	    });
 	    var body = {"id":id, "type":type, "vote":vote, "already_voted":voted}
-	      this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes/vote`, body, {headers: headers}).subscribe(data => {
-	        if(data.json().success){
+	      this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes`, body, {headers: headers}).subscribe(data => {
 			  let change;
 			  if(vote === 1 && voted) change = voted === 1 ? -1 : 2;
 			  else if(vote === 1 && !voted) change = 1;
@@ -157,10 +155,11 @@ export class SearchAllComponent implements OnInit {
 			  else if(vote === -1 && !voted) change = -1;
 	          this.voteChange(id,average_vote+change,data.json().user_vote,type)
 			  this._voteService.change(type,id,average_vote+change,data.json().user_vote);
-	        } else if(data.json().status === 401){
+	    },error=>{
+			if(error.status === 401){
 	              this._modal.setModal();
 	        }
-	    });
+		});
 	}
 
   stopAudio(){
@@ -277,16 +276,15 @@ export class SearchAllComponent implements OnInit {
 			if(index != null) this.wavesurfer[index].setVolume(parseInt($(`#${id}-volume-range`).val())/100)
 		}
 	}
-	download(id,title,type){
+	download(genre,url,title,type){
 		if(!this.downloading){
 			this.downloading=true;
 			let headers = new Headers({
 					'Content-Type': 'application/json',
 					'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 			});
-			let body = {"song":id}
-			this.downloadSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/music/download`, body, {headers: headers}).subscribe(data => {
-				if(data.json().success){  
+			let body = {}
+			this.downloadSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/music/${genre}/${url}/download`, body, {headers: headers}).subscribe(data => { 
 					
 					// (<any>window).location = data.json().url;
 					if(type===1){
@@ -297,17 +295,18 @@ export class SearchAllComponent implements OnInit {
 						tag.click();
 					}
 					this.downloading = false;
-				}
+			},error=>{
+
 			});
 		}
 	}
-	videoPlay(id){
+	videoPlay(category,url){
   	let headers = new Headers({
 				'Content-Type': 'application/json',
 				'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 		});
-		let body = {"id":id}
-		this.playVideoSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/videos/post/play`, body, {headers: headers}).subscribe(data => {
+		let body = {}
+		this.playVideoSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/videos/${category}/${url}/play`, body, {headers: headers}).subscribe(data => {
 		});
 	}
 	loop(id){
@@ -356,7 +355,7 @@ export class SearchAllComponent implements OnInit {
 			if(song.form===1) url = song.upload_url;
 			setTimeout(()=>{
 				if(url)this.waveSurferCreate(id,url);
-				if(song.form===1) this.songPlay(song.uuid);
+				if(song.form===1) this.songPlay(song.main_genre,song.url);
 			})
 		}else if(type === 'videos'){
 			this.results[index].clicked = true;
@@ -374,16 +373,16 @@ export class SearchAllComponent implements OnInit {
 					this.results[index].clicked = true;
 				}
 			}
-			this.videoPlay(this.results[index].uuid);
+			this.videoPlay(this.results[index].category,this.results[index].url);
 		}
 	}
-	songPlay(id){
+	songPlay(category,url){
 		let headers = new Headers({
 					'Content-Type': 'application/json',
 					'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 		});
-		let body = {"id":id}
-		this.playSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/music/song/play`, body, {headers: headers}).subscribe(data => {
+		let body = {}
+		this.playSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/music/${category}/${url}/play`, body, {headers: headers}).subscribe(data => {
 		});
   }
     searchArtist(artist){
@@ -468,23 +467,23 @@ export class SearchAllComponent implements OnInit {
         headers.append('search', this.search);
 		headers.append('offset',offset.toString());
 		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/search/`, {headers:headers}).subscribe(data => {
-			
-			if(data.json().success){
-                this.results = data.json().results;
-				this.setIds();
-                this.quantity = data.json().total;
-				this.offset = data.json().offset;
-				this.pages = data.json().pages;
-				this.currentPage = data.json().current_page;
-				if(!this.numbers.length) this.numbers = Array(this.pages).fill(1);
-				this.setState();
-				this.displayAll();
-			} else if(data.json().status === 404) {
+			this.results = data.json().results;
+			this.setIds();
+			this.quantity = data.json().total;
+			this.offset = data.json().offset;
+			this.pages = data.json().pages;
+			this.currentPage = data.json().current_page;
+			if(!this.numbers.length) this.numbers = Array(this.pages).fill(1);
+			this.setState();
+			this.displayAll();
+		},error=>{
+			if(error.status === 404) {
                 this.quantity = 0;
                 this.results = [];
 				this.displayAll();
 			}
-            this.searchForm.patchValue({search:''})
+		},()=>{
+			this.searchForm.patchValue({search:''})
             $(`#search`).blur();
 		});
 

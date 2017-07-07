@@ -31,7 +31,7 @@ class Api::V1::Track::TrackerController < ApplicationController
         $redis.sadd("tracker_days","tracker_#{Time.now.strftime("%Y%m%d")}")
         tracker.visits = {Time.now => 1}
         if tracker.save
-            render json:{status:200, success:true, session:tracker.uuid}
+            render json:{session:tracker.uuid}, status: :ok
             if user && tracker
                 if user.trackers && user.trackers != '{}' && user.trackers != "null" 
                     trackers = user.trackers
@@ -44,7 +44,7 @@ class Api::V1::Track::TrackerController < ApplicationController
                 user.save
             end
         else
-            render json:{status:500, success:false}
+            render json:{}, status: :internal_server_error
         end
     end
     def update

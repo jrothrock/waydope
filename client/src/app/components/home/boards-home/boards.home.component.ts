@@ -112,8 +112,7 @@ export class BoardsHomeComponent implements OnChanges {
 	          'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 		});
 		var body = {"id":id, "type":"news", "vote":vote, "already_voted":voted}
-    	this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes/vote`, body, {headers: headers}).subscribe(data => {
-    		if(data.json().success){
+    	this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes`, body, {headers: headers}).subscribe(data => {
 				let change;
 				if(vote === 1 && voted) change = voted === 1 ? -1 : 2;
 				else if(vote === 1 && !voted) change = 1;
@@ -121,15 +120,15 @@ export class BoardsHomeComponent implements OnChanges {
 				else if(vote === -1 && !voted) change = -1;
     			this.voteChange(id,average_vote+change,data.json().user_vote)
 				this._voteService.change('boards',id,average_vote+change,data.json().user_vote);
-    		}
-    		else if(data.json().status === 401){
+    	},error=>{
+			if(error.status === 401){
           		this._modal.setModal('home');
-      		} else if (data.json().locked){
+      		} else if (error.json().locked){
 				Materialize.toast("<i class='fa fa-lock'></i> This post has been locked", 3000, 'rounded')
-			} else if(data.json().archived){
+			} else if(error.json().archived){
 				Materialize.toast("<i class='fa fa-archive'></i>  This post has been archived", 3000, 'rounded')
 			}
-    	});
+		});
     	// upVoteSubscription.unsubscribe();
 	}
 	getPosts(index,category){
@@ -139,13 +138,10 @@ export class BoardsHomeComponent implements OnChanges {
 		headers.append('offset', (this.currentPage[index] * 5 + 5).toString());
 		headers.append('category', category)
 		this.paginateSubscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/home/paginate`, {headers:headers}).subscribe(data => {
-			
-			if(data.json().success){
 				this.posts[index] = this.posts[index].concat(data.json().posts);
 				this.currentPage[index] += 1;
 				this.currentPosts[index] = this.posts[index].slice(this.currentPage[index] * 5, this.currentPage[index] * 5 + 5)
 				this.setIds();
-			}
 		});
 	}
 	paginate(type,index){

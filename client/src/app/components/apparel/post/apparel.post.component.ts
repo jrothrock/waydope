@@ -187,8 +187,7 @@ export class ApparelPostComponent implements OnInit {
         spinner = true;
         $("#loading-spinner-apparel-post").fadeIn();
       },300)
-      this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/apparel/post`,{headers: headersInit}).subscribe(data => {
-        if(data.json().success){
+      this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/apparel/${this.category}/${this.sub_category}/${this.id}`,{headers: headersInit}).subscribe(data => {
           this.apparel = data.json().post;
           this.postId = data.json().post.uuid; 
           
@@ -310,18 +309,19 @@ export class ApparelPostComponent implements OnInit {
           // this.form = data.json().post.form;
           // this.hidden = data.json().post.hidden;
           // this.categories = data.json().post.categories;
-        } else if(data.json().status === 404) {
+        
+      },error=>{
+        if(error.status === 404) {
           // this._messages.setMessages('noPost');
           // this._router.navigateByUrl('/boards');
           this._sysMessages.setMessages('noApparel');
 				  this._router.navigateByUrl('/apparel', { replaceUrl: true });
-        } else if(data.json().status===410){
+        } else if(error.json().status===410){
           this._sysMessages.setMessages('removedPost');
 				  this._router.navigateByUrl('/apparel', { replaceUrl: true });
         } else {
           // this.error = true;
         }
-        
       });
     }
     buyNow(){
@@ -351,22 +351,21 @@ export class ApparelPostComponent implements OnInit {
         });
 
         body = {"id":this.postId,"type":type,"category":this.category, "subcategory":this.sub_category,"rating":value.rating,"fit":value.fit}
-        this.ratingSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/ratings/new`, body, {headers: headers}).subscribe(data => {
-          if(data.json().success){
+        this.ratingSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/ratings`, body, {headers: headers}).subscribe(data => {
             this.rateOpen = false;
             this.has_rated = true;
             this.average_rating = data.json().average_rating;
             this.average_rating_count = data.json().average_rating_count;
             this.average_fit = data.json().average_fit;
             this.average_fit_count = data.json().average_fit;
-          }
-          else if(data.json().status === 401){
+      },error=>{
+          if(error.status === 401){
               this._modal.setModal('apparel', this.category, this.sub_category, this.id);
-          } else if (data.json().locked){
+          } else if (error.json().locked){
             this.datanotify=[this.postId,'apparel','locked'];
-          } else if(data.json().archived){
+          } else if(error.json().archived){
             this.datanotify=[this.postId,'apparel','archived'];
-          }  else if(data.json().poor_rating){
+          }  else if(error.json().poor_rating){
             Materialize.toast("<i class='fa fa-lock'></i> It can't be that bad...", 3000, 'rounded-failure')
           }
       })
@@ -450,8 +449,7 @@ export class ApparelPostComponent implements OnInit {
 	            'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 	    });
 	    var body = {"id":this.postId, "type":this.post_type, "category":this.category, "subcategory": this.sub_category, "vote":vote}
-        this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes/vote`, body, {headers: headers}).subscribe(data => {
-	        if(data.json().success){
+        this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes`, body, {headers: headers}).subscribe(data => {
             let change;
 				    if(vote === 1 && this.user_voted) change = this.user_voted === 1 ? -1 : 2;
 				    else if(vote === 1 && !this.user_voted) change = 1;
@@ -463,17 +461,17 @@ export class ApparelPostComponent implements OnInit {
             this.downvotes = data.json().downvotes;
             this.votes_count = data.json().votes_count;
             this.average_vote_width = this.votes_count ? Math.round(((this.upvotes)/(this.votes_count)*100)) : 0 ;
-	        }
-	        if(data.json().status === 401){
+	      },error=>{
+           if(error.status === 401){
 	              this._modal.setModal('apparel', this.category, this.sub_category, this.id);
-	        } else if (data.json().locked){
+	        } else if (error.json().locked){
             this.datanotify=[this.postId,'apparel','locked'];
-          } else if(data.json().archived){
+          } else if(error.json().archived){
             this.datanotify=[this.postId,'apparel','archived'];
-          } else if(data.json().flagged){
+          } else if(error.json().flagged){
             this.datanotify=[this.postId,'apparel','flagged'];
           }
-	      });
+        });
 	      // upVoteSubscription.unsubscribe();
 	  }
     voteCheck(){
@@ -490,7 +488,6 @@ export class ApparelPostComponent implements OnInit {
 	    });
 	    let body = {"id":this.postId,"type":type,"category":category, "subcategory":subcategory}
 	    this.likeSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/likes/new`, body, {headers: headers}).subscribe(data => {
-	      if(data.json().success){  
 	      	this.likes_count = data.json().likes_count;    
 	        if(!data.json().user_liked){
 	        	$(`#icon-likes-${id}`).addClass(' liked-icon');
@@ -501,16 +498,15 @@ export class ApparelPostComponent implements OnInit {
 	        	$(`#likes-button-${id}`).removeClass('liked');
 	        }
 	        this.user_liked = !this.user_liked;
-
-	      }
-	      else if(data.json().status === 401){
+	    },error=>{
+        if(error.status === 401){
 	          this._modal.setModal('apparel', this.category, this.sub_category, this.id);
-	      } else if(data.json().locked){
+	      } else if(error.json().locked){
           this.datanotify=[this.postId,'apparel','locked'];
-        } else if(data.json().archived){
+        } else if(error.json().archived){
           this.datanotify=[this.postId,'apparel','archived'];
         }
-	    });
+      });
 	}
     getImageWidth(){
       var container_width = ($(`.rest-photos-containers`).width()-30)/3
@@ -644,10 +640,8 @@ export class ApparelPostComponent implements OnInit {
 	    });
 	    let body = {"id":this.postId,"type":'apparel'}
 	    this.lockSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/admin/posts/lock`, body, {headers: headers}).subscribe(data => {
-          if(data.json().success){
-            this.locked = true;
-            Materialize.toast("<i class='fa fa-lock'></i> Post Successfully Locked", 3000, 'rounded-success')
-          }
+          this.locked = true;
+          Materialize.toast("<i class='fa fa-lock'></i> Post Successfully Locked", 3000, 'rounded-success')
       });
     }
     removePost(event){
@@ -657,10 +651,8 @@ export class ApparelPostComponent implements OnInit {
       });
       let body = {"id":this.postId,"type":'apparel'}
       this.removeSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/admin/posts/remove`, body, {headers: headers}).subscribe(data => {
-            if(data.json().success){
-              this.locked = true;
-              Materialize.toast("<i class='fa fa-close'></i> Post Successfully Removed", 3000, 'rounded-success')
-            }
+            this.locked = true;
+            Materialize.toast("<i class='fa fa-close'></i> Post Successfully Removed", 3000, 'rounded-success')
         });
     }
     changePhoto(index){

@@ -103,8 +103,7 @@ export class ProfileTechnologyComponent implements OnInit {
 		headersInit.append('order', this.optionValues);
 		headersInit.append('time', this.timeValues);
 		headersInit.append('type', this.typesValues);
-		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/users/technology`,{headers: headersInit}).subscribe(data => {
-			if(data.json().success){
+		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/users/${this.user}/technology`,{headers: headersInit}).subscribe(data => {
 				this.totalCount = data.json().posts.length;
 				this.offset = this.offset ? this.offset : data.json().offset;
                 this.technology = data.json().posts;
@@ -118,15 +117,13 @@ export class ProfileTechnologyComponent implements OnInit {
                 this.getImageWidth();
 				this.displayAll();
                 },150)
-			} 
-			else if(data.json().status === 404){
+		}, errors=>{
+			if(errors.status === 404){
 				this.loaded = true;
-                setTimeout(()=>{
-                    this.displayAll();
-                },150)
-			} else {
-				// this.error = true;
-			}
+				setTimeout(()=>{
+					this.displayAll();
+				},150)
+			} 
 		});
   }
   onOptionsChange(value) {
@@ -174,14 +171,12 @@ export class ProfileTechnologyComponent implements OnInit {
 	            'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 	    });
 	    var body = {'user':this.user,"featured":null, 'options':values.options, 'time':values.time, 'type':values.type}
-        this.sortSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/users/technology/sort`, body, {headers: headers}).subscribe(data => {
-			if(data.json().success){
-				this.technology = data.json().posts;
-				this.setIds();
-				this.offset = data.json().offset;
-				this.currentPage = data.json().page;
-				this.setState();
-			}
+        this.sortSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/users/${this.user}/technology`, body, {headers: headers}).subscribe(data => {
+			this.technology = data.json().posts;
+			this.setIds();
+			this.offset = data.json().offset;
+			this.currentPage = data.json().page;
+			this.setState();
 		});
 	}
   changePage(type,page){
@@ -192,15 +187,15 @@ export class ProfileTechnologyComponent implements OnInit {
 	            'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 	    });
 	    var body = {'user':this.user,'offset':pageData[0], 'options':this.optionValues, 'time':this.timeValues, 'type':this.typesValues}
-		this.paginateSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/users/technology/paginate`, body, {headers: headers}).subscribe(data => {
-	    	if(data.json().success){
-	    		this.technology = data.json().posts;
-				this.setIds();
-	    		this.offset = data.json().offset;
-	    		this.currentPage = pageData[1];
-	    		this.setState();
-	    	}
-	    });
+		this.paginateSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/users/${this.user}/technology`, body, {headers: headers}).subscribe(data => {
+			this.technology = data.json().posts;
+			this.setIds();
+			this.offset = data.json().offset;
+			this.currentPage = pageData[1];
+			this.setState();
+	    },error=>{
+
+		});
  }
   getOffset(type,page){
 		let data = [];
@@ -290,10 +285,9 @@ export class ProfileTechnologyComponent implements OnInit {
 	              'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 	    });
 	    var body = {"id":id, "liked" : liked, "type" : type}
-	    this.likeSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/likes/new`, body, {headers: headers}).subscribe(data => {
-	      if(data.json().success){
+	    this.likeSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/likes`, body, {headers: headers}).subscribe(data => {
 	      	let post = this.technology[index]
-	        if(data.json().success && !liked){
+	        if(!liked){
 	            $(`#icon-likes-${id}`).addClass(' liked-icon fa-heart');
 	            $(`#icon-likes-${id}`).removeClass('fa-heart-o');
 	            $(`#likes-button-${id}`).addClass(' liked');
@@ -301,7 +295,7 @@ export class ProfileTechnologyComponent implements OnInit {
 	            post.likes_count = post.likes_count + 1;
 	            post.user_liked = !post.user_liked;
 	        }
-	        if(data.json().success && liked){
+	        if(liked){
 	            $(`#icon-likes-${id}`).addClass('fa-heart-o');
 	            $(`#icon-likes-${id}`).removeClass('liked-icon fa-heart');
 	            $(`#likes-button-${id}`).removeClass('liked');
@@ -310,11 +304,11 @@ export class ProfileTechnologyComponent implements OnInit {
 	            post.user_liked = !post.user_liked;
 	        }
 
-	      }
-	      if(data.json().status === 401){
-	          this._modal.setModal('user', this.user, 'technology');
-	      }
-	    });
+	    },errors =>{
+			if(errors.status === 401){
+	          	this._modal.setModal('user', this.user, 'technology');
+	     	}
+		});
 	}
 	setVote(vote,id,type,average_vote,voted){
 		var headers = new Headers({
@@ -322,20 +316,19 @@ export class ProfileTechnologyComponent implements OnInit {
 	          'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 		});
 		var body = {"id":id, "type":"technology", "vote":vote, "already_voted":voted}
-    	this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes/vote`, body, {headers: headers}).subscribe(data => {
-    		if(data.json().success){
-				 let change;
-			  	if(vote === 1 && voted) change = voted === 1 ? -1 : 2;
-			  	else if(vote === 1 && !voted) change = 1;
-			  	else if(vote === -1 && voted) change = voted === -1 ? +1 : -2;
-			  	else if(vote === -1 && !voted) change = -1;
-    			this.voteChange(id,average_vote+change,data.json().user_vote)
-				this._voteService.change('technology',id,average_vote+change,data.json().user_vote);
-    		}
-    		if(data.json().status === 401){
+    	this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes`, body, {headers: headers}).subscribe(data => {
+			let change;
+			if(vote === 1 && voted) change = voted === 1 ? -1 : 2;
+			else if(vote === 1 && !voted) change = 1;
+			else if(vote === -1 && voted) change = voted === -1 ? +1 : -2;
+			else if(vote === -1 && !voted) change = -1;
+			this.voteChange(id,average_vote+change,data.json().user_vote)
+			this._voteService.change('technology',id,average_vote+change,data.json().user_vote);
+    	}, errors => {
+			if(errors.status === 401){
           		this._modal.setModal('user', this.user, 'technology');
       		}
-    	});
+		});
     	// upVoteSubscription.unsubscribe();
 	}
 	getImgSize(imgSrc,offset) {

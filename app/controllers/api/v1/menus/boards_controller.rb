@@ -14,6 +14,6 @@ class Api::V1::Menus::BoardsController < ApplicationController
 			posts = NewsPost.userCheck(posts, request.headers["Authorization"])
 		#end
 		
-		render json:{status:200, success:true, posts:posts}
+		render json:{posts:posts}, status: :ok
 	end
 end

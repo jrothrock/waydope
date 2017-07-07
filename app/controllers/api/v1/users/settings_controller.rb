@@ -39,7 +39,7 @@ class Api::V1::Users::SettingsController < ApplicationController
                     user.show_nsfw = params[:show_nsfw] ? params[:show_nsfw] : user.show_nsfw
                     user.hide_nsfw = params[:hide_nsfw] ? params[:hide_nsfw] : user.hide_nsfw
                     if user.save
-                        render json:{status:200, success:true}
+                        render json:{}, status: :ok
                     else   
                         render json:{success:false}, status: :internal_server_error
                         Rails.logger.info(user.errors.inspect) 
@@ -49,22 +49,22 @@ class Api::V1::Users::SettingsController < ApplicationController
                         if params[:password]
                             user.password = params[:password]
                             if user.save
-                                render json:{status:200, success:true}
+                                render json:{}, status: :ok
                             else   
                                 render json:{success:false}, status: :internal_server_error
                                 Rails.logger.info(user.errors.inspect) 
                             end
                         else
-                            render json:{status:400, success:false, message:"password parameter is required"}
+                            render json:{message:"password parameter is required"}, status: :bad_request
                         end
                     else
-                        render json:{status:400, success:false, password:true, message:"password does not match current password"}
+                        render json:{password:true, message:"password does not match current password"}, status: :bad_request
                     end
                 else
-                    render json:{status:400, success:false, message:'type parameter needs to be one of the following: (info, options,password)'}
+                    render json:{message:'type parameter needs to be one of the following: (info, options,password)'}, status: :bad_request
                 end
             else
-                render json:{status:400, success:false, message:"type parameter is requried (info,options,password"}
+                render json:{message:"type parameter is requried (info,options,password"}, status: :bad_request
             end
 		else
 			render json:{sucess:false}, status: :unauthorized

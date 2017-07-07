@@ -4,12 +4,12 @@ class Api::V1::Admin::PartnersController < ApplicationController
 			user = User.find_by_token(request.headers["Authorization"].split(' ').last)
 
 			if user && user.admin
-				render json: {status: 200, success: true, partners: Partner.where('accepted = true')}
+				render json: {partners: Partner.where('accepted = true')}, status: :ok
 			else
-				render json: {status: 403, success:false}
+				render json: {}, status: :forbidden
 			end
 		else
-			render json: {status: 403, success:false}
+			render json: {}, status: :forbidden
 		end
 	end
 
@@ -17,18 +17,18 @@ class Api::V1::Admin::PartnersController < ApplicationController
 		if request.headers["Authorization"]
 			admin = User.find_by_token(request.headers["Authorization"].split(' ').last)
 			if !admin || !admin.admin
-				render json: {status: 403, success:false}
+				render json: {}, status: :forbidden
 				return
 			end
 
 			partner = Partner.find(request.headers["id"])
 			if partner.save
-				render json: {status: 200, success: true, partner: partner}
+				render json: {partner: partner}, status: :ok
 			else
-				render json: {status: 404, success: false}
+				render json: {}, status: :not_found
 			end
 		else
-			render json: {status:403, success: false}
+			render json: {}, status: :forbidden
 		end
 	end
 
@@ -36,19 +36,19 @@ class Api::V1::Admin::PartnersController < ApplicationController
 		if request.headers["Authorization"]
 			admin = User.find_by_token(request.headers["Authorization"].split(' ').last)
 			if !admin || !admin.admin
-				render json: {status: 403, success:false}
+				render json: {}, status: :forbidden
 				return
 			end
 
 			partner = Partner.find(request.headers["id"])
 			partner.accepted = false
 			if partner.save
-				render json: {status: 200, success: true}
+				render json: {}, status: :ok
 			else
-				render json: {status: 404, success: false}
+				render json: {}, status: :not_found
 			end
 		else
-			render json: {status:403, success: false}
+			render json: {}, status: :forbidden
 		end
 	end
 end

@@ -7,7 +7,7 @@ class Api::V1::Comments::CommentsController < ApplicationController
 			userid = user.uuid
 		end
 		if !request.headers[:id] || !request.headers[:type]
-			render json:{status:400, success:false, message:"id and type params are required"}
+			render json:{message:"id and type params are required"}, status: :bad_request
 			return false
 		end
 		puts request.headers["type"]
@@ -95,9 +95,9 @@ class Api::V1::Comments::CommentsController < ApplicationController
 		base = 0
 		puts base
 		if comments
-			render json: {status:200, success:true, comments:comments,base:base}
+			render json: {comments:comments,base:base}, status: :ok
 		else
-			render json: {status:404, success:false}
+			render json: {}, status: :not_found
 		end
 	end
 
@@ -113,12 +113,12 @@ class Api::V1::Comments::CommentsController < ApplicationController
 				comments = Json::Checker.checkComments(comments["comments"],userid)
 			end
 			if comments
-				render json:{status:200, success:true, comments:comments}
+				render json:{comments:comments}, status: :ok
 			else
-				render json:{status:404, success:false}
+				render json:{}, status: :not_found
 			end
 		else
-			render json: {status:400, success:false, message:'comment id (uid) is required'}
+			render json: {message:'comment id (uid) is required'}, status: :bad_request
 		end
 	end
 
@@ -165,21 +165,21 @@ class Api::V1::Comments::CommentsController < ApplicationController
 				post.comment_count += 1
 			end
 			if !post
-				render json:{status:404, success:false}
+				render json:{}, status: :bad_request
 				return false
 			end
 
 			if post.locked
-				render json:{status: 403, success:false, locked:true, message:"this post has been locked"}
+				render json:{locked:true, message:"this post has been locked"}, status: :forbidden
 				return false
 			elsif post.archived
-				render json:{status:403, success:false, archived:true, message:"this post has been archived"}
+				render json:{archived:true, message:"this post has been archived"}, status: :forbidden
 				return false
 			elsif post.deleted || post.hidden
-				render json:{status:403, success:false, message:"this post has either been deleted or hidden"}
+				render json:{message:"this post has either been deleted or hidden"}, status: :forbidden
 				return false
 			elsif post.flagged
-				render json:{status:403, success:false, flagged:true, message:"this post has been flagged"}
+				render json:{flagged:true, message:"this post has been flagged"}, status: :forbidden
 				return false
 			end
 
@@ -212,18 +212,18 @@ class Api::V1::Comments::CommentsController < ApplicationController
 			comment.styled = comment.admin || comment.seller || comment.submitter ? true : false
 			if comment.save && post && post.save
 				comment.time_ago = Time_ago::Time::single([comment]).first.time_ago
-				render json: {status:201, success:true, comment:comment.as_json.except("id","updated_at", "user_id", "user_flagged", "flag_count", "flag_checked", "deleted_body", "deleted_submitted_by", "deleted_user_id", "hide_proccessing", "notified", "karma_update", "voted", "removed", "locked", "votes_ip", "uid","votes","report_users", "human_votes", "human_downvotes", "human_upvotes", "human_votes_count").merge!(:children => [], :user_voted => 1)}
+				render json: {comment:comment.as_json.except("id","updated_at", "user_id", "user_flagged", "flag_count", "flag_checked", "deleted_body", "deleted_submitted_by", "deleted_user_id", "hide_proccessing", "notified", "karma_update", "voted", "removed", "locked", "votes_ip", "uid","votes","report_users", "human_votes", "human_downvotes", "human_upvotes", "human_votes_count").merge!(:children => [], :user_voted => 1)}, status: :created
 				if(params[:parent_uuid]) then NotificationcommentWorker.perform_async end
 				PurgecacheWorker.perform_async('comment',comment.commentable_uuid,comment.post_type)
 				PurgecacheWorker.perform_async(post.post_type,post.uuid,post.post_type)
 				CheckcommentWorker.perform_async(comment.id)
 			else
-				render json: {status:500, success:false}
+				render json: {}, status: :internal_server_error
 				Rails.logger.info(comment.errors.inspect) 
 			end
 
 		else
-			render json: {status:401, success:false}
+			render json: {}, status: :unauthroized
 		end
 
 	end
@@ -243,24 +243,24 @@ class Api::V1::Comments::CommentsController < ApplicationController
                     comment.edited = true
                         if comment.save
 							type = comment.parent_uuid ? 'reply' : 'comment'
-                            render json:{status:200,success:true,body:comment.body,type:type,id:comment.uuid,marked:comment.marked}
+                            render json:{body:comment.body,type:type,id:comment.uuid,marked:comment.marked}, status: :ok
 							PurgecacheWorker.perform_async('comment',comment.commentable_uuid,comment.post_type)
 							CheckcommentWorker.perform_async(comment.id)
                         else
-                            render json:{status:500, success:false}
+                            render json:{}, status: :internal_server_error
                             Rails.logger.info(comment.errors.inspect) 
                         end
                     else
-                        render json: {status: 401, success:false}
+                        render json: {}, status: :bad_request
                     end
                 else
-                    render json: {status:404, success:false}
+                    render json: {}, status: :not_found
                 end
             else
-                render json: {status:401, success:false, locked:true}
+                render json: {locked:true}, status: :unauthroized
             end
 		else
-			render json: {status:401, success: false}
+			render json: {}, status: :bad_request
 		end
 	end
 
@@ -282,20 +282,20 @@ class Api::V1::Comments::CommentsController < ApplicationController
 					comment.hidden = comment.replies.where('hidden = false').exists? ? false : true
 					comment.hide_proccessing = comment.hidden ? true : false
 					if comment.save
-						render json:{status:200,success:true,hidden:comment.hidden}
+						render json:{hidden:comment.hidden}, status: :ok
 						if comment.hidden then HidecommentWorker.perform_async end
 					else
-						render json:{status:500, success:false}
+						render json:{}, status: :internal_server_error
 						Rails.logger.info(comment.errors.inspect) 
 					end
 				else
-					render json: {status: 401, success:false}
+					render json: {}, status: :bad_request
 				end
 			else
-				render json: {status:404, success:false}
+				render json: {}, status: :not_found
 			end
 		else
-			render json: {status:401, success: false}
+			render json: {}, status: :bad_request
 		end
 	end
 

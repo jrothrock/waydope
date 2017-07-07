@@ -251,6 +251,9 @@ export class ApparelFormComponent implements OnInit {
     dimensionsWatching:boolean=false;
     noDimensionsWatching:boolean=false;
     Object:any=Object;
+    url:string;
+    og_category:string;
+    og_subcategory:string;
     constructor(private _http: Http, private _backend: BackendService, private _auth: AuthService, private _mu: ModalUpdateComponent, private _fb: FormBuilder, private _router: Router, private _modal: ModalComponent, private _sysMessages:SystemMessagesComponent){};
 	ngOnInit(){
         this.uploadApparel = this._fb.group({
@@ -298,16 +301,18 @@ export class ApparelFormComponent implements OnInit {
         let creds = {};
         headers.append('Content-Type', 'application/json');
         headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
-        this.initiateSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/apparel/new`, creds, {headers: headers}).subscribe(data => {
-            if(data.json().success){
-                this.id = data.json().id;
+        this.initiateSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/apparel`, creds, {headers: headers}).subscribe(data => {
+                this.url = data.json().id;
+                this.og_category = data.json().category;
+                this.og_subcategory = data.json().subcategory;
                 // this should be cleaned up on the backend
                 if(data.json().stage != 3){
                     this._mu.setBox('apparel');
                 }
-            } else if (data.json().error) {
+        },error=>{
+            if (error.json().error) {
                 // this.unsupported = true;
-            } else if(data.json().status === 401){
+            } else if(error.status === 401){
                 this._modal.setModal('apparel','form');
             } else {
             // this.error = true;
@@ -1370,7 +1375,7 @@ export class ApparelFormComponent implements OnInit {
     photoUpload(){
        var self = this;
        $(`#photo-upload`).fileupload({
-        url: `${this._backend.SERVER_URL}/api/v1/photos/create`,
+        url: `${this._backend.SERVER_URL}/api/v1/photos`,
         formData: {'authorization': `Bearer ${self._auth.getToken()}`, 'photo_upload':1, 'id':self.id},
         dataType: 'json',
         sequentialUploads: true,
@@ -1423,8 +1428,7 @@ export class ApparelFormComponent implements OnInit {
         var headers = new Headers();
         headers.append('Content-Type', 'application/json');
         headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
-        var creds = {"id": this.id, "upload":true}
-        this.deleteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/apparel/delete`, creds, {headers: headers}).subscribe(data => {
+        this.deleteSubscription = this._http.delete(`${this._backend.SERVER_URL}/api/v1/apparel/${this.og_category}/${this.og_subcategory}/${this.url}`, {headers: headers}).subscribe(data => {
              this.apparelDelete=true;
              if(this.deleteSubscription) this.deleteSubscription.unsubscribe();
         });
@@ -1453,15 +1457,12 @@ export class ApparelFormComponent implements OnInit {
         var headers = new Headers();
         headers.append('Content-Type', 'application/json');
         headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
-        var creds = {"photo": id, "product":this.id}
-        this.deletePhotoSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/photos/delete`, creds, {headers: headers}).subscribe(data => {
-            if(data.json().success){
-                $(`#apparel-form-photo-container-${name}`).remove();
-                console.log(this.photoIds);
-                this.photoIds.splice(index,1);
-                console.log(this.photoIds);
-                this.imageCount -= 1;
-            }
+        this.deletePhotoSubscription = this._http.delete(`${this._backend.SERVER_URL}/api/v1/photos/delete`, {headers: headers}).subscribe(data => {
+            $(`#apparel-form-photo-container-${name}`).remove();
+            console.log(this.photoIds);
+            this.photoIds.splice(index,1);
+            console.log(this.photoIds);
+            this.imageCount -= 1;
         });
     }
     addGuide(){
@@ -1538,23 +1539,24 @@ export class ApparelFormComponent implements OnInit {
            this.sorted = true;
         }
         let markedBody = values.description ? marked(values.description) : null;
-        let creds = {"id":this.id, "title": values.title, "creator": values.creator, "main_category": this.mainCategory, "sub_category": this.subCategory, 'color': this.color, "size":this.size, "quantity":this.quantity, "height":this.height, "width":this.width, "depth": this.depth, "form": form, 'description':values.description, "marked":markedBody,'properties':object, 'zip':values.zip, 'has_site':values.has_site, 'link':values.link, 'condition':values.condition, 'shipping':values.shipping, 'shipping_type': values.shipping_type, 'max_price': values.max_price, 'turnaround_time':values.turnaround_time, 'returns':values.returns, 'has_variations':values.has_variations, 'min_price': values.min_price, sorted: this.sorted, sorted_ids:this.sortedIds} 
+        let creds = {"title": values.title, "creator": values.creator, "main_category": this.mainCategory, "sub_category": this.subCategory, 'color': this.color, "size":this.size, "quantity":this.quantity, "height":this.height, "width":this.width, "depth": this.depth, "form": form, 'description':values.description, "marked":markedBody,'properties':object, 'zip':values.zip, 'has_site':values.has_site, 'link':values.link, 'condition':values.condition, 'shipping':values.shipping, 'shipping_type': values.shipping_type, 'max_price': values.max_price, 'turnaround_time':values.turnaround_time, 'returns':values.returns, 'has_variations':values.has_variations, 'min_price': values.min_price, sorted: this.sorted, sorted_ids:this.sortedIds} 
         headers.append('Content-Type', 'application/json');
         headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
-        this.submitSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/apparel/update`, creds, {headers: headers}).subscribe(data => {
+        this.submitSubscription = this._http.put(`${this._backend.SERVER_URL}/api/v1/apparel/${this.og_category}/${this.og_subcategory}/${this.url}`, creds, {headers: headers}).subscribe(data => {
             clearTimeout(failedRequest);
-                if(data.json().success){
-                    this.submitted = true;
-                    if(!this._auth.check('_waydope_seller')) this._auth.setCookie('_waydope_seller', 'randomstring', 3);
-                    this._sysMessages.setMessages('submittedApparel');
-                    this._router.navigateByUrl(`/apparel/${this.mainCategory}/${this.subCategory}/${data.json().url}`);
-                } else if (data.json().error) {
+            this.submitted = true;
+            if(!this._auth.check('_waydope_seller')) this._auth.setCookie('_waydope_seller', 'randomstring', 3);
+            this._sysMessages.setMessages('submittedApparel');
+            this._router.navigateByUrl(`/apparel/${this.mainCategory}/${this.subCategory}/${data.json().url}`);
+        },error=>{
+            if (error.json().error) {
                     // this.unsupported = true;
-                } else if(data.json().status === 401){
+                } else if(error.status === 401){
                 this._modal.setModal('apparel','form');
             } else {
             // this.error = true;
             }
+        },()=>{
             if(fadein) clearTimeout(fadein);
             $("#submit-apparel").css({'display':'none'});
             $('.waves-ripple').remove();

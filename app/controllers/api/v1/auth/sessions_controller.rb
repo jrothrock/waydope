@@ -59,20 +59,20 @@ class Api::V1::Auth::SessionsController < ApplicationController
 			user.ips = ips
 		end
 		if user && user === 'banned'
-			render json: {status: 200, success:true, banned:true}
+			render json: {banned:true},status: :ok
 		elsif user && user != 'banned' && user.save
 			if user.admin
-				render json: {status: 200, success:true, token: user.token, data:{
+				render json: {token: user.token, data:{
 					username: user.username, seller: user.seller, admin: user.admin
-				}}
+				}}, status: :ok
 			elsif user.seller
-				render json: {status: 200, success:true, token: user.token, data:{
+				render json: {token: user.token, data:{
 					username: user.username, seller: user.seller, ssn_required:user.ssn_required
-				}}
+				}}, status: :ok
 			else
-				render json: {status: 200, success:true, token: user.token, data:{
+				render json: {token: user.token, data:{
 					username: user.username
-				}}
+				}}, status: :ok
 			end
 			if request.headers["Cart"]
 				cart = Order.where('uuid = ?', request.headers["Cart"]).first
@@ -82,7 +82,7 @@ class Api::V1::Auth::SessionsController < ApplicationController
 				end
 			end	
 		else
-			render json: {success:false}
+			render json: {success:false}, status: :not_found
 		end
 	end
 
@@ -91,12 +91,13 @@ class Api::V1::Auth::SessionsController < ApplicationController
 			loggedOut = User.logout(request.headers["Authorization"].split(' ').last)
 			
 			if loggedOut
-				render json: {success:true}
+				render json: {success:true}, status: :not
 			else
-				render json: {success:false, destroy:true}
+				# not sure what this response code should be. (bad request/unauthorized?)
+				render json: {success:false, destroy:true}, :status: :unauthorized
 			end
 		else
-			render json: {success:false, destroy:true}
+			render json: {success:false, destroy:true}, status: :bad_request
 		end
 	end
 end

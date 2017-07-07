@@ -176,149 +176,149 @@ export class TechnologyPostComponent implements OnInit {
       if(window.outerWidth < 451) $("#share-button-technology-post").removeClass("horizontal btn-large").addClass("btn-medium");
     };
     getTechnologyPost(){
-    var headersInit = new Headers();
-		headersInit.append('id', this.id);
-		headersInit.append('Authorization', 'Bearer ' + this._auth.getToken()); headersInit.append('Signature', window.localStorage.getItem('signature'))
-		headersInit.append('maincategory', this.category)
-    headersInit.append('subcategory', this.sub_category)
-    let spinner,spinnerTimeout;
-		spinnerTimeout = setTimeout(()=>{
-      spinner = true;
-			$("#loading-spinner-technology-post").fadeIn().css("display","inline-block");
-		},300)
-		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/technology/post`,{headers: headersInit}).subscribe(data => {
-			if(data.json().success){
-        this.technology = data.json().post;
-				this.postId = data.json().post.uuid;
-				this.title = data.json().post.title;
-                  this.post_type = data.json().post.post_type;
-          // this.link = data.json().post.link;
-          // this.post_type = data.json().post.post_type;
-          let nonColors = ['width','height','depth']
-          this.properties = data.json().post.properties;
-          let sizes;
-          if(this.category === 'shoes'){
-            sizes = Object.keys(this.properties).sort()
-          } else {
-            let sort=['small','medium','large','xl','xxl','xxxl','same-size']
-            sizes = Object.keys(this.properties).map(function(size){
-              let n = sort.indexOf(size) 
-              // setting the sort value to '' doesn't really do anything - assuming we don't get duplicate sizes! - but we shall leave it there anyways.
-              sort[n] = ''
-              return [n,size]
-            }).sort().map(function(j){return j[1]})
-          }
-          let first_value = null;
-          for(let i = 0; i < Object.keys(this.properties).length; i++){
-            let size = sizes[i]
-              for(let ic = 0; ic < Object.keys(this.properties[size]).length; ic++){
-                let colors = Object.keys(this.properties[size]).sort()
-                let color = colors[ic]
-                if((first_value === null || first_value === i) && (nonColors.indexOf(color) > -1 || parseInt(this.properties[size][color]["quantity"]) > 0)){
-                  if(color === 'width') this.width = this.properties[size][color]
-                  else if (color === 'depth') this.depth = this.properties[size][color]
-                  else if (color === 'height') this.height = this.properties[size][color]
-                  first_value = i;
-                }
-                if(nonColors.indexOf(color) === -1 && i === first_value && parseInt(this.properties[size][color]["quantity"]) > 0) this.colors.push(color);
-                if(this.sizes.indexOf(size) === -1 && parseInt(this.properties[size][color]["quantity"]) > 0) this.sizes.push(sizes[i])
-               }
-          }
-        if(this.sizes.length){
-            this.sizeSelected = this.sizes[0];
-            this.colorSelected = this.colors[0];
-            if(this.cart_ids.indexOf(this.postId) > -1){ 
-              let index = this.quantityLookUps.indexOf(`${this.postId}, ${this.sizeSelected}, ${this.colorSelected}`)
-              if(index > -1){
-                this.quantitySelected = this.cart_quantities[index]
-                this.addedToCart = true;
-              }
+      var headersInit = new Headers();
+      headersInit.append('id', this.id);
+      headersInit.append('Authorization', 'Bearer ' + this._auth.getToken()); headersInit.append('Signature', window.localStorage.getItem('signature'))
+      headersInit.append('maincategory', this.category)
+      headersInit.append('subcategory', this.sub_category)
+      let spinner,spinnerTimeout;
+      spinnerTimeout = setTimeout(()=>{
+        spinner = true;
+        $("#loading-spinner-technology-post").fadeIn().css("display","inline-block");
+      },300)
+      this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/technology/${this.category}/${this.sub_category}/${this.id}`,{headers: headersInit}).subscribe(data => {
+          this.technology = data.json().post;
+          this.postId = data.json().post.uuid;
+          this.title = data.json().post.title;
+                    this.post_type = data.json().post.post_type;
+            // this.link = data.json().post.link;
+            // this.post_type = data.json().post.post_type;
+            let nonColors = ['width','height','depth']
+            this.properties = data.json().post.properties;
+            let sizes;
+            if(this.category === 'shoes'){
+              sizes = Object.keys(this.properties).sort()
+            } else {
+              let sort=['small','medium','large','xl','xxl','xxxl','same-size']
+              sizes = Object.keys(this.properties).map(function(size){
+                let n = sort.indexOf(size) 
+                // setting the sort value to '' doesn't really do anything - assuming we don't get duplicate sizes! - but we shall leave it there anyways.
+                sort[n] = ''
+                return [n,size]
+              }).sort().map(function(j){return j[1]})
             }
-          } else {
-            this.sold_out = true;
-          }
-          
-          
-          
-        this.price = !this.colors.length ? '-' : this.properties[this.sizeSelected][this.colorSelected]["price"]
-        this.quantity = !this.colors.length ? '-' : this.properties[this.sizeSelected][this.colorSelected]["quantity"]
-				this.submitted_by = data.json().post.submitted_by;
-				this.created_at = data.json().post.time_ago;		
-				this.average_vote = data.json().post.average_vote;
-        this.marked = data.json().post.marked;
-				this.user_voted = data.json().post.user_voted;
-				this.user_liked = data.json().post.user_liked;
-				this.likes_count = data.json().post.likes_count;
-        this.post_type = data.json().post.post_type;
-				this.category = data.json().post.main_category;
-        this.sub_category = data.json().post.sub_category;
-        this.shipping = !this.sold_out ? data.json().post.shipping : '-';
-				this.average_rating_count = data.json().post.ratings_count;
-				this.average_rating = data.json().post.average_rating;
-				this.upvotes = data.json().post.upvotes;
-				this.downvotes = data.json().post.downvotes;
-				this.votes_count = data.json().post.votes_count;
-				this.average_vote_width = this.votes_count ? Math.round(((this.upvotes)/(this.votes_count)*100)) : 0;
-        this.shipping = data.json().post.shipping;
-				this.has_reported = data.json().post.user_flagged;
-        this.photos = data.json().post.upload_urls;
-        this.photos_nsfw = data.json().post.upload_urls_nsfw;
-        this.archived = data.json().post.archived;
-        this.locked = data.json().post.locked;
-        this.quantities = [];
-        for(let i = 0;i < this.quantity; i++){ this.quantities.push((i+1)) }// this is done for the quantity select
-        this.color = data.json().post.color;
-        this.worked = data.json().post.worked;
-        this.flagged = data.json().post.flagged;
-        this.nsfw = data.json().post.nsfw;
-        this.description = data.json().post.description;
-        this.loaded = true;
-        this.approved = data.json().post.approved;
-        let newTime;
-				if(this.routed) this.post = ['reset'];
-				if(this.routed) this.passedParams = false;
-				if(this.routed) newTime = new Date();
-				let time = this.routed && this.route_time && newTime && (newTime - this.route_time < 250)  ? (250 - (newTime - this.route_time)) : 50; 
-				this.routed = false;
-        this.quantities = [];
-        for(let i = 0;i < this.quantity; i++){ this.quantities.push((i+1)) }// this is done for the quantity select
-        if(spinnerTimeout) clearTimeout(spinnerTimeout);
-        setTimeout(()=>{
-                if(spinner) $("#loading-spinner-technology-post").css({'display':'none'}); $("#technology-post-container").addClass('active-post');
-                if(!this.nsfw) $("#sfw-images-container").css({'display':'block'});
-                else $("#nsfw-images-container").css({'display':'block'});
-                $("#technology-post-container").addClass('active-post');
-                if(this.worked){
-                  let options = {disableZoom:'false',autoInside:768,zoomSizeWindow:'image'}
-                // $('#myImage').CloudZoom(options);                  // jQuery way.
-                  if(this.photos.length && $('#main-photo-technology').length) this.myInstance = new CloudZoom($('#main-photo-technology'),options);
-                }
-                if(this.specific) {
-                    this.post = ['technology', this.postId, this.category, this.specific]  //this is passed to the comments component;
-                    this.passedParams = true;
-                    setTimeout(()=>{
-                      $(".view-all-comments").get(0).scrollIntoView(true);
-                    },5)
+            let first_value = null;
+            for(let i = 0; i < Object.keys(this.properties).length; i++){
+              let size = sizes[i]
+                for(let ic = 0; ic < Object.keys(this.properties[size]).length; ic++){
+                  let colors = Object.keys(this.properties[size]).sort()
+                  let color = colors[ic]
+                  if((first_value === null || first_value === i) && (nonColors.indexOf(color) > -1 || parseInt(this.properties[size][color]["quantity"]) > 0)){
+                    if(color === 'width') this.width = this.properties[size][color]
+                    else if (color === 'depth') this.depth = this.properties[size][color]
+                    else if (color === 'height') this.height = this.properties[size][color]
+                    first_value = i;
                   }
-                else this.watchScroll();
-                this.checkMainPhoto();
-                this.getImageWidth();
-                _setMeta.setPost(data.json().post.title,`${data.json().post.description.substring(0,30)}...`,'technology',data.json().post.main_category)
-            },time);
-				// this.form = data.json().post.form;
-				// this.hidden = data.json().post.hidden;
-				// this.categories = data.json().post.categories;
-			} else if(data.json().status === 404) {
-				this._sysMessages.setMessages('noTechnology');
-				this._router.navigateByUrl('/technology',{ replaceUrl: true });
-			} else if(data.json().status === 410){
-        this._sysMessages.setMessages('removedPost');
-				this._router.navigateByUrl('/technology',{ replaceUrl: true });
-      } else {
-				// this.error = true;
-			}
-			
-		});
+                  if(nonColors.indexOf(color) === -1 && i === first_value && parseInt(this.properties[size][color]["quantity"]) > 0) this.colors.push(color);
+                  if(this.sizes.indexOf(size) === -1 && parseInt(this.properties[size][color]["quantity"]) > 0) this.sizes.push(sizes[i])
+                }
+            }
+          if(this.sizes.length){
+              this.sizeSelected = this.sizes[0];
+              this.colorSelected = this.colors[0];
+              if(this.cart_ids.indexOf(this.postId) > -1){ 
+                let index = this.quantityLookUps.indexOf(`${this.postId}, ${this.sizeSelected}, ${this.colorSelected}`)
+                if(index > -1){
+                  this.quantitySelected = this.cart_quantities[index]
+                  this.addedToCart = true;
+                }
+              }
+            } else {
+              this.sold_out = true;
+            }
+            
+            
+            
+          this.price = !this.colors.length ? '-' : this.properties[this.sizeSelected][this.colorSelected]["price"]
+          this.quantity = !this.colors.length ? '-' : this.properties[this.sizeSelected][this.colorSelected]["quantity"]
+          this.submitted_by = data.json().post.submitted_by;
+          this.created_at = data.json().post.time_ago;		
+          this.average_vote = data.json().post.average_vote;
+          this.marked = data.json().post.marked;
+          this.user_voted = data.json().post.user_voted;
+          this.user_liked = data.json().post.user_liked;
+          this.likes_count = data.json().post.likes_count;
+          this.post_type = data.json().post.post_type;
+          this.category = data.json().post.main_category;
+          this.sub_category = data.json().post.sub_category;
+          this.shipping = !this.sold_out ? data.json().post.shipping : '-';
+          this.average_rating_count = data.json().post.ratings_count;
+          this.average_rating = data.json().post.average_rating;
+          this.upvotes = data.json().post.upvotes;
+          this.downvotes = data.json().post.downvotes;
+          this.votes_count = data.json().post.votes_count;
+          this.average_vote_width = this.votes_count ? Math.round(((this.upvotes)/(this.votes_count)*100)) : 0;
+          this.shipping = data.json().post.shipping;
+          this.has_reported = data.json().post.user_flagged;
+          this.photos = data.json().post.upload_urls;
+          this.photos_nsfw = data.json().post.upload_urls_nsfw;
+          this.archived = data.json().post.archived;
+          this.locked = data.json().post.locked;
+          this.quantities = [];
+          for(let i = 0;i < this.quantity; i++){ this.quantities.push((i+1)) }// this is done for the quantity select
+          this.color = data.json().post.color;
+          this.worked = data.json().post.worked;
+          this.flagged = data.json().post.flagged;
+          this.nsfw = data.json().post.nsfw;
+          this.description = data.json().post.description;
+          this.loaded = true;
+          this.approved = data.json().post.approved;
+          let newTime;
+          if(this.routed) this.post = ['reset'];
+          if(this.routed) this.passedParams = false;
+          if(this.routed) newTime = new Date();
+          let time = this.routed && this.route_time && newTime && (newTime - this.route_time < 250)  ? (250 - (newTime - this.route_time)) : 50; 
+          this.routed = false;
+          this.quantities = [];
+          for(let i = 0;i < this.quantity; i++){ this.quantities.push((i+1)) }// this is done for the quantity select
+          if(spinnerTimeout) clearTimeout(spinnerTimeout);
+          setTimeout(()=>{
+                  if(spinner) $("#loading-spinner-technology-post").css({'display':'none'}); $("#technology-post-container").addClass('active-post');
+                  if(!this.nsfw) $("#sfw-images-container").css({'display':'block'});
+                  else $("#nsfw-images-container").css({'display':'block'});
+                  $("#technology-post-container").addClass('active-post');
+                  if(this.worked){
+                    let options = {disableZoom:'false',autoInside:768,zoomSizeWindow:'image'}
+                  // $('#myImage').CloudZoom(options);                  // jQuery way.
+                    if(this.photos.length && $('#main-photo-technology').length) this.myInstance = new CloudZoom($('#main-photo-technology'),options);
+                  }
+                  if(this.specific) {
+                      this.post = ['technology', this.postId, this.category, this.specific]  //this is passed to the comments component;
+                      this.passedParams = true;
+                      setTimeout(()=>{
+                        $(".view-all-comments").get(0).scrollIntoView(true);
+                      },5)
+                    }
+                  else this.watchScroll();
+                  this.checkMainPhoto();
+                  this.getImageWidth();
+                  _setMeta.setPost(data.json().post.title,`${data.json().post.description.substring(0,30)}...`,'technology',data.json().post.main_category)
+              },time);
+          // this.form = data.json().post.form;
+          // this.hidden = data.json().post.hidden;
+          // this.categories = data.json().post.categories;
+        
+      }, errors => {
+        if(errors.status === 404) {
+          this._sysMessages.setMessages('noTechnology');
+          this._router.navigateByUrl('/technology',{ replaceUrl: true });
+        } else if(errors.status === 410){
+          this._sysMessages.setMessages('removedPost');
+          this._router.navigateByUrl('/technology',{ replaceUrl: true });
+        } else {
+          // this.error = true;
+        }
+      });
     }
     buyNow(){
       if(this.approved){

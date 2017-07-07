@@ -58,8 +58,8 @@
 									<div id='song-{{result.uuid}}-repeat' style='display:inline;position:relative;' class='repeat-icon' [attr.data-loop]="0" (tap)="loop(result.uuid)"><i class='fa fa-refresh fa-song-actions'></i></div>
 								</div>
 								<div class='col ps4' style='padding:0px;text-align:right;white-space:nowrap'>
-									<div *ngIf="result.download === 1" id='song{{result.uuid}}-download' style='display:inline;position:relative;cursor:pointer' (tap)="download(result.uuid,result.title, result.download)"><i class='fa fa-cloud-download fa-song-actions'></i></div>
-									<div *ngIf="result.download === 2" id='song{{result.uuid}}-download' style='display:inline;position:relative;top:-5px;' (tap)="download(result.uuid,result.title, result.download)"><a href='{{result.download_url}}' target="_blank" rel="noopener" style="font-size: 1rem;color: white !important;">{{result.download_text}}</a></div>
+									<div *ngIf="result.download === 1" id='song{{result.uuid}}-download' style='display:inline;position:relative;cursor:pointer' (tap)="download(result.main_genre,result.url,result.title, result.download)"><i class='fa fa-cloud-download fa-song-actions'></i></div>
+									<div *ngIf="result.download === 2" id='song{{result.uuid}}-download' style='display:inline;position:relative;top:-5px;' (tap)="download(result.main_genre,result.url,result.title, result.download)"><a href='{{result.download_url}}' target="_blank" rel="noopener" style="font-size: 1rem;color: white !important;">{{result.download_text}}</a></div>
 								</div>
 							</div>
 						</div>

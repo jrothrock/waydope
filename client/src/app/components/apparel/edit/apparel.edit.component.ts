@@ -238,6 +238,7 @@ export class ApparelEditComponent implements OnInit {
     uploadComplete:boolean=true;
     has_uploaded:boolean=false;
     loaded:boolean=false;
+    originalSubCategory:string;
     constructor(private _http: Http, private _backend: BackendService, private _auth: AuthService, private _fb: FormBuilder, private _router: Router, private _modal: ModalComponent, private _sysMessages:SystemMessagesComponent){};
     ngOnInit(){
         this.uploadApparel = this._fb.group({
@@ -296,12 +297,11 @@ export class ApparelEditComponent implements OnInit {
     };
     pullPost(){
         let headersInit = new Headers();
-        headersInit.append('id', this.id);
         headersInit.append('maincategory', this.mainCategory);
         headersInit.append('subcategory', this.subCategory);
         headersInit.append('Authorization', 'Bearer ' + this._auth.getToken()); headersInit.append('Signature', window.localStorage.getItem('signature'))
         this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/apparel/post`,{headers: headersInit}).subscribe(data => {
-            if(data.json().success){
+
                 
                 if(this.currentUser !=  data.json().post.submitted_by){
                     this._sysMessages.setMessages('unathorized');
@@ -399,6 +399,7 @@ export class ApparelEditComponent implements OnInit {
                 if(this.subSelectize && this.subSelectize[0]) this.subSelectize[0].selectize.setValue(this.subCategory);
                 // if(this.categories){this.uploadApparel.patchValue({genre:this.categories})}
                 this.originalCategory = this.mainCategory;
+                this.originalSubCategory = this.subCategory;
                 $("#quantity").on('keyup change', ()=>{
                     this.quantity = parseFloat($("#quantity").val())
                 })
@@ -533,9 +534,9 @@ export class ApparelEditComponent implements OnInit {
                     },20)
                     this.loaded = true;
                 }
-            } else {
-                this._router.navigateByUrl(`/technology`);
-            }
+        },error=>{
+            this._sysMessages.setMessages('noApparel');
+			this._router.navigateByUrl('/apparel', { replaceUrl: true });
         })
     }
     selectIcon(size,dimensions){
@@ -1708,7 +1709,7 @@ export class ApparelEditComponent implements OnInit {
     photoUpload(){
        var self = this;
        $(`#photo-upload`).fileupload({
-        url: `${this._backend.SERVER_URL}/api/v1/photos/create`,
+        url: `${this._backend.SERVER_URL}/api/v1/photos`,
         formData: {'authorization': `Bearer ${self._auth.getToken()}`, 'photo_upload':1, 'id':self.postId},
         dataType: 'json',
         sequentialUploads: true,
@@ -1768,23 +1769,17 @@ export class ApparelEditComponent implements OnInit {
         });
     }
     deletePhoto(id,index,totalId){
-        
-        
-        
         var headers = new Headers();
         headers.append('Content-Type', 'application/json');
         headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
-        var creds = {"photo": id, "product":this.postId}
-        this.deletePhotoSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/photos/delete`, creds, {headers: headers}).subscribe(data => {
-            if(data.json().success){
-                let count = parseFloat($('#appare-form-photo-container').data('count'));
-                $('#appare-form-photo-container').data('count', (count-1))
-                $(`#apparel-form-photo-container-${totalId}`).remove();
-                console.log(this.photoIds);
-                this.photoIds.splice(index,1);
-                console.log(this.photoIds)
-                this.imageCount -= 1;
-            }
+        this.deletePhotoSubscription = this._http.delete(`${this._backend.SERVER_URL}/api/v1/photos/${id}`, {headers: headers}).subscribe(data => {
+            let count = parseFloat($('#appare-form-photo-container').data('count'));
+            $('#appare-form-photo-container').data('count', (count-1))
+            $(`#apparel-form-photo-container-${totalId}`).remove();
+            console.log(this.photoIds);
+            this.photoIds.splice(index,1);
+            console.log(this.photoIds)
+            this.imageCount -= 1;
         });
     }
   addGuide(){
@@ -1838,7 +1833,7 @@ export class ApparelEditComponent implements OnInit {
     });
   }
     cancelUpload(){
-        this._router.navigateByUrl(`/apparel/${this.mainCategory}/${this.subCategory}/${this.id}`);
+        this._router.navigateByUrl(`/apparel/${this.originalCategory}/${this.originalSubCategory}/${this.id}`);
     }
     submitApparel(values){
         this.insubmit = true;
@@ -1861,20 +1856,21 @@ export class ApparelEditComponent implements OnInit {
 
         headers.append('Content-Type', 'application/json');
         headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
-        this.submitSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/apparel/update`, creds, {headers: headers}).subscribe(data => {
-                clearTimeout(failedRequest);
-                if(data.json().success){
-                    this.submitted = true;
-                    this._sysMessages.setMessages('updatedApparel');
-                    if(this.has_uploaded) Materialize.toast("Please allow a minute for the photo to upload/change", 3500, 'rounded');
-                    this._router.navigateByUrl(`/apparel/${this.mainCategory}/${this.subCategory}/${data.json().url}`);
-                } else if (data.json().error) {
+        this.submitSubscription = this._http.put(`${this._backend.SERVER_URL}/api/v1/apparel/${this.originalCategory}/${this.originalSubCategory}/${this.id}`, creds, {headers: headers}).subscribe(data => {
+            clearTimeout(failedRequest);
+            this.submitted = true;
+            this._sysMessages.setMessages('updatedApparel');
+            if(this.has_uploaded) Materialize.toast("Please allow a minute for the photo to upload/change", 3500, 'rounded');
+            this._router.navigateByUrl(`/apparel/${this.mainCategory}/${this.subCategory}/${data.json().url}`);
+        },error=>{
+            if (error.error) {
                     // this.unsupported = true;
-                } else if(data.json().status === 401){
+            } else if(error.json().status === 401){
                 this._modal.setModal('apparel','form');
             } else {
             // this.error = true;
             }
+        },()=>{
             if(fadein) clearTimeout(fadein);
             $("#submit-apparel-edit").css({'display':'none'});
             $('.waves-ripple').remove();

@@ -104,7 +104,6 @@ export class ApparelAllComponent implements OnInit {
 		headers.append('time', this.timeValues);
 		headers.append('type', this.typesValues);
 		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/apparel/`, {headers:headers}).subscribe(data => {
-			if(data.json().success){
 				this.apparel = data.json().posts;
 				this.setIds();
 				this.offset = this.offset ? this.offset : data.json().offset;
@@ -118,7 +117,8 @@ export class ApparelAllComponent implements OnInit {
 					this.getRestImageWidth();
 					this.displayAll();
         },150)
-			} else if (data.json().status == 404) {
+		},error=>{
+			if (error.status == 404) {
 				this.loaded = true;
 				setTimeout(()=>{
 					this.displayAll();
@@ -139,7 +139,6 @@ export class ApparelAllComponent implements OnInit {
 	    });
 	    var body = {"id":id, "liked" : liked, "type" : type}
 	    this.likeSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/likes/new`, body, {headers: headers}).subscribe(data => {
-	      if(data.json().success){
 	      	let post = this.apparel[index]
 					
 	        if(data.json().success && !liked){
@@ -158,16 +157,15 @@ export class ApparelAllComponent implements OnInit {
 	            post.likes_count = post.likes_count - 1;
 	            post.user_liked = !post.user_liked;
 	        }
-
-	      }
-	      else if(data.json().status === 401){
+	    },error=>{
+				if(error.status === 401){
 	        this._modal.setModal('apparel');
-	      } else if (data.json().locked){
+	      } else if (error.json().locked){
 					Materialize.toast("<i class='fa fa-lock'></i> This post has been locked", 3000, 'rounded')
-				} else if(data.json().archived){
+				} else if(error.json().archived){
 					Materialize.toast("<i class='fa fa-archive'></i>  This post has been archived", 3000, 'rounded')
 				}
-	    });
+			});
 	}
   getOffset(type,page){
 		let data = [];
@@ -218,14 +216,12 @@ export class ApparelAllComponent implements OnInit {
 	    });
 	    var body = {'offset':pageData[0], 'options':this.optionValues, 'time':this.timeValues, 'type':this.typesValues}
 			this.paginateSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/apparel/paginate`, body, {headers: headers}).subscribe(data => {
-	    	if(data.json().success){
 					this.setIds();
 	    		this.apparel = data.json().posts;
 					this.setIds();
 	    		this.offset = data.json().offset;
 	    		this.currentPage = pageData[1];
 	    		this.setState();
-	    	}
 	    });
 	}
   getSorting(values){
@@ -238,13 +234,11 @@ export class ApparelAllComponent implements OnInit {
     });
     var body = {"featured":null, 'options':values.options, 'time':values.time, 'type':values.type}
     this.sortSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/apparel/sort`, body, {headers: headers}).subscribe(data => {
-      if(data.json().success){
       this.apparel = data.json().posts;
 			this.setIds();
       this.offset = data.json().offset;
       this.currentPage = data.json().page;
       this.setState();
-      }
     });
 	}
 	setState(){
@@ -330,7 +324,6 @@ export class ApparelAllComponent implements OnInit {
 		});
 		var body = {"id":id, "type":"apparel", "vote":vote, "already_voted":voted}
     	this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes/vote`, body, {headers: headers}).subscribe(data => {
-    		if(data.json().success){
 					let change;
 					if(vote === 1 && voted) change = voted === 1 ? -1 : 2;
 					else if(vote === 1 && !voted) change = 1;
@@ -338,15 +331,15 @@ export class ApparelAllComponent implements OnInit {
 					else if(vote === -1 && !voted) change = -1;
 					this.voteChange(id,average_vote+change,data.json().user_vote)
 					this._voteService.change('apparel',id,average_vote+change,data.json().user_vote);
-    		}
-    		else if(data.json().status === 401){
+    	},error=>{
+				if(error.status === 401){
           this._modal.setModal('home');
-      	} else if (data.json().locked){
+      	} else if (error.json().locked){
 					Materialize.toast("<i class='fa fa-lock'></i> This post has been locked", 3000, 'rounded')
-				} else if(data.json().archived){
+				} else if(error.json().archived){
 					Materialize.toast("<i class='fa fa-archive'></i>  This post has been archived", 3000, 'rounded')
 				}
-    	});
+			});
     	// upVoteSubscription.unsubscribe();
 	}
 	getImgSize(imgSrc,offset) {

@@ -7,12 +7,12 @@ class Api::V1::Messages::InboxController < ApplicationController
             messages = Message.find_by_sql(sanitized_query)
             messages = Time_ago::Time.single(messages)
             if messages
-                    render json:{status:200,success:true,messages:messages,offset:(offset+10)}
+                    render json:{messages:messages,offset:(offset+10)}, status: :ok
             else
-                render json:{status:404,success:false}
+                render json:{}, status: :not_found
             end
         else
-            render json:{status:401, success:false}
+            render json:{}, status: :unauthorized
         end 
     end
 end

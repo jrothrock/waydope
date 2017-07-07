@@ -31,8 +31,7 @@ class Api::V1::Admin::MainController < ApplicationController
 			total_technology = Product.where("post_type = 'technology' AND worked = true").count
 
 			if user && user.admin
-				render json: {
-								status: 200, success: true, 
+				render json: { 
 								users: {total_users: User.count, logged_in:User.where(:logged_in => true).count, total_admins:User.where(:admin => true).count, total_banned:User.where(:good_standing => false).count,total_humans:User.where("human=true").count,total_bots:User.where("human=false").count}, 
 								new:{comments:new_comments,news:new_news_posts,songs:new_songs,videos:new_videos,apparel:new_apparel,technology:new_technology},
 								reports:{comments:report_comments,news:report_news,songs:report_music,videos:report_videos,apparel:report_apparel,technology:report_technology},
@@ -41,12 +40,12 @@ class Api::V1::Admin::MainController < ApplicationController
 								# news:{ total_news_posts:NewsPost.count},
 								# songs:{total_songs:Song.count, total_electronic:Song.where(:genre => 'electronic').count, total_hiphop:Song.where(:genre => 'hip-hop').count, total_house:Song.where(:genre => 'house').count, total_trap:Song.where(:genre => 'trap').count}, 
 								# videos:{total_videos:Video.count, total_feelgood:Video.where(:category => 'feel-good').count, total_funny:Video.where(:category => 'funny').count, total_ohshit:Video.where(:category => 'ohshit').count}
-							}
+							}, status: :ok
 			else
-				render json: {status: 403, success:false}
+				render json: {}, status: :forbidden
 			end
 		else
-			render json: {status: 403, success:false}
+			render json: {}, status: :forbidden
 		end
 	end
 end

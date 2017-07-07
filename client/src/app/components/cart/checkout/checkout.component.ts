@@ -175,8 +175,7 @@ export class CheckoutComponent implements OnInit {
         $("#loading-spinner-cart-checkout").fadeIn();
       },300)
       this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/cart`, {headers: headers}).subscribe(data => {
-        
-        if(data.json().success){
+      
           this.items = data.json().order.products;
           for(let i =0; i < this.items.length; i++){
             this.item_ids.push(this.items[i].uuid);
@@ -184,19 +183,17 @@ export class CheckoutComponent implements OnInit {
           
           this.order = data.json().order;
           this.setValues(data.json().order.properties)
-          this.watchProgression();
           setTimeout(()=>{
               this.getImageWidth();
           },150 )
-        } else {
-          this.watchProgression();
-        }
         setTimeout(()=>{
           if(spinnerTimeout) clearTimeout(spinnerTimeout);
           if(spinner) $("#loading-spinner-cart-checkout").css({'display':'none'});
           $("#cart-checkout-container").addClass('active-cart');
           $("#cart-checkout-totals").addClass("active-cart");
         },5)
+      },()=>{
+        this.watchProgression();
       });
     }
 
@@ -205,7 +202,6 @@ export class CheckoutComponent implements OnInit {
     headers.append('user', this.currentUser);
     headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
     this.userInfoSubscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/users/info`, {headers: headers}).subscribe(data => {
-      if(data.json().success){
         if(data.json().firstname){
           this.firstname = data.json().firstname;
           this.shippingForm.patchValue({'firstname':data.json().firstname})
@@ -260,7 +256,6 @@ export class CheckoutComponent implements OnInit {
           $(`#phone-checkout`).addClass('valid');
           $(`#phone-checkout-label`).addClass('active'); 
         }
-      } 
     })
   }
     
@@ -407,7 +402,7 @@ export class CheckoutComponent implements OnInit {
           headersInit.append("cart", this.cartId);
           let body = {update_zip:true, zip: this.shippingForm.value.zip, cart: this.cartId};
           this.userSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/cart/update`, body,{headers: headersInit}).subscribe(data => {
-            if(data.json().success && data.json().order){
+            if(data.json().order){
               this.order = data.json().order;
               this._cartService.change(data.json().products,this.order);
             } 
@@ -647,7 +642,6 @@ export class CheckoutComponent implements OnInit {
       this.paymentSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/cart/payment`, body,{headers: headersInit}).subscribe(data => {
         
         clearTimeout(this.failedRequest);
-        if(data.json().success){
           this._router.navigateByUrl(`/cart#success`);
           this.location = 'success';
           this._cartService.itemChange('clear','clear');
@@ -658,16 +652,17 @@ export class CheckoutComponent implements OnInit {
             if(this.currentUser) this._router.navigateByUrl(`/user/${this.currentUser}/orders`)
             else this._router.navigateByUrl(`/`);
           },7000)
-        } else if(data.json().status === 409){
+      },error=>{
+       if(error.status === 409){
           // $(`#edit-content`).slideDown();
           // this.location = 'edit';
           // this._location.go('/cart#edit');
           $(`#processing-content`).slideUp();
           $('#btn-continue').text('Next');
           this._router.navigateByUrl(`/cart#edit`);
-          this.soldOutProducts(data.json().sold_out);
+          this.soldOutProducts(error.json().sold_out);
           this.paying = false;
-        } else if(data.json().card_fail) {
+        } else if(error.json().card_fail) {
           this.paying = false;
           this.location = 'payment';
           this._location.go('/cart#payment');

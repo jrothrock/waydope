@@ -3,9 +3,9 @@ class Api::V1::Admin::ApplicationsController < ApplicationController
 		user = request.headers["Authorization"] ?  User.find_by_token(request.headers["Authorization"].split(' ').last) : nil
 
 		if user && user.admin
-			render json: {status: 200, success: true, applications: Partner.where('read = false OR accepted = false').order('read DESC')}
+			render json: {applications: Partner.where('read = false OR accepted = false').order('read DESC')}, status: :ok
 		else
-			render json:{status:403, success:false}
+			render json:{}, status: :forbidden
 		end
 	end
 
@@ -17,12 +17,12 @@ class Api::V1::Admin::ApplicationsController < ApplicationController
 			application = Partner.find(request.headers["id"])
 			application.read = true
 			if application.save
-				render json: {status: 200, success: true, application: application}
+				render json: {application: application}, status: :ok
 			else
-				render json: {status: 404, success: false}
+				render json: {}, status: :not_found
 			end
 		else
-			render json:{status:403, success:false}
+			render json:{}, status: :forbidden
 		end
 	end
 
@@ -32,12 +32,12 @@ class Api::V1::Admin::ApplicationsController < ApplicationController
 			application = Partner.find(request.headers["id"])
 			application.accepted = true
 			if application.save
-				render json: {status: 200, success: true}
+				render json: {}, status: :ok
 			else
-				render json: {status: 404, success: false}
+				render json: {}, status: :not_found
 			end
 		else
-			render json:{status:403, success:false}
+			render json:{}, status: :forbidden
 		end
 	end
 end

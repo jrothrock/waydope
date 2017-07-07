@@ -117,8 +117,7 @@ export class MusicEditComponent implements OnInit {
         headersInit.append('id', this.id);
         headersInit.append('genre', this.mainGenre);
         headersInit.append('Authorization', 'Bearer ' + this._auth.getToken()); headersInit.append('Signature', window.localStorage.getItem('signature'))
-        this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/music/song`,{headers: headersInit}).subscribe(data => {
-            if(data.json().success){
+        this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/music/${this.mainGenre}/${this.id}`,{headers: headersInit}).subscribe(data => {
                 if(this.username !=  data.json().song.submitted_by){
                     this._sysMessages.setMessages('unathorized');
   					this._router.navigateByUrl(`/music/${this.mainGenre}/${this.id}`); 
@@ -190,6 +189,10 @@ export class MusicEditComponent implements OnInit {
                 }
 
                 this.songId = data.json().song.uuid ? data.json().song.uuid : null;
+        },error=>{
+            if(error.status === 404) {
+				this._sysMessages.setMessages('noSong');
+				this._router.navigateByUrl('/music',{ replaceUrl: true });
             }
         })
     }
@@ -334,38 +337,41 @@ export class MusicEditComponent implements OnInit {
         var headers = new Headers();
         headers.append('Content-Type', 'application/json');
         headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
-        this.updateSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/music/update`, creds, {headers: headers}).subscribe(data => {
+
+        this.updateSubscription = this._http.put(`${this._backend.SERVER_URL}/api/v1/music/update`, creds, {headers: headers}).subscribe(data => {
             clearTimeout(failedRequest);
-            if(data.json().success){
-                this.submitted = true;
-                if(this.has_uploaded) Materialize.toast("Please allow a minute for the photo to upload/change", 3500, 'rounded');
-                this._sysMessages.setMessages('editSong');
-                this._router.navigateByUrl(`/music/${this.mainGenre}/${data.json().url}`);
-            } else if (data.json().error) {
+            this.submitted = true;
+            if(this.has_uploaded) Materialize.toast("Please allow a minute for the photo to upload/change", 3500, 'rounded');
+            this._sysMessages.setMessages('editSong');
+            this._router.navigateByUrl(`/music/${this.mainGenre}/${data.json().url}`);
+        },error=>{
+            if (error.json().error) {
                 this.unsupported = true;
-            } else if(data.json().status === 401){
+            } else if(error.status === 401){
                 this._sysMessages.setMessages('unathorized');
-                this._router.navigateByUrl(`/music/${this.mainGenre}/${data.json().url}`);
-            } else if(data.json().title){
+                this._router.navigateByUrl(`/music/${this.mainGenre}/${error.json().url}`);
+            } else if(error.json().title){
                 Materialize.toast("Original title has been altered too much", 3000, 'rounded-failure');
                 $('.song-title').removeClass('valid').addClass('invalid');
-            } else if (data.json().time){
+            } else if (error.json().time){
                 Materialize.toast("Title can't be changed after five minutes", 3000, 'rounded-failure');
                 $('.song-title').removeClass('valid').addClass('invalid');
-            } else if(data.json().change){
+            } else if(error.json().change){
                 Materialize.toast("Title can only be editted once", 3000, 'rounded-failure');
                 $('.song-title').removeClass('valid').addClass('invalid');
-            } else if(data.json().link){
+            } else if(error.json().link){
                 Materialize.toast("Link can't be edited after submission", 3000, 'rounded-failure');
                 $('.song-title').removeClass('valid').addClass('invalid');
             } else {
                 this.error = true;
             }
+        },()=>{
             if(fadein) clearTimeout(fadein);
             $(`#submit-music-edit`).css({'display':'none'});
             $('.waves-ripple').remove();
             this.insubmit = false;
         });
+
        let failedRequest = setTimeout(()=>{
            $('.waves-ripple').remove();
             this.insubmit = false;
@@ -376,9 +382,10 @@ export class MusicEditComponent implements OnInit {
     photoUpload(){
        var self = this;
        $(`#photo-upload`).fileupload({
-            url: `${self._backend.SERVER_URL}/api/v1/music/update`,
+            url: `${self._backend.SERVER_URL}/api/v1/music/${this.mainGenre}/${this.id}`,
             formData: {'authorization': `Bearer ${self._auth.getToken()}`, 'photo_upload':1, 'song': self.songId},
             dataType: 'json',
+            type: "PUT",
              add: function (e, data) {
                 $('#progress-photo-container').css({visibility:"visible"});
                 self.uploadComplete = false;

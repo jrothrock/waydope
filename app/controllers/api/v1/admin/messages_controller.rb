@@ -4,12 +4,12 @@ class Api::V1::Admin::MessagesController < ApplicationController
 			user = User.find_by_token(request.headers["Authorization"].split(' ').last)
 
 			if user && user.admin
-				render json: {status: 200, success: true, messages: Message.all.order('created_at DESC')}
+				render json: {messages: Message.all.order('created_at DESC')}, status: :ok
 			else
-				render json: {status: 403, success:false}
+				render json: {}, status: :forbidden
 			end
 		else
-			render json: {status: 403, success:false}
+			render json: {}, status: :forbidden
 		end
 	end
 
@@ -17,19 +17,19 @@ class Api::V1::Admin::MessagesController < ApplicationController
 		if request.headers["Authorization"]
 			admin = User.find_by_token(request.headers["Authorization"].split(' ').last)
 			if !admin || !admin.admin
-				render json: {status: 403, success:false}
+				render json: {}, status: :forbidden
 				return
 			end
 
 			message = Message.find(request.headers["id"])
 			message.read = true
 			if message.save
-				render json: {status: 200, success: true, message: message}
+				render json: {message: message}, status: :ok
 			else
-				render json: {status: 404, success: false}
+				render json: {}, status: :not_found
 			end
 		else
-			render json: {status:403, success: false}
+			render json: {}, status: :forbidden
 		end
 	end
 

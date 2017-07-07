@@ -49,7 +49,6 @@ export class VideosMenuComponent implements OnInit {
 		var headers = new Headers();
 		headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
 		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/menus/videos/`, {headers:headers}).subscribe(data => {
-			if(data.json().success){
 				this.posts = data.json().posts;
 				for(let i = 0; i < this.posts.length; i++){
 					this.ids.push([])
@@ -65,7 +64,6 @@ export class VideosMenuComponent implements OnInit {
 					},5)
 				},20)
 				if(this.subscription) this.subscription.unsubscribe();
-			}
 		});
 	}
 	voteCheck(){
@@ -139,8 +137,7 @@ export class VideosMenuComponent implements OnInit {
         'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
     });
     var body = {"id":id, "type":"videos", "vote":vote, "already_voted": voted}
-      this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes/vote`, body, {headers: headers}).subscribe(data => {
-        if(data.json().success){
+      this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes`, body, {headers: headers}).subscribe(data => {
 		  let change;
 		  if(vote === 1 && voted) change = voted === 1 ? -1 : 2;
 		  else if(vote === 1 && !voted) change = 1;
@@ -148,16 +145,17 @@ export class VideosMenuComponent implements OnInit {
 		  else if(vote === -1 && !voted) change = -1;
           this.voteChange(id,average_vote+change,data.json().user_vote)
 		  this._voteService.change('component',id,average_vote+change,data.json().user_vote,'videos');
-        }
-        else if(data.json().status === 401){
-          this._modal.setModal();
-        } else if (data.json().locked){
-					Materialize.toast("<i class='fa fa-lock'></i> This post has been locked", 3000, 'rounded')
-				} else if(data.json().archived){
-					Materialize.toast("<i class='fa fa-archive'></i>  This post has been archived", 3000, 'rounded')
-				}
-        if(this.voteSubscription) this.voteSubscription.unsubscribe();
-      });
+      },error=>{
+		  if(error.status === 401){
+          	this._modal.setModal();
+       	  } else if (error.json().locked){
+			Materialize.toast("<i class='fa fa-lock'></i> This post has been locked", 3000, 'rounded')
+		  } else if(error.json().archived){
+			Materialize.toast("<i class='fa fa-archive'></i>  This post has been archived", 3000, 'rounded')
+		  }
+	  },()=>{
+		if(this.voteSubscription) this.voteSubscription.unsubscribe();
+	  });
   }
 	photoClicked(type,index,childIndex,form,id){
 		// $('.menu-vote-actions-video').css({'margin-top':'-200px'})

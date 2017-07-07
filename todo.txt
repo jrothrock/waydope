@@ -25,7 +25,8 @@ edge case in the comments where if there is a comment with one reply, and the co
 
 ##Fix issue with cookies being set multiple times.
 
-secure cookies. - https://www.nczonline.net/blog/2009/05/12/cookies-and-security/
+##secure cookies. - https://www.nczonline.net/blog/2009/05/12/cookies-and-security/
+    - I was lazy and just used localstorage. It was either that, or write a cors cookie into every single fucking thing. Buttt storage has a lot less compatability overall.
 
 Add ability to manually hide songs, videos, and posts with out them deleteing while letting the creator have the chance to unhide it. 
 Maybe do the same thing that youtube does with videos in terms of hiding, etc.
@@ -95,8 +96,6 @@ Do a security audit.
 
 ///////////////
 
-Ban all names that can affect the site. Example, 'form' and 'apply' look at all routes.
-
 On really slow connections, stripe and paypal's external scripts may not load immediately, causing the component to error. Use try blocks and timeouts to mitigate this.
     - to add to this, check all of the site on a super slow speed.
 
@@ -140,11 +139,6 @@ check all hover titles
 
 There's a bug in the setmeta in assets/other, with a non defined sub_category for setPost
 
-########
-
-if guest checks out, and are located in an area that gets taxed, the tax needs to update to show such
-
-#####
 Test modals to see if backend fails to response how the timeouts work with the promise.
 
 #####
@@ -209,8 +203,6 @@ For the apparel and technology posts nsfw, it'd be nice if they were seemless tr
 
 # Go through the wheres and add indexes to all of those that don't have any.
 
-So the votes have their time line somehow pushed forward, the likes run all at once, the ratings somehow trigger advanced if simplified
-    - Update: no idea
 
 Geocoder may take time to do the request. If this is the case, it would probably be better to throw it into a background worker
 
@@ -285,6 +277,9 @@ To make the voting a little better, instead of just doing the average vote, (upv
         - so instead of being like 90 with 490 up with 400 down, it'd be like 49.55
             - bots may also only do upvotes, so if upvote percentage is above certain threshold, or SD away from mean. Remove it.
 
+change the apparel and technology to use hidden when a delete request comes in, as such, people could un delete it later.
+    - this will require adding the hidden to all select queries, and updating the delete methods.
+
 When it comes to music, the best of the week will always be better than the best of the day (in terms of quality). It's probably better to have cookies set to see when they last visited and show either week or day, but on the other hand, those time stamps could deter people.
 
 The retry in the product rollbacks may be pointless. Re check this.
@@ -297,5 +292,13 @@ If a photo is uploaded for apparel and technology, and the backend goes down, or
 In terms of routing, there can be a really long sleep that is applied to the apparel and technology forms. This should be looked into. Only occurs on mobile (at least in google chrome tools)
 
 If someone completes the form to sell, then signs out, then back in to do it with another account. It'll still show completed... Even tho they shouldn't do this anyways.
+
+currently, the analytics method will not scale. In mass quantity, it will put a strain on sidekiq.
+    - Reddit wrote about this here: https://redditblog.com/2017/05/24/view-counting-at-reddit/
+
+currently, the pagination will not scale. If a user deletes a post, and someone is pagnating, it will fuck it all up. Here's the solution:
+    - https://stackoverflow.com/questions/13872273/api-pagination-best-practices. 
+        - The link to twitter in the comments has a good blog post on it.
+        - this can be seen with Reddit when pagnating - ex. ?count=50&after=t3_6lrth8
 
 Clean up all the code on the frontend, moving all common functions (like, setvote, rating,etc) into services. This could lead to huge savings on the frontend load time.

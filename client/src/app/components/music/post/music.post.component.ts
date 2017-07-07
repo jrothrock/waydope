@@ -181,107 +181,102 @@ export class MusicPostComponent implements OnInit {
 	};
    getMusicPost(){
 		let headersInit = new Headers();
-		headersInit.append('id', this.id);
 		headersInit.append('Authorization', 'Bearer ' + this._auth.getToken()); headersInit.append('Signature', window.localStorage.getItem('signature'))
-		headersInit.append('Genre', this.genre)
 		let spinner, spinnerTimeout;
 		spinnerTimeout = setTimeout(()=>{
 			spinner = true;
 			$("#loading-spinner-music-post").fadeIn();
 		},300)
-		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/music/song`,{headers: headersInit}).subscribe(data => {
-			
-			
-			if(data.json().success){
-				// this.post = ['music',data.json().song.id,data.json().song.main_genre,data.json().song.url]; //this is passed to the comments component;
-				this.user_liked = data.json().song.user_liked;
-				this.likes_count = data.json().song.likes_count;
-				this.genre = data.json().song.main_genre;
-				this.genres = data.json().song.genres;
-				this.form = data.json().song.form;
-				this.nsfw = data.json().song.nsfw;
-				this.song = this.form ? data.json().song.upload_url : null;
-				this.post_type = data.json().song.post_type;
-				this.upload_artwork_url = data.json().song.upload_artwork_url;
-				this.upload_artwork_url_nsfw = data.json().song.upload_artwork_url_nsfw;
-				this.photo = this.upload_artwork_url_nsfw ? this.upload_artwork_url_nsfw : this.upload_artwork_url;
-				this.songId = data.json().song.uuid;
-				this.title = data.json().song.title;
-				this.artist = data.json().song.artist;
-				this.link = data.json().song.link;
-				this.created_at = data.json().song.time_ago;
-				this.average_rating = data.json().song.average_rating;
-				this.user_voted = data.json().song.user_voted;
-				this.average_rating_count = data.json().song.ratings_count;
-				this.submitted_by = data.json().song.submitted_by;
-				this.description = data.json().song.description;
-				this.marked = data.json().song.marked;
-				this.has_rated = data.json().song.user_rated;
-				this.upvotes = data.json().song.upvotes;
-				this.downvotes = data.json().song.downvotes;
-				this.votes_count = data.json().song.votes_count;
-				this.average_vote_width = this.votes_count ? Math.round(((this.upvotes)/(this.votes_count)*100)) : 0 ;
-				this.average_vote = data.json().song.average_vote;
-				this.averageAdvancedRating = data.json().song.average_advanced_rating;
-				this.averageAdvancedRatingCount = data.json().song.average_advanced_rating_count;
-				this.averageSimplifiedRating = data.json().song.average_simplified_rating;
-				this.averageSimplifiedRatingCount  = data.json().song.average_simplified_rating_count;
-				this.averageLyricsRating = data.json().song.average_lyrics_rating;
-				this.averageLyricsRatingCount = data.json().song.average_lyrics_rating_count;
-				this.averageProductionRating = data.json().song.average_production_rating;
-				this.averageProductionRatingCount = data.json().song.average_production_rating_count;
-				this.averageOriginalityRating = data.json().song.average_originality_rating;
-				this.averageOriginalityRatingCount = data.json().song.average_originality_rating_count;
-				this.has_reported = data.json().song.user_flagged;
-				this.hidden = data.json().song.hidden;
-				this.locked = data.json().song.locked;
-				this.archived = data.json().song.archived;
-				this.worked = data.json().song.worked;
-				this.flagged = data.json().song.flagged;
-				this.download_type = data.json().song.download;
-				this.download_text = data.json().song.download_text;
-				this.download_url = data.json().song.download_url;
-				let newTime;
-				if(this.routed) this.post = ['reset'];
-				if(this.routed) this.passedParams = false;
-				if(this.routed) newTime = new Date();
-				let time = this.routed && this.route_time && newTime && (newTime - this.route_time < 250)  ? (250 - (newTime - this.route_time)) : 50; 
-				this.routed = false;
-				this.loaded = true;
-				if(spinnerTimeout) clearTimeout(spinnerTimeout)
-				setTimeout(()=>{
-					if(data.json().song.colors && data.json().song.worked && data.json().song.form){
-						$("#song-container").attr('style',`background:${data.json().song.colors[0]};background:linear-gradient(to right, ${data.json().song.colors[0]}, ${data.json().song.colors[1]}); -moz-linear-gradient(right, ${data.json().song.colors[0]}, ${data.json().song.colors[1]});-o-linear-gradient(right, ${data.json().song.colors[0]}, ${data.json().song.colors[1]});-webkit-linear-gradient(left, ${data.json().song.colors[0]} , ${data.json().song.colors[1]});`)
-						if(window.outerWidth > 600){
-							$("#song-playing-time").attr('style',`background:${data.json().song.colors[0]};background:linear-gradient(to right, ${data.json().song.colors[0]}, ${data.json().song.colors[1]}); -moz-linear-gradient(right, ${data.json().song.colors[0]}, ${data.json().song.colors[1]});-o-linear-gradient(right, ${data.json().song.colors[0]}, ${data.json().song.colors[1]});-webkit-linear-gradient(left, ${data.json().song.colors[0]} , ${data.json().song.colors[1]});width:${$("#song-container").width()}px;left:${$("#song-container").offset().left - $("#waveform").offset().left}px;position:absolute;font-size:0.9em;color:white;top:-20px;font-size:0.9em;display:none;clip:rect(0px,${$("#song-volumne-post").offset().left - $("#song-container").offset().left + 60}px,20px,0px)`)
-							$("#time-container").attr('style',`position:relative;left:${$("#song-volumne-post").offset().left - $("#song-container").offset().left}px`)
-						}
+		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/music/${this.genre}/${this.id}`,{headers: headersInit}).subscribe(data => {
+			this.user_liked = data.json().song.user_liked;
+			this.likes_count = data.json().song.likes_count;
+			this.genre = data.json().song.main_genre;
+			this.genres = data.json().song.genres;
+			this.form = data.json().song.form;
+			this.nsfw = data.json().song.nsfw;
+			this.song = this.form ? data.json().song.upload_url : null;
+			this.post_type = data.json().song.post_type;
+			this.upload_artwork_url = data.json().song.upload_artwork_url;
+			this.upload_artwork_url_nsfw = data.json().song.upload_artwork_url_nsfw;
+			this.photo = this.upload_artwork_url_nsfw ? this.upload_artwork_url_nsfw : this.upload_artwork_url;
+			this.songId = data.json().song.uuid;
+			this.title = data.json().song.title;
+			this.artist = data.json().song.artist;
+			this.link = data.json().song.link;
+			this.created_at = data.json().song.time_ago;
+			this.average_rating = data.json().song.average_rating;
+			this.user_voted = data.json().song.user_voted;
+			this.average_rating_count = data.json().song.ratings_count;
+			this.submitted_by = data.json().song.submitted_by;
+			this.description = data.json().song.description;
+			this.marked = data.json().song.marked;
+			this.has_rated = data.json().song.user_rated;
+			this.upvotes = data.json().song.upvotes;
+			this.downvotes = data.json().song.downvotes;
+			this.votes_count = data.json().song.votes_count;
+			this.average_vote_width = this.votes_count ? Math.round(((this.upvotes)/(this.votes_count)*100)) : 0 ;
+			this.average_vote = data.json().song.average_vote;
+			this.averageAdvancedRating = data.json().song.average_advanced_rating;
+			this.averageAdvancedRatingCount = data.json().song.average_advanced_rating_count;
+			this.averageSimplifiedRating = data.json().song.average_simplified_rating;
+			this.averageSimplifiedRatingCount  = data.json().song.average_simplified_rating_count;
+			this.averageLyricsRating = data.json().song.average_lyrics_rating;
+			this.averageLyricsRatingCount = data.json().song.average_lyrics_rating_count;
+			this.averageProductionRating = data.json().song.average_production_rating;
+			this.averageProductionRatingCount = data.json().song.average_production_rating_count;
+			this.averageOriginalityRating = data.json().song.average_originality_rating;
+			this.averageOriginalityRatingCount = data.json().song.average_originality_rating_count;
+			this.has_reported = data.json().song.user_flagged;
+			this.hidden = data.json().song.hidden;
+			this.locked = data.json().song.locked;
+			this.archived = data.json().song.archived;
+			this.worked = data.json().song.worked;
+			this.flagged = data.json().song.flagged;
+			this.download_type = data.json().song.download;
+			this.download_text = data.json().song.download_text;
+			this.download_url = data.json().song.download_url;
+			let newTime;
+			if(this.routed) this.post = ['reset'];
+			if(this.routed) this.passedParams = false;
+			if(this.routed) newTime = new Date();
+			let time = this.routed && this.route_time && newTime && (newTime - this.route_time < 250)  ? (250 - (newTime - this.route_time)) : 50; 
+			this.routed = false;
+			this.loaded = true;
+			if(spinnerTimeout) clearTimeout(spinnerTimeout)
+			setTimeout(()=>{
+				if(data.json().song.colors && data.json().song.worked && data.json().song.form){
+					$("#song-container").attr('style',`background:${data.json().song.colors[0]};background:linear-gradient(to right, ${data.json().song.colors[0]}, ${data.json().song.colors[1]}); -moz-linear-gradient(right, ${data.json().song.colors[0]}, ${data.json().song.colors[1]});-o-linear-gradient(right, ${data.json().song.colors[0]}, ${data.json().song.colors[1]});-webkit-linear-gradient(left, ${data.json().song.colors[0]} , ${data.json().song.colors[1]});`)
+					if(window.outerWidth > 600){
+						$("#song-playing-time").attr('style',`background:${data.json().song.colors[0]};background:linear-gradient(to right, ${data.json().song.colors[0]}, ${data.json().song.colors[1]}); -moz-linear-gradient(right, ${data.json().song.colors[0]}, ${data.json().song.colors[1]});-o-linear-gradient(right, ${data.json().song.colors[0]}, ${data.json().song.colors[1]});-webkit-linear-gradient(left, ${data.json().song.colors[0]} , ${data.json().song.colors[1]});width:${$("#song-container").width()}px;left:${$("#song-container").offset().left - $("#waveform").offset().left}px;position:absolute;font-size:0.9em;color:white;top:-20px;font-size:0.9em;display:none;clip:rect(0px,${$("#song-volumne-post").offset().left - $("#song-container").offset().left + 60}px,20px,0px)`)
+						$("#time-container").attr('style',`position:relative;left:${$("#song-volumne-post").offset().left - $("#song-container").offset().left}px`)
 					}
-					if(this.form && this.worked) this.createWave();
-					if(spinner) $("#loading-spinner-music-post").css({'display':'none'}); $("#music-post-container").addClass('active-post'); 
-					$("#music-post-container").addClass('active-post');
-					this.checkDescription();
-					if(this.specific) {
-						this.post = ['music',this.songId,this.genre,this.specific];
-						this.passedParams = true;
-						setTimeout(()=>{
-							$(".view-all-comments").get(0).scrollIntoView(true);
-						},5)
-					}
-					else this.watchScroll();
-					_setMeta.setPost(data.json().song.title,`${data.json().song.description.substring(0,30)}...`,'music',data.json().song.main_genre,null,data.json().song.artist)
+				}
+				if(this.form && this.worked) this.createWave();
+				if(spinner) $("#loading-spinner-music-post").css({'display':'none'}); $("#music-post-container").addClass('active-post'); 
+				$("#music-post-container").addClass('active-post');
+				this.checkDescription();
+				if(this.specific) {
+					this.post = ['music',this.songId,this.genre,this.specific];
+					this.passedParams = true;
+					setTimeout(()=>{
+						$(".view-all-comments").get(0).scrollIntoView(true);
+					},5)
+				}
+				else this.watchScroll();
+				_setMeta.setPost(data.json().song.title,`${data.json().song.description.substring(0,30)}...`,'music',data.json().song.main_genre,null,data.json().song.artist)
 
-					$("#cover-artwork").attr({'width':"100%",'height':"100%"})
-					$("#loading-song-container").css({'display':'none'});
-					$("#song-container").fadeIn();
-					// uncommenting this bind will cause the the gradient to change colors
-					// when comeone clicks the nsfw button. This may be a desired affect in the future
-					$('#cover-artwork').unbind('load');
-				},time)
-			} else if(data.json().status === 404) {
+				$("#cover-artwork").attr({'width':"100%",'height':"100%"})
+				$("#loading-song-container").css({'display':'none'});
+				$("#song-container").fadeIn();
+				// uncommenting this bind will cause the the gradient to change colors
+				// when comeone clicks the nsfw button. This may be a desired affect in the future
+				$('#cover-artwork').unbind('load');
+			},time)
+		}, error=>{
+			if(error.status === 404) {
 				this._sysMessages.setMessages('noSong');
 				this._router.navigateByUrl('/music',{ replaceUrl: true });
-			} else if(data.json().status === 410){
+			} else if(error.status === 410){
 				this._sysMessages.setMessages('removedPost');
 				this._router.navigateByUrl('/music', { replaceUrl: true });
 			} else {
@@ -463,27 +458,24 @@ export class MusicPostComponent implements OnInit {
 					'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 			});
 			let body = {"song":this.songId}
-			this.downloadSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/music/download`, body, {headers: headers}).subscribe(data => {
-				if(data.json().success){  
-					
-					// (<any>window).location = data.json().url;
-					if(this.download_type === 1){
-						let tag = document.createElement('a');
-						tag.setAttribute('href', data.json().url);
-						tag.setAttribute('target', "_blank");
-						tag.setAttribute('download', this.title);
-						tag.click();
-					}
-					this.downloading = false;
+			this.downloadSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/music/${this.genre}/${this.id}/download`, body, {headers: headers}).subscribe(data => {	
+				// (<any>window).location = data.json().url;
+				if(this.download_type === 1){
+					let tag = document.createElement('a');
+					tag.setAttribute('href', data.json().url);
+					tag.setAttribute('target', "_blank");
+					tag.setAttribute('download', this.title);
+					tag.click();
 				}
+				this.downloading = false;
+			}, error =>{
+
 			});
 		}
 	}
 	submitRating(value,type,rate_type){
 		let body;
-		
-		
-		
+
 		if(value.rating === null && rate_type === 'simple'){
 			Materialize.toast("Rating value is required", 3000, 'rounded-failure')
 			return false;
@@ -508,8 +500,7 @@ export class MusicPostComponent implements OnInit {
 	    		body = {"id":this.songId,"type":type,"advancedRating":this.current_average_rating,"lyrics":null,"production":parseInt(value.production),"originality":parseInt(value.originality)}
 	    	}
 	    }
-		this.ratingSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/ratings/new`, body, {headers: headers}).subscribe(data => {
-	    	if(data.json().success){
+		this.ratingSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/ratings`, body, {headers: headers}).subscribe(data => {
 	    		this.rateOpen = false;
 	    		this.has_rated = true;
 	    		this.average_rating = data.json().average_rating;
@@ -524,16 +515,16 @@ export class MusicPostComponent implements OnInit {
 	    		this.averageProductionRatingCount = data.json().average_production_rating_count;
 	    		this.averageOriginalityRating = data.json().average_originality_rating;
 	    		this.averageOriginalityRatingCount = data.json().average_originality_rating_count;
-	    	}
-	    	else if(data.json().status === 401){
+	    }, error =>{
+			if(error.status === 401){
          		 this._modal.setModal('music', this.genre, this.id);
-       		} else if (data.json().locked){
+       		} else if (error.json().locked){
 				this.datanotify=[this.songId,'music','locked'];
-			} else if(data.json().archived){
+			} else if(error.json().archived){
 				this.datanotify=[this.songId,'music','archived'];
-			}  else if(data.json().poor_rating){
+			}  else if(error.json().poor_rating){
 				Materialize.toast("It can't be that bad...", 3000, 'rounded-failure')
-			} else if(data.json().flagged){
+			} else if(error.json().flagged){
 				this.datanotify=[this.songId,'music','flagged'];
 			}
 		})
@@ -553,20 +544,20 @@ export class MusicPostComponent implements OnInit {
 	}
 	watchDescription(){
 		$('#show-full-description').click(()=>{
-				let isOpen = $('#post-description').data('open');
-				if(!isOpen){
-					$('#post-description').css({'max-height':'none'});
-					$('#show-full-description').text('Show Less');
-					$('#show-full-description').addClass('active');
-					$('#fadeout').css({'display':'none'});
-					$('#post-description').data('open',true);
-				} else {
-					$('#post-description').css({'max-height':'125px'});
-					$('#show-full-description').text('Show More');
-					$('#show-full-description').removeClass('active');
-					$('#fadeout').css({'display':'block'});
-					$('#post-description').data('open',false);
-				}
+			let isOpen = $('#post-description').data('open');
+			if(!isOpen){
+				$('#post-description').css({'max-height':'none'});
+				$('#show-full-description').text('Show Less');
+				$('#show-full-description').addClass('active');
+				$('#fadeout').css({'display':'none'});
+				$('#post-description').data('open',true);
+			} else {
+				$('#post-description').css({'max-height':'125px'});
+				$('#show-full-description').text('Show More');
+				$('#show-full-description').removeClass('active');
+				$('#fadeout').css({'display':'block'});
+				$('#post-description').data('open',false);
+			}
 		})
 	}
 	checkDescription(){
@@ -591,10 +582,8 @@ export class MusicPostComponent implements OnInit {
 	            'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 	    });
 	    var body = {"id":this.songId, "type":"music", "foul":values.foul}
-	    this.reportSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/report/new`, body, {headers: headers}).subscribe(data => {
-	    	if(data.json().success){
-	    		this.has_reported = true;
-	    	}
+	    this.reportSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/report/`, body, {headers: headers}).subscribe(data => {
+	    	this.has_reported = true;
 	    })
 	}
 	setVote(vote){
@@ -603,8 +592,7 @@ export class MusicPostComponent implements OnInit {
 	            'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 	    });
 	    var body = {"id":this.songId, "type":"music", "vote":vote}
-	    this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes/vote`, body, {headers: headers}).subscribe(data => {
-	        if(data.json().success){
+	    this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes`, body, {headers: headers}).subscribe(data => {
 			  let change;
 			  if(vote === 1 && this.user_voted) change = this.user_voted === 1 ? -1 : 2;
 			  else if(vote === 1 && !this.user_voted) change = 1;
@@ -616,18 +604,17 @@ export class MusicPostComponent implements OnInit {
 			  this.downvotes = data.json().downvotes;
 		 	  this.votes_count = data.json().votes_count;
 			  this.average_vote_width = this.votes_count ? Math.round(((this.upvotes)/(this.votes_count)*100)) : 0;
-	        }
-	        else if(data.json().status === 401){
+		},error =>{
+			if(error.status === 401){
 	              this._modal.setModal('music', this.genre, this.id);
-	        } else if (data.json().locked){
+	        } else if (error.json().locked){
 				this.datanotify=[this.songId,'music','locked'];
-			} else if(data.json().archived){
+			} else if(error.json().archived){
 				this.datanotify=[this.songId,'music','archived'];
-			} else if(data.json().flagged){
+			} else if(error.json().flagged){
 				this.datanotify=[this.songId,'music','flagged'];
 			}
-	    });
-	      // upVoteSubscription.unsubscribe();
+		});
 	}
 	toggleDeleteForm(){
 		this.showDeleteForm = !this.showDeleteForm;
@@ -648,10 +635,8 @@ export class MusicPostComponent implements OnInit {
 	    });
 	    let body = {"id":this.songId,"type":'music'}
 		this.removeSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/admin/posts/remove`, body, {headers: headers}).subscribe(data => {
-          if(data.json().success){
             this.locked = true;
 			Materialize.toast("<i class='fa fa-close'></i> Post Successfully Removed", 3000, 'rounded-success')
-          }
       });
 	}
     lockPost(event){
@@ -661,22 +646,19 @@ export class MusicPostComponent implements OnInit {
 	    });
 	    let body = {"id":this.songId,"type":'music'}
 		this.lockSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/admin/posts/lock`, body, {headers: headers}).subscribe(data => {
-          if(data.json().success){
-            this.locked = true;
+			this.locked = true;
 			Materialize.toast("<i class='fa fa-lock'></i> Post Successfully Locked", 3000, 'rounded-success')
-          }
       });
     }
 	deleteSong(){
 		var headers = new Headers();
-		var creds = {"song": this.songId, "upload":true}
 		headers.append('Content-Type', 'application/json');
 		headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
-		this.deleteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/music/delete`, creds, {headers: headers}).subscribe(data => {
-			if(data.json().success){
-				this._sysMessages.setMessages('deleteSong');
-				this._router.navigateByUrl(`/music`);
-			} else if(data.json().status === 401){
+		this.deleteSubscription = this._http.delete(`${this._backend.SERVER_URL}/api/v1/music/${this.genre}/${this.id}`, {headers: headers}).subscribe(data => {
+			this._sysMessages.setMessages('deleteSong');
+			this._router.navigateByUrl(`/music`);
+		}, error=>{
+			if(error.status === 401){
 	              this._modal.setModal('music', this.genre, this.id);
 	        }
 		});

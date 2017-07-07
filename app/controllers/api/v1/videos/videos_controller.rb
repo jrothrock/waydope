@@ -79,23 +79,23 @@ class Api::V1::Videos::VideosController < ApplicationController
 				sortedposts << posts[fl...sl].to_a
 				sortedposts << posts[sl...tl].to_a
 				sortedposts << posts[tl...fol].to_a
-				# render json:{status:200, success:true, genres:genres, first:posts[0...fl], second:posts[fl...sl],third:posts[tl...fol],fourth:[fol...posts.length]}
+				# render json:{genres:genres, first:posts[0...fl], second:posts[fl...sl],third:posts[tl...fol],fourth:[fol...posts.length]}, status: :ok
 				ids = all_videos.map{|video|video["uuid"]}
-				render json:{status:200, success:true, categories:categories, videos:sortedposts, page:page, offset: 0, count:count, pages:pages, all:all_videos, video_count:video_count, video_pages:video_pages, video_page: video_page, ids:ids}
+				render json:{categories:categories, videos:sortedposts, page:page, offset: 0, count:count, pages:pages, all:all_videos, video_count:video_count, video_pages:video_pages, video_page: video_page, ids:ids}, status: :ok
 			else 
-				render json:{status:200, success:true, categories:categories, videos:[], page:page, offset: 0, count:count, pages:pages, all:all_videos, video_count:video_count, video_pages:video_pages, video_page: video_page}
+				render json:{categories:categories, videos:[], page:page, offset: 0, count:count, pages:pages, all:all_videos, video_count:video_count, video_pages:video_pages, video_page: video_page}, status: :ok
 			end
 		else
-			render json: {status:404,success:false}
+			render json: {}, status: :not_found
 		end
 	end
 
 	def read
 		user = request.headers["Authorization"] ? User.find_by_token(request.headers["Authorization"].split(' ').last) : nil
 		if user && user.admin
-			video = Video.where('url = ? AND main_category = ? AND flagged = false AND removed = false', request.headers["id"], request.headers["category"]).first
+			video = Video.where('url = ? AND main_category = ? AND flagged = false AND removed = false', params["video"], params["category"]).first
 		else
-			video = Video.where('url = ? AND main_category = ? AND flagged = false AND removed = false', request.headers["id"], request.headers["category"]).select_with(App.getGoodColumns('videos',false,false,true)).first
+			video = Video.where('url = ? AND main_category = ? AND flagged = false AND removed = false', params["video"], params["category"]).select_with(App.getGoodColumns('videos',false,false,true)).first
 		end
 		if video
 			if !video.removed
@@ -110,14 +110,14 @@ class Api::V1::Videos::VideosController < ApplicationController
 					video.report_users = nil
 				end
 				video.time_ago = time_ago_in_words(video.created_at) + ' ago'
-				render json: {status:200, success:true, video:video}
+				render json: {video:video}, status: :ok
 				user_id = user ? user.id : nil
 				ViewcountWorker.perform_async(video.uuid,user_id,'videos',request.remote_ip)
 			else
-				render json:{status:410, success:false}
+				render json:{}, status: :gone
 			end
 		else
-			render json: {status:404, success:false}
+			render json: {}, status: :not_found
 		end
 	end
 
@@ -174,16 +174,16 @@ class Api::V1::Videos::VideosController < ApplicationController
 				video.link_type = Video.sanitizeLink(params[:link])
 				video.uploaded = true
 			else
-				render json:{status:400, success:false, message:'need post_type parameter'}
+				render json:{message:'need post_type parameter'}, status: :bad_request
 				return false
 			end
 			if params[:post_type] === 0 && video.link_type === 0
-				render json: {status:415,success:false, error:true, message:'unsupported media type'}
+				render json: {error:true, message:'unsupported media type'}, status: :unsupported_media_type
 				return false
 			end
 			if video.save
 				if video.form === 0
-					render json: {status:200, success:true, id: video.uuid, url:video.url}
+					render json: {id: video.uuid, url:video.url}, status: :created
 				else 
 					@store = video.video.store_dir
 					string_to_sign
@@ -195,7 +195,9 @@ class Api::V1::Videos::VideosController < ApplicationController
 						:store=> @store,
 						:time => @time_policy,
 						:time_date => @date_stamp,
-						:video_id => video.uuid
+						:video_id => video.uuid,
+						:category => video.category,
+						:url => video.url
 					}
 				end
 
@@ -219,11 +221,11 @@ class Api::V1::Videos::VideosController < ApplicationController
 					#VideouploadWorker.perform_async
 				end
 			else
-				render json: {status:500, success:false}
+				render json: {}, status: :internal_server_error
 				Rails.logger.info(video.errors.inspect) 
 			end
 		else
-			render json: {status:401, success:false}
+			render json: {}, status: :unauthorized
 		end
 	end
 
@@ -233,21 +235,21 @@ class Api::V1::Videos::VideosController < ApplicationController
 		elsif params[:authorization]
 			auth = params[:authorization]
 		else
-			render json: {status:401, success:false}
+			render json: {}, status: :unauthorized
 			return false
 		end
 		user = User.find_by_token(auth.split(' ').last)
 		if user 
-			video = Video.where("uuid = ?", params[:video]).first
+			video = Video.where("category = ? AND url = ?",params[:main_category], params[:video]).first
 			if video 
 				if params[:photo_upload]
 					video.artwork = params[:file]
 					if video.save
-						render json:{status:200,success:true}
+						render json:{}, status: :internal_server_error
 						VideophotoWorker.perform_async(video.uuid)
 						return true
 					else
-						render json:{status:500,sucess:false}
+						render json:{}, status: :bad_request
 						Rails.logger.info(video.errors.inspect) 
 						return false
 					end
@@ -256,13 +258,13 @@ class Api::V1::Videos::VideosController < ApplicationController
 				if params[:edit]
 					if params[:title] && params[:title] != video.title
 						if (Time.now - video.created_at) > (5*60)
-							render json:{status: 400, success:false, title:false, time:true, change:true, message:"title can't be changed after the first five minutes"}
+							render json:{title:false, time:true, change:true, message:"title can't be changed after the first five minutes"}, status: :bad_request
 							return false
 						elsif video.title_change && video.title_change > 0
-							render json:{status: 400, success:false, title:false, time:false, change:true, message:"title can only be edited once"}
+							render json:{title:false, time:false, change:true, message:"title can only be edited once"}, status: :bad_request
 							return false
 						elsif FuzzyStringMatch::JaroWinkler.create( :native ).getDistance(video.title, params[:title]) < 0.92
-							render json:{status: 400, success:false, title:true, time:false, change:false, message:"title has been altered too much"}
+							render json:{title:true, time:false, change:false, message:"title has been altered too much"}, status: :bad_request
 							return false
 						else
 							video.title = params[:title]
@@ -270,7 +272,7 @@ class Api::V1::Videos::VideosController < ApplicationController
 						end
 					end
 					if params[:link] && params[:link] != video.original_link
-						render json:{status:400, success:false, link:true,message:"link can't be edited after submission'"}
+						render json:{link:true,message:"link can't be edited after submission'"}, status: :bad_request
 						return false
 					end
 					video.old_category = params[:main_category] != video.main_category ? video.main_category : nil
@@ -288,12 +290,12 @@ class Api::V1::Videos::VideosController < ApplicationController
 					video.marked = params[:marked] ? ActionController::Base.helpers.sanitize(params[:marked]) : video.marked	## remove scripts and on* javascript
 					video.categorized = false
 					if video.save
-						render json:{status:200, success:true, url:video.url}
+						render json:{url:video.url}, status: :ok
 						VideocategorizeWorker.perform_async
 						if video.worked then PurgecacheWorker.perform_async(video.post_type,video.uuid) end
 						return true
 					else
-						render json:{status:500, success:false}
+						render json:{}, status: :internal_server_error
 						Rails.logger.info(video.errors.inspect)
 						return false 
 					end
@@ -309,35 +311,35 @@ class Api::V1::Videos::VideosController < ApplicationController
 				if video.form then video.link = params[:key] end
 				video.description = params[:description] ? params[:description] : nil
 				if video.save
-					render json:{status:200, success:true, url:video.url}
+					render json:{url:video.url}, status: :ok
 					if video.form
 						VideouploadWorker.perform_async
 					end
 					VideocategorizeWorker.perform_async
 				else
-					render json:{status:500, success:false}
+					render json:{}, status: :internal_server_error
 					Rails.logger.info(video.errors.inspect) 
 				end
 			else
-				render json:{status:404, success:false, id:params[:video]}
+				render json:{id:params[:video]}, status: :not_found
 			end
 		else
-			render json:{status:401, success:false}
+			render json:{}, status: :unauthorized
 		end
 	end
 
 	def delete
 		user = request.headers["Authorization"] ? User.find_by_token(request.headers["Authorization"].split(' ').last) : nil
 		if user 
-			video = Video.where("uuid = ?",params[:video]).first
+			video = Video.where("genre = ? AND url = ?",params[:main_category],params[:video]).first
 
 				if !video
-					render json: {status: 404, success:false}
+					render json: {}, status: :not_found
 					return false
 				end
 
 				if video.user_id != user.id
-					render json: {status: 401, success:false}
+					render json: {}, status: :unauthorized
 					return false
 				end
 				
@@ -345,10 +347,10 @@ class Api::V1::Videos::VideosController < ApplicationController
 					video.in_deletion = true
 					video.deleted = true
 					if video.save
-						render json: {status:200, success:true}
+						render json: {}, status: :ok
 						VideodeleteWorker.perform_async
 					else
-						render json: {status:500, success:false }
+						render json: {}, status: :internal_server_error
 					end
 				end
 
@@ -364,11 +366,11 @@ class Api::V1::Videos::VideosController < ApplicationController
 						render json:{status:204, success:true, hidden:video.hidden}
 						VideodeleteWorker.perform_async
 					else
-						render json:{status:500, success:false}
+						render json:{}, status: :internal_server_error
 					end
 				end
 		else
-			render json: {status: 401, success:false}
+			render json: {}, status: :unauthorized
 		end
 	end
 	

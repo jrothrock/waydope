@@ -15,18 +15,18 @@ class Api::V1::Messages::MessagesController < ApplicationController
 					message.body =  ActionController::Base.helpers.sanitize(params[:body])
 					if message.save
 						message.time_ago = time_ago_in_words(message.created_at) + ' ago'
-						render json:{status:200, success:true, message:message}
+						render json:{message:message}, status: :ok
 					else
-						render json:{status:500, success:false}
+						render json:{}, status: :internal_server_error
 					end
 				else
-					render json:{status:410, success:false, banned:true, message:"this user has been banned."}
+					render json:{banned:true, message:"this user has been banned."}, status: :gone
 				end
 			else
-				render json:{status:404, success:false, message: 'no user found'}
+				render json:{message: 'no user found'}, status: :not_found
 			end
 		else
-			render json:{status:401, success:false}
+			render json:{}, status: :unauthroized
 		end
 	end
 	def read
@@ -39,18 +39,18 @@ class Api::V1::Messages::MessagesController < ApplicationController
 			conversation = Time_ago::Time.single(messages.reverse)
 			if conversation.length > 0
 				if conversation.first.sender === user.username || conversation.first.receiver === user.username
-					render json:{status:200, success:true, conversation:conversation,offset:(offset+10)}
+					render json:{conversation:conversation,offset:(offset+10)}, status: :ok
 					if !conversation.last.read
 						MessagereadWorker.perform_async(request.headers["id"])
 					end
 				else
-					render json:{status:401, success:false, message:"you don't have access to that message"}
+					render json:{message:"you don't have access to that message"}, status: :unauthroized
 				end
 			else
-				render json:{status:404, success:false}
+				render json:{}, status: :not_found
 			end
 		else
-			render json:{status:401, success:false}
+			render json:{}, status: :unauthroized
 		end
 	end
 end

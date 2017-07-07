@@ -74,13 +74,10 @@ export class VideosHomeComponent implements OnChanges {
 		headers.append('offset', (this.currentPage[index] * 4 + 4).toString());
     headers.append('category', category);
 		this.paginateSubscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/home/paginate`, {headers:headers}).subscribe(data => {
-			
-			if(data.json().success){
 				this.vids[index] = this.vids[index].concat(data.json().posts);
 				this.currentPage[index] += 1;
 				this.currentPosts[index] = this.vids[index].slice(this.currentPage[index] * 4, this.currentPage[index] * 4 + 4)
         this.setIds();
-			}
 		});
 	}
   setIds(){
@@ -173,7 +170,6 @@ export class VideosHomeComponent implements OnChanges {
     });
     var body = {"id":id, "type":"videos", "vote":vote, "already_voted": voted}
       this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes/vote`, body, {headers: headers}).subscribe(data => {
-        if(data.json().success){
           let change;
 				  if(vote === 1 && voted) change = voted === 1 ? -1 : 2;
 				  else if(vote === 1 && !voted) change = 1;
@@ -181,12 +177,12 @@ export class VideosHomeComponent implements OnChanges {
 				  else if(vote === -1 && !voted) change = -1;
           this.voteChange(id,average_vote+change,data.json().user_vote)
 				  this._voteService.change('videos',id,average_vote+change,data.json().user_vote);
-        }
-        else if(data.json().status === 401){
+      },error=>{
+        if(error.status === 401){
           this._modal.setModal('home');
-        } else if (data.json().locked){
+        } else if (error.json().locked){
 					Materialize.toast("<i class='fa fa-lock'></i> This post has been locked", 3000, 'rounded')
-				} else if(data.json().archived){
+				} else if(error.json().archived){
 					Materialize.toast("<i class='fa fa-archive'></i>  This post has been archived", 3000, 'rounded')
 				}
       });

@@ -37,21 +37,22 @@ class Api::V1::Admin::Bots::LikesController < ApplicationController
                                 bot.save
                             end
 
-                            render json:{status:200, success:true}
+                            render json:{}, status: :ok
                         else
-                            render json:{status:409, success:false, users:true}
+                            # this really isn't that great of a response code.
+                            render json:{users:true}, status: :conflict
                         end
                     else
-                        render json:{status:415, success:false, message:'needs to include count param - for likes'}
+                        render json:{message:'needs to include count param - for likes'}, status: :unsupported_media_type
                     end
                 else
-                    render json:{status:400, success:false, message:"post can't be news"}
+                    render json:{message:"post can't be news"}, status: :bad_request
                 end
             else
-                render json:{status:404, success:false}
+                render json:{}, status: :not_found
             end
         else
-            render json:{status:403, success:false}
+            render json:{}, status: :forbidden
         end
     end
 end

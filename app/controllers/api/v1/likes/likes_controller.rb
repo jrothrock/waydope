@@ -24,20 +24,20 @@ class Api::V1::Likes::LikesController < ApplicationController
 				end
 
 				if !post 
-					render json:{status:404, success:false}
+					render json:{}, status: :not_found
 					return false
 				end
 				if post.archived
-					render json:{status:403, success:false, archived:true, message:"this post has been archived"}
+					render json:{archived:true, message:"this post has been archived"}, status: :forbidden
 					return false
 				elsif post.locked
-					render json:{status:403, success:false, locked:true, message:"this post has been locked"}
+					render json:{locked:true, message:"this post has been locked"}, status: :forbidden
 					return false
 				elsif post.deleted || post.hidden 
-					render json:{status:403, success:false, message:"this post has been either deleted or made hidden"}
+					render json:{message:"this post has been either deleted or made hidden"}, status: :forbidden
 					return false
 				elsif post.flagged
-					render json:{status:403, success:false, flagged:true, message:"this post has been flagged"}
+					render json:{flagged:true, message:"this post has been flagged"}, status: :forbidden
 					return false
 				end
 
@@ -65,7 +65,7 @@ class Api::V1::Likes::LikesController < ApplicationController
 						# let the botter do two votes, then stop them. They put in some effort.
 						if likes_ip_hash[request.remote_ip] > 1
 							# Make the botter think they successfully submitted it, but they didn't.
-							render json:{status:200, success:false}
+							render json:{}, status: :ok
 							return false
 						else
 							likes_ip_hash[request.remote_ip] = 2
@@ -91,18 +91,18 @@ class Api::V1::Likes::LikesController < ApplicationController
 				end
 
 				if post.save && user.save
-					render json: {status:200, success:true, user_liked:user_liked, likes_count:post.likes_count}
+					render json: {user_liked:user_liked, likes_count:post.likes_count}, status: :ok
 					PurgecacheWorker.perform_async(post.post_type,post.uuid)
 				else
-					render json: {status:500, success:false}
+					render json: {}, status: :internal_server_error
 					Rails.logger.info(post.errors.inspect) 
 					Rails.logger.info(user.errors.inspect) 
 				end
 			else
-				render json: {status:401, success:false}
+				render json: {}, status: :unauthorized
 			end
 		else
-			render json: {status:401, success:false}
+			render json: {}, status: :unauthorized
 		end
 	end
 end

@@ -43,16 +43,31 @@ On Mac you need to run `brew install ffmpeg --with-libvpx --with-libvorbis --wit
 This project requires docker to run the open_nsfw
     - the open_nsfw folder needs to be in the root of the waydope folder - waydope/open_nsfw/*
 
-One needs to git clone this repository: https://github.com/StevenBlack/hosts.git, and move the alternatives/(gambline-fakenews-porn)/hosts into the lib/assets/ folder
+Open NSFW: https://github.com/yahoo/open_nsfw
 
-This project also uses CloudZoom which is a paid for script - $40 - which zooms in on the photo. There is a free version, but I haven't found it to work. Not sure if it'll error without it.
+One needs to git clone this repository: https://github.com/StevenBlack/hosts.git, and move the alternatives/(gambling-fakenews-porn)/hosts into the lib/assets/ folder
+
+This project also uses CloudZoom which is a paid for script - $40 - which zooms in on the photo. There is a free version, but I haven't found it to work.
 
 One will need to fill in the secrets.yml
 
 One will need to download all the vendor script files (not found on NPM) found in the client/assets/js/files.txt, and place them in client/assets/js/
 
+The secrets file has been removed from git repository. It contains these:
+```
+  secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
+  aws_access_key_id: xxxxxxxxxxxxxxxx
+  aws_secret_access_key:  xxxxxxxxxxxxxxxx
+  aws_region:  your-region-here
+  sendgrid_api_key:  xxxxxxxxxxxxxxxx
+  cdn: cdn
+  aws_bucket: 'xxxxxxxxxxxxxxxx'
+  hostname: https://api.yourdomain.com
+  paypal_id:  xxxxxxxxxxxxxxxx
+  paypal_secret:  xxxxxxxxxxxxxxxx
+  stripe: sk_test_xxxxxxxxxxxxxxxx
+```
 
-Thoughts:
-Overall, the stats were pretty good. The bounce rate was around 13%. Unfortunatly, it took me a lot longer to finish than I originally thought. Being the only one working on this, sleeping in my car, and being completely broke/digging into credit cards, burnout was inevitable. Plus, I wasn't having fun, and didn't enjoy it anymore, so that's the nail.
 
 LICENSE:
+This code is released under CC BY-SA 4.0. See license for more details.

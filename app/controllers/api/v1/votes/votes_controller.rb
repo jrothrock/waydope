@@ -19,21 +19,21 @@ class Api::V1::Votes::VotesController < ApplicationController
 				post = Comment.where("uuid = ?",params[:id]).first
 			end
 			if !post
-				render json:{status:404, success:false}
+				render json:{}, status: :not_found
 				return false
 			end
 			
 			if post.archived
-				render json:{status:403, success:false, archived:true, message:"post is archived"}
+				render json:{archived:true, message:"post is archived"}, status: :forbidden
 				return false
 			elsif post.locked
-				render json:{status:403, success:false, locked:true, message:"post has been locked"}
+				render json:{locked:true, message:"post has been locked"}, status: :forbidden
 				return false
 			elsif post.deleted || post.hidden || ((type === 'comment' || type === 'reply') && post.removed)
-				render json:{status:403, success:false, message:"post has been either, hidden, deleted, or removed."}
+				render json:{message:"post has been either, hidden, deleted, or removed."}, status: :forbidden
 				return false
 			elsif post.flagged
-				render json:{status:403, success:false, flagged:true, message:"post has been flagged"}
+				render json:{flagged:true, message:"post has been flagged"}, status: :forbidden
 				return false
 			end
 			if post.votes.key?(user.uuid) && post.votes[user.uuid].to_i === vote.to_i 
@@ -100,7 +100,7 @@ class Api::V1::Votes::VotesController < ApplicationController
 					if votes_ip_hash[request.remote_ip] > 1
 						puts 'i thinks i botz'
 						# make the botter think that they successfully submitted it, but they didn't.
-						render json:{status:200, success:true}
+						render json:{}, status: :ok
 						return false
 					end
 				else
@@ -127,17 +127,17 @@ class Api::V1::Votes::VotesController < ApplicationController
 			if post.save && user.save
 				puts 'saved and sending'
 				#RankWorker.perform_async -- will modify later
-				render json: {status:200, success:true, vote: post.average_vote, user_vote: vote, upvotes:post.upvotes,downvotes:post.downvotes,votes_count:post.votes_count}
+				render json: {vote: post.average_vote, user_vote: vote, upvotes:post.upvotes,downvotes:post.downvotes,votes_count:post.votes_count}, status: :ok
 				id = type != 'comment' && type != 'reply' ? post.uuid : post.commentable_uuid
 				type = type === 'reply' ? 'comment' : type
 				PurgecacheWorker.perform_async(type,id,post.post_type)
 				if same then vote = og_vote.to_i === 1 ? -1 : 1 end
 				KarmaWorker.perform_async(type,post.as_json,vote)
 			else
-				render json: {status:500, success:false}
+				render json: {}, status: :internal_server_error
 			end
 		else
-			render json: {status:401, success:false}
+			render json: {}, status: :unauthorized
 		end
 	end
 

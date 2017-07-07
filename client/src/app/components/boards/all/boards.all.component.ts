@@ -151,8 +151,6 @@ export class BoardsAllComponent implements OnInit {
 		headers.append('ntime', this.newsTimeValues);
 		headers.append('ntype', this.newsTypeValues);
 		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/news/`, {headers:headers}).subscribe(data => {
-			
-			if(data.json().success){
 				this.all = data.json().all;
 				this.boards = data.json().boards;
 				this.setIds('all');
@@ -172,9 +170,8 @@ export class BoardsAllComponent implements OnInit {
 					this.transition(0);
 					this.displayAll();
 				},300)
-			} else {
-				this.error = true;
-			}
+		},error=>{
+			this.error = true;
 		});
 	};
 	getBoardsRest(){
@@ -205,22 +202,22 @@ export class BoardsAllComponent implements OnInit {
 				'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 		});
 		var body = {"id":id, "type":"news", "vote":vote, "already_voted":voted}
-			this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes/vote`, body, {headers: headers}).subscribe(data => {
+			this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes`, body, {headers: headers}).subscribe(data => {
 			let change;
 			if(vote === 1 && voted) change = voted === 1 ? -1 : 2;
 			else if(vote === 1 && !voted) change = 1;
 			else if(vote === -1 && voted) change = voted === -1 ? +1 : -2;
 			else if(vote === -1 && !voted) change = -1;
-			if(data.json().success){
 				this.voteChange(id,average_vote+change,data.json().user_vote)
 				this._voteService.change('boards',id,average_vote+change,data.json().user_vote);
-			} else if(data.json().status === 401){
+			},error=>{
+				if(error.status === 401){
 					this._modal.setModal('boards');
-			} else if (data.json().locked){
-				Materialize.toast("<i class='fa fa-lock'></i> This post has been locked", 3000, 'rounded')
-			} else if(data.json().archived){
-				Materialize.toast("<i class='fa fa-archive'></i>  This post has been archived", 3000, 'rounded')
-			}
+				} else if (error.json().locked){
+					Materialize.toast("<i class='fa fa-lock'></i> This post has been locked", 3000, 'rounded')
+				} else if(error.json().archived){
+					Materialize.toast("<i class='fa fa-archive'></i>  This post has been archived", 3000, 'rounded')
+				}
 			});
 			// upVoteSubscription.unsubscribe();
 	}
@@ -303,8 +300,7 @@ export class BoardsAllComponent implements OnInit {
 	            'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 	    });
 	    var body = tab === 'categories' ? {'sort':'categories','offset':pageData[0], 'options':this.optionValues, 'time':this.timeValues, 'type':this.typeValues} : {'sort':tab,'news_offset':pageData[0], 'news_options':this.newsOptionValues, 'news_time':this.newsTimeValues, 'news_type':this.newsTypeValues}
-		this.paginateSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/news/paginate`, body, {headers: headers}).subscribe(data => {
-	    	if(data.json().success){
+		this.paginateSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/news`, body, {headers: headers}).subscribe(data => {
 	    		if(tab === 'categories'){
 					this.boards = data.json().boards;
 					this.posts = data.json().posts;
@@ -319,7 +315,6 @@ export class BoardsAllComponent implements OnInit {
 					this.newsOffset = data.json().offset;
 				}
 	    		this.setState();
-	    	}
 	    });
 	}
 	setState(){
@@ -437,17 +432,15 @@ export class BoardsAllComponent implements OnInit {
 	    var body = type === 'categories' ? {'sort':'categories','options':this.optionValues, 'time':this.timeValues, 'type':this.typeValues } : 
 		{'sort':'news','news_options':this.newsOptionValues, 'news_time':this.newsTimeValues, 'news_type':this.newsTypeValues }
 	    this.sortSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/news/sort`, body, {headers: headers}).subscribe(data => {
-	        if(data.json().success){
-	     		if(type === 'categories'){ 
-					this.boards = data.json().boards;
-					this.posts = data.json().posts;	
-					this.setIds('posts')
-				} else {
-					this.all = data.json().posts;
-					this.setIds('all')
-				}
-	     		this.setState();
-	        }
+			if(type === 'categories'){ 
+				this.boards = data.json().boards;
+				this.posts = data.json().posts;	
+				this.setIds('posts')
+			} else {
+				this.all = data.json().posts;
+				this.setIds('all')
+			}
+			this.setState();
 	    });
 	}
 	transition(id){

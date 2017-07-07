@@ -57,19 +57,19 @@ class Api::V1::Admin::Bots::CommentsController < ApplicationController
                             bot.save
                         end
 
-                        render json:{status:200, success:true}
+                        render json:{}, status: :ok
                     else 
-                        render json:{status:409,success:false,users:true}
+                        render json:{users:true}, status: :conflict
                     end
                 else
-                    render json:{status:400, success:false, message:'needs to include comments params'}
+                    render json:{message:'needs to include comments params'}, status: :bad_request
                 end
 
             else
-                render json:{status:404, success:false}
+                render json:{}, status: :not_found
             end
         else
-            render json:{status:403, success:false}
+            render json:{}, status: :forbidden
         end
     end
 end

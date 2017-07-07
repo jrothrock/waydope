@@ -31,33 +31,33 @@ class Api::V1::Ratings::RatingsController < ApplicationController
 			end
 			
 			if !post
-				render json:{status:404, success:false}
+				render json:{}, status: :not_found
 				return false
 			end
 
 			if rating < 50
-				render json:{status:400,success:false, poor_rating:true, message:"Is the song really that bad? Lowest rating can be 50..."}
+				render json:{poor_rating:true, message:"Is the song really that bad? Lowest rating can be 50..."}, status: :bad_request
 				return false
 			end
 
 			if post.archived
-				render json:{status:403, success:false, archived:true, message:"this post has been archived."}
+				render json:{archived:true, message:"this post has been archived."}, status: :forbidden
 				return false
 			elsif post.locked
-				render json:{status:403, success:false, locked:true, message:"this post has been locked"}
+				render json:{locked:true, message:"this post has been locked"}, status: :forbidden
 				return false
 			elsif post.deleted || post.hidden
-				render json:{status:403, success:false, message:"this post has either been deleted, hidden, or removed"}
+				render json:{message:"this post has either been deleted, hidden, or removed"}, status: :forbidden
 				return false
 			elsif post.flagged
-				render json:{status:403, success:false, flagged:true, message:"this post has been flagged"}
+				render json:{flagged:true, message:"this post has been flagged"}, status: :forbidden
 				return false
 			end
 			ratings_ip_hash = post.ratings_ip
 			if(ratings_ip_hash.key?(request.remote_ip))
 				if(ratings_ip_hash[request.remote_ip] > 1)
 					# allow the botter to do two rates, they put in the effort, then fail silently.
-					render json:{status:200, success:true, average_rating:(((post.average_rating * post.ratings_count) + rating)/(post.ratings_count + 1)), ratings_count:post.ratings_count + 1, average_simplified_rating:post.average_simplified_rating,average_simplified_rating_count:post.average_simplified_rating_count}
+					render json:{average_rating:(((post.average_rating * post.ratings_count) + rating)/(post.ratings_count + 1)), ratings_count:post.ratings_count + 1, average_simplified_rating:post.average_simplified_rating,average_simplified_rating_count:post.average_simplified_rating_count}, status: :ok
 					return false
 				else
 					ratings_ip_hash[request.remote_ip] = 2
@@ -92,7 +92,7 @@ class Api::V1::Ratings::RatingsController < ApplicationController
 				puts type
 				puts 'in type not apparel or technology'
 				if params[:advancedRating] != nil && params[:simpleRating] != nil
-					render json: {status:500, success:false}
+					render json: {}, status: :internal_server_error
 					Rails.logger.info('has both advancedRating and rating') 
 					return false
 				end
@@ -183,10 +183,10 @@ class Api::V1::Ratings::RatingsController < ApplicationController
 			end
 			if post.save && user.save
 				if type === 'music'
-					render json: {status:200, success:true, average_rating:post.average_rating, average_rating_count:post.ratings_count, average_simplified_rating:post.average_simplified_rating,average_simplified_rating_count:post.average_simplified_rating_count,average_advanced_rating:post.average_advanced_rating, average_advanced_rating_count:post.average_advanced_rating_count,average_lyrics_rating:post.average_lyrics_rating,average_lyrics_rating_count:post.average_lyrics_rating_count,average_production_rating:post.average_production_rating,average_production_rating_count:post.average_production_rating_count,average_originality_rating:post.average_originality_rating,average_originality_rating_count:post.average_originality_rating_count}
+					render json: {average_rating:post.average_rating, average_rating_count:post.ratings_count, average_simplified_rating:post.average_simplified_rating,average_simplified_rating_count:post.average_simplified_rating_count,average_advanced_rating:post.average_advanced_rating, average_advanced_rating_count:post.average_advanced_rating_count,average_lyrics_rating:post.average_lyrics_rating,average_lyrics_rating_count:post.average_lyrics_rating_count,average_production_rating:post.average_production_rating,average_production_rating_count:post.average_production_rating_count,average_originality_rating:post.average_originality_rating,average_originality_rating_count:post.average_originality_rating_count}, status: :ok
 					PurgecacheWorker.perform_async(post.post_type,post.uuid)
 				else
-					render json: {status:200, success:true, average_rating:post.average_rating, ratings_count:post.ratings_count, average_simplified_rating:post.average_simplified_rating,average_simplified_rating_count:post.average_simplified_rating_count}
+					render json: {average_rating:post.average_rating, ratings_count:post.ratings_count, average_simplified_rating:post.average_simplified_rating,average_simplified_rating_count:post.average_simplified_rating_count}, status: :ok
 				end
 			else
 				render json: {status:500, success:false}

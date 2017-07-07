@@ -49,16 +49,14 @@ export class HomeComponent implements OnInit {
     var headers = new Headers();
     headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
     this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/home`, {headers: headers}).subscribe(data => {
-      if(data.json().success){
         
         this.music = data.json().music;
         this.news = data.json().news;
         this.videos = data.json().videos;
         this.apparel = data.json().apparel;
         this.technology = data.json().technology;
-      } else {
+    },error=>{
         this.error = true;
-      }
     });
     
   }

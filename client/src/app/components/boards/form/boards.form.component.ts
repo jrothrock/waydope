@@ -177,23 +177,23 @@ export class BoardsFormComponent implements OnInit {
   		headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
       this.subscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/news/new`, creds, {headers: headers}).subscribe(data => {
           clearTimeout(failedRequest);
-  				if(data.json().success){
-            this._sysMessages.setMessages('submittedPost');
-  					this._router.navigateByUrl(`/boards/${this.mainCategory}/${data.json().url}`);
-  				} else if (data.json().error) {
-  					this.unsupported = true;
-  				} else if(data.json().status === 401){
-              this._modal.setModal();
-          } else if(data.json().status === 415){
-            Materialize.toast("Link is not valid", 3000, 'rounded-failure');
-          } else {
-            this.error = true;
-          }
+          this._sysMessages.setMessages('submittedPost');
+  				this._router.navigateByUrl(`/boards/${this.mainCategory}/${data.json().url}`);
           if(fadein) clearTimeout(fadein);
           $(`#submit-boards-${type}`).css({'display':'none'});
           $('.waves-ripple').remove();
           this.insubmit = false;
-  		});
+  		},error=>{
+          if (error.json().error) {
+  					this.unsupported = true;
+  				} else if(error.json().status === 401){
+              this._modal.setModal();
+          } else if(error.json().status === 415){
+            Materialize.toast("Link is not valid", 3000, 'rounded-failure');
+          } else {
+            this.error = true;
+          }
+      });
       let failedRequest = setTimeout(()=>{
         $('.waves-ripple').remove();
         this.insubmit = false;

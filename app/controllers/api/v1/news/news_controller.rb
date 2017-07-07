@@ -85,23 +85,23 @@ class Api::V1::News::NewsController < ApplicationController
 				sortedposts << posts[tl...fol].to_a
 
 
-				# render json:{status:200, success:true, boards:boards, first:posts[0...fl], second:posts[fl...sl],third:posts[tl...fol],fourth:[fol...posts.length]}
-				# render json:{status:200, success:true, boards:boards, posts:sortedposts, page:page, offset: 0, count:count, pages:pages,all:all_posts}
-				render json:{status:200, success:true, boards:boards, posts:sortedposts, page:page, offset: offset, count:count, pages:pages, all:all_posts, news_count:news_count, news_pages:news_pages, news_page: news_page}
+				# render json:{boards:boards, first:posts[0...fl], second:posts[fl...sl],third:posts[tl...fol],fourth:[fol...posts.length]}, status: :ok
+				# render json:{boards:boards, posts:sortedposts, page:page, offset: 0, count:count, pages:pages,all:all_posts}, status: :ok
+				render json:{boards:boards, posts:sortedposts, page:page, offset: offset, count:count, pages:pages, all:all_posts, news_count:news_count, news_pages:news_pages, news_page: news_page}, status: :ok
 			else 
-				render json:{status:200, success:true, boards:boards, posts:[], page:page, offset: offset, count:count, pages:pages, all:all_posts, news_count:news_count, news_pages:news_pages, news_page: news_page}
+				render json:{boards:boards, posts:[], page:page, offset: offset, count:count, pages:pages, all:all_posts, news_count:news_count, news_pages:news_pages, news_page: news_page}, status: :ok
 			end
 		else
-			render json: {status:404,success:false}
+			render json: {}, status: :not_found
 		end
 	end
 
 	def read
 		user = request.headers["Authorization"] ? User.find_by_token(request.headers["Authorization"].split(' ').last) : nil
 		if user && user.admin
-			post = NewsPost.where('url = ? AND main_category = ?', request.headers["id"], request.headers["category"]).first
+			post = NewsPost.where('url = ? AND main_category = ?', params["post"], params["category"]).first
 		else
-			post = NewsPost.where('url = ? AND main_category = ?', request.headers["id"], request.headers["category"]).select_with(App.getGoodColumns('news',false,nil,true)).first
+			post = NewsPost.where('url = ? AND main_category = ?', params["post"], params["category"]).select_with(App.getGoodColumns('news',false,nil,true)).first
 		end
 		if post
 			if !post.removed
@@ -114,14 +114,14 @@ class Api::V1::News::NewsController < ApplicationController
 				post.report_users = nil
 				post.ratings = nil
 				post.votes = nil
-				render json: {status:200, success:true, post:post}
+				render json: {post:post}, status: :ok
 				user_id = user ? user.id : nil
 				ViewcountWorker.perform_async(post.uuid,user_id,'news',request.remote_ip)
 			else
-				render json:{status:410, success:false}
+				render json:{}, status: :gone
 			end
 		else
-			render json: {status:404, success:false}
+			render json: {}, status: :not_found
 		end
 	end
 		
@@ -144,7 +144,7 @@ class Api::V1::News::NewsController < ApplicationController
 				post.secure_link = URI.parse(post.link).scheme === 'https' ? true : false
 				teaser = NewsPost.getTeaser(post.link)
 				if(teaser == false)
-					render json:{status:415, success:false, message:"link is invalid"}
+					render json:{message:"link is invalid"}, status: :unsupported_media_type
 					return false
 				end
 				post.teaser = teaser
@@ -160,7 +160,7 @@ class Api::V1::News::NewsController < ApplicationController
 			end
 			puts post.link
 			if !post.link || post.link === 'f' || post.link === 't'   
-				render json: {status:415,success:false, error:true, message:'unsupported media type'}
+				render json: {error:true, message:'unsupported media type'}, status: :unsupported_media_type
 				return false
 			end
 			post.user_id = user.id
@@ -178,7 +178,7 @@ class Api::V1::News::NewsController < ApplicationController
 			post.removed = false
 			post.submitted_by = user.username
 			if post.save
-				render json: {status:201, success:true, url:post.url}
+				render json: {url:post.url, category:post.main_category}, status: :created
 
 				user_news_hash = user.news_posts
 				user_news_hash[post.uuid] = true
@@ -196,11 +196,11 @@ class Api::V1::News::NewsController < ApplicationController
 				user.save!
 				PostcategorizeWorker.perform_async
 			else
-				render json: {status:500, success:false}
+				render json: {}, status: :internal_server_error
 				Rails.logger.info(post.errors.inspect) 
 			end
 		else
-			render json: {status:401, success:false}
+			render json: {}, status: :unauthorized
 		end
 	end
 
@@ -211,22 +211,22 @@ class Api::V1::News::NewsController < ApplicationController
 		elsif params[:authorization]
 			auth = params[:authorization]
 		else
-			render json: {status:401, success:false}
+			render json: {}, status: :unauthorized
 			return false
 		end
 		user = User.find_by_token(auth.split(' ').last)
 		if user 
-			post = params[:post] ? NewsPost.where("uuid = ?", params[:post]).first : nil
+			post = params[:post] ? NewsPost.where("url = ? AND main_category = ?", params[:post], params[:category]).first : nil
 			if post 
 				if params[:title] != post.title
 					if (Time.now - post.created_at) > (5*60)
-						render json:{status: 400, success:false, title:false, time:true, change:true, message:"title can't be changed after the first five minutes"}
+						render json:{title:false, time:true, change:true, message:"title can't be changed after the first five minutes"}, status: :bad_request
 						return false
 					elsif post.title_change && post.title_change > 0
-						render json:{status: 400, success:false, title:false, time:false, change:true, message:"title can only be edited once"}
+						render json:{title:false, time:false, change:true, message:"title can only be edited once"}, status: :bad_request
 						return false
 					elsif FuzzyStringMatch::JaroWinkler.create( :native ).getDistance(post.title, params[:title]) < 0.92
-						render json:{status: 400, success:false, title:true, time:false, change:false, message:"title has been altered too much"}
+						render json:{title:true, time:false, change:false, message:"title has been altered too much"}, status: :bad_request
 						return false
 					else
 						post.title = params[:title]
@@ -249,35 +249,35 @@ class Api::V1::News::NewsController < ApplicationController
 
 				## tough one with the description. If people delete description then it may send in null -
 				if post.save
-					render json:{status:200, success:true, url:post.url}
+					render json:{url:post.url, category: post.main_category}, status: :ok
 					PostcategorizeWorker.perform_async
 					PurgecacheWorker.perform_async(post.post_type,post.uuid)
 					return true
 				else
-					render json:{status:500, success:false}
+					render json:{}, status: :internal_server_error
 					Rails.logger.info(post.errors.inspect)
 					return false 
 				end
 			else
-				render json:{status:404, success:false}
+				render json:{}, status: :not_found
 			end
 		else
-			render json:{status:401, success:false}
+			render json:{}, status: :unauthorized
 		end
 	end
 
 	def delete
 		user = request.headers["Authorization"] ? User.find_by_token(request.headers["Authorization"].split(' ').last) : nil
 		if user
-			post = params[:post] ? NewsPost.where("uuid = ?",params[:post]).first : nil
+			post = params[:post] ? NewsPost.where("url = ? AND main_category = ?",params[:post],params[:category]).first : nil
 			
 			if !post
-					render json: {status: 404, success:false}
+					render json: {}, status: :not_found
 					return false
 			end
 
 			if post.user_id != user.id
-				render json: {status: 401, success:false}
+				render json: {}, status: :unauthorized
 				return false
 			end
 
@@ -285,10 +285,10 @@ class Api::V1::News::NewsController < ApplicationController
 				post.in_deletion = true
 				post.deleted = true
 				if post.save
-					render json: {status:204, success:true}
+					render json: {}, status: :no_content
 					PostdeleteWorker.perform_async
 				else
-					render json: {status:500, success:false }
+					render json: {}, status: :internal_server_error
 					Rails.logger.info(post.errors.inspect)
 				end
 			end
@@ -301,15 +301,15 @@ class Api::V1::News::NewsController < ApplicationController
 				post.submitted_by = '[Deleted]'
 				post.user_id = 0
 				if post.save
-					render json:{status:204, success:true, hidden:post.hidden}
+					render json:{hidden:post.hidden}, status: :no_content
 					PostdeleteWorker.perform_async
 				else 
-					render json:{status:500, success:false}
+					render json:{}, status: :internal_server_error
 					Rails.logger.info(post.errors.inspect) 
 				end
 			end
 		else
-			render json: {status:401, success:false}
+			render json: {}, status: :unauthorized
 		end
 	end
 

@@ -64,9 +64,10 @@ export class NotificationsComponent implements OnInit {
             $('#loading-spinner-notifications').css({'display':'block'});
             this.polling = true;
             var headers = new Headers();
+            let currentUser = localStorage.getItem("username")
             headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
             headers.append('offset', this.offset.toString());
-            this.scrollSubscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/users/notifications`, {headers: headers}).subscribe(data => {
+            this.scrollSubscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/users/${currentUser}/notifications`, {headers: headers}).subscribe(data => {
                 
                 if(data.json().success){
                     this.notifications = this.notifications.concat(data.json().notifications)

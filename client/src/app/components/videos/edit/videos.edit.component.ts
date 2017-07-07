@@ -51,6 +51,7 @@ export class VideosEditComponent implements OnInit {
     uploadComplete:boolean=true;
     insubmit:boolean=false;
     has_uploaded:boolean=false;
+    og_category:string;
 	constructor(private _fb:FormBuilder, private _backend: BackendService, private _auth: AuthService, private _http:Http, private _modal:ModalComponent, private _sysMessages: SystemMessagesComponent, private _router: Router){};
 	ngOnInit(){
      this.uploadLink = this._fb.group({
@@ -86,7 +87,7 @@ export class VideosEditComponent implements OnInit {
                     else if(this.type === 1 && this.artist){this.uploadVideo.patchValue({artist:this.artist})}
                     break;
                 case 'category':
-                    this.mainCategory = value ? value : null;
+                    this.og_category = value ? value : null;
                     break;
                 case 'id':
                     this.id = value ? value : null;
@@ -107,7 +108,7 @@ export class VideosEditComponent implements OnInit {
         headersInit.append('category', this.mainCategory);
         headersInit.append('Authorization', 'Bearer ' + this._auth.getToken()); headersInit.append('Signature', window.localStorage.getItem('signature'))
         
-        this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/videos/post`,{headers: headersInit}).subscribe(data => {
+        this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/videos/${this.og_category}/${this.id}`,{headers: headersInit}).subscribe(data => {
             
             if(data.json().success){
                 if(this.username !=  data.json().video.submitted_by){
@@ -290,28 +291,28 @@ export class VideosEditComponent implements OnInit {
         var headers = new Headers();
         headers.append('Content-Type', 'application/json');
         headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
-        this.updateSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/videos/update`, creds, {headers: headers}).subscribe(data => {
+        this.updateSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/videos/${this.mainCategory}/${encodeURIComponent(this.title.toLowerCase())}`, creds, {headers: headers}).subscribe(data => {
             this.insubmit = false;
             clearTimeout(failedRequest);
-            if(data.json().success){
-                this.submitted = true;
-                if(this.has_uploaded) Materialize.toast("Please allow a minute for the photo to upload/change", 3500, 'rounded');
-                this._sysMessages.setMessages('editVideo');
-                this._router.navigateByUrl(`/videos/${this.mainCategory}/${data.json().url}`);
-            } else if (data.json().error) {
+            this.submitted = true;
+            if(this.has_uploaded) Materialize.toast("Please allow a minute for the photo to upload/change", 3500, 'rounded');
+            this._sysMessages.setMessages('editVideo');
+            this._router.navigateByUrl(`/videos/${this.mainCategory}/${data.json().url}`);
+            if(fadein) clearTimeout(fadein);
+            $(`#submitting-${type}-video-edit`).css({'display':'none'});
+            $('.waves-ripple').remove();
+            this.submitted = false;
+        },error=>{
+            if (error.json().error) {
                 this.unsupported = true;
-            } else if(data.json().status === 401){
+            } else if(error.status === 401){
                 this._modal.setModal();
-            } else if(data.json().link){
+            } else if(error.json().link){
                 Materialize.toast("Link can't be edited after submission", 3000, 'rounded-failure');
                 $('.song-title').removeClass('valid').addClass('invalid');
             } else {
                 this.error = true;
             }
-            if(fadein) clearTimeout(fadein);
-            $(`#submitting-${type}-video-edit`).css({'display':'none'});
-            $('.waves-ripple').remove();
-            this.submitted = false;
         });
         let failedRequest = setTimeout(()=>{
             $('.waves-ripple').remove();
@@ -324,9 +325,10 @@ export class VideosEditComponent implements OnInit {
        var self = this;
        
        $(`#photo-upload`).fileupload({
-            url: `${self._backend.SERVER_URL}/api/v1/videos/update`,
+            url: `${self._backend.SERVER_URL}/api/v1/videos/${this.mainCategory}/${encodeURIComponent(this.title.toLowerCase())}`,
             formData: {'authorization': `Bearer ${self._auth.getToken()}`, 'photo_upload':1, 'video': self.videoId},
             dataType: 'json',
+            type:'PUT',
             add: function (e, data) {
                 $('#progress-photo-container').css({visibility:"visible"});
                 self.uploadComplete = false;

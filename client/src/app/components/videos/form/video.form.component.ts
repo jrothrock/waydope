@@ -53,6 +53,8 @@ export class VideoFormComponent implements OnInit {
   key:any;
   uploadComplete:boolean=false;
   insubmit:boolean=false;
+  og_category:string;
+  url:string;
 	constructor(private _http: Http, private _backend: BackendService, private _auth: AuthService, private _fb: FormBuilder, private _router: Router, private _modal: ModalComponent, private _sysMessages: SystemMessagesComponent){};
 	ngOnInit(){
     this.uploadLink = this._fb.group({
@@ -106,25 +108,25 @@ export class VideoFormComponent implements OnInit {
         add: function (e, data) {
           var data_add = data;
           $.ajax({
-            url: `${self._backend.SERVER_URL}/api/v1/videos/new`,
+            url: `${self._backend.SERVER_URL}/api/v1/videos`,
             data: {'authorization': `Bearer ${self._auth.getToken()}`, post_type: 1, file_name:this.file_name},
             type: 'POST',
-            success: function(data) {
-              
-              if(data.success){
-                
+            success: function(data) {  
                 self.amz_key = data.key;
                 self.policy = data.policy;
                 self.signature = data.signature;
                 self.store_dir = data.store;
                 self.upload_time = data.time;
                 self.upload_date = data.time_date;
+                self.og_category = data.category;
+                self.url = data.url;
                 self.key = `${self.store_dir}/${self.fileName}`;
                 self.videoId = data.video_id;
                 data_add.submit();
-               }
-              else if(data.status == 415){self.cancelUpload(); self._sysMessages.setMessages('unsupported');}
-              else if(data.status === 401){self.cancelUpload(); self._modal.setModal('videos','form');}
+            },
+            error:function(error){
+              if(error.status == 415){self.cancelUpload(); self._sysMessages.setMessages('unsupported');}
+              else if(error.status === 401){self.cancelUpload(); self._modal.setModal('videos','form');}
             }
           });
         },
@@ -265,9 +267,10 @@ export class VideoFormComponent implements OnInit {
   photoUpload(){
        var self = this;
        $(`#photo-upload`).fileupload({
-        url: `${self._backend.SERVER_URL}/api/v1/videos/update`,
+        url: `${self._backend.SERVER_URL}/api/v1/videos/${self.og_category}/${self.url}`,
         formData: {'authorization': `Bearer ${self._auth.getToken()}`, 'photo_upload':1, 'video': self.videoId},
         dataType: 'json',
+        type: 'PUT',
         add: function (e, data) {
             $('#progress-photo-container').css({visibility:"visible"});
             self.uploadComplete = false;
@@ -347,14 +350,11 @@ export class VideoFormComponent implements OnInit {
 
   deleteVideo(){
     var headers = new Headers();
-    var creds = {"video": this.videoId}
     headers.append('Content-Type', 'application/json');
     headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
-    this.deleteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/videos/delete`, creds, {headers: headers}).subscribe(data => {
-      if(data.json().success){
-        this.videoDelete = true;
-        if(this.deleteSubscription) this.deleteSubscription.unsubscribe();
-      }
+    this.deleteSubscription = this._http.delete(`${this._backend.SERVER_URL}/api/v1/videos/${this.og_category}/${this.videoId}`, {headers: headers}).subscribe(data => {
+      this.videoDelete = true;
+      if(this.deleteSubscription) this.deleteSubscription.unsubscribe();
     });
   }
 
@@ -397,15 +397,15 @@ export class VideoFormComponent implements OnInit {
     var headers = new Headers();
     headers.append('Content-Type', 'application/json');
     headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
-    this.updateSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/videos/update`, creds, {headers: headers}).subscribe(data => {
+    this.updateSubscription = this._http.put(`${this._backend.SERVER_URL}/api/v1/videos/${this.og_category}/${this.url}`, creds, {headers: headers}).subscribe(data => {
       clearTimeout(failedRequest);
-      if(data.json().success){
-        this.submitted = true;
-        this._sysMessages.setMessages('submittedVideo');
-        this._router.navigateByUrl(`/videos/${this.mainCategory}/${data.json().url}`);
-      } else if (data.json().error) {
+      this.submitted = true;
+      this._sysMessages.setMessages('submittedVideo');
+      this._router.navigateByUrl(`/videos/${this.mainCategory}/${data.json().url}`);
+    },error=>{
+      if (error.json().error) {
         this.unsupported = true;
-      } else if(data.json().status === 401){
+      } else if(error.status === 401){
         this._modal.setModal('videos','form');
       } else {
         this.error = true;

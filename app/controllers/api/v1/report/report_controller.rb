@@ -19,7 +19,7 @@ class Api::V1::Report::ReportController < ApplicationController
 			end
 
 			if !post 
-				render json:{status:404, success:false}
+				render json:{}, status: :not_found
 				return false
 			end
 
@@ -36,14 +36,14 @@ class Api::V1::Report::ReportController < ApplicationController
 			user.report_fouls << params[:foul]
 
 			if post.save && user.save
-				render json:{status:200, success:true}
+				render json:{}, status: :ok
 			else
-				render json:{status:500, success:false}
+				render json:{}, status: :internal_server_error
 				Rails.logger.info(post.errors.inspect) 
 				Rails.logger.info(user.errors.inspect) 
 			end
 		else
-			render json:{status:401, success:false}
+			render json:{}, status: :unauthroized
 		end
 	end
 end

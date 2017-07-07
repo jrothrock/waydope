@@ -17,7 +17,7 @@ class Api::V1::Cart::CartController < ApplicationController
         if order
             if order.user_uuid then user = request.headers["Authorization"] ? User.find_by_token(request.headers["Authorization"].split(' ').last) : nil end
             if order.user_uuid && user && user.uuid != order.user_uuid
-                render json:{status:401, success:false}
+                render json:{}, status: :unauthorized
                 return false
             end
             puts order.quantities
@@ -47,9 +47,9 @@ class Api::V1::Cart::CartController < ApplicationController
                     end
                 end
             end
-            render json:{status:200, success:true, order:order, products:products}
+            render json:{order:order, products:products}, status: :ok
         else
-            render json:{status:404, success:false}
+            render json:{}, status: :not_found
         end
     end
     def create
@@ -65,7 +65,7 @@ class Api::V1::Cart::CartController < ApplicationController
         products = params[:items] ? Product.where('uuid IN (?)', params[:items]).select_with(App.getGoodColumns('apparel')) : nil
         approved = products.map(&:approved)
         if approved.include?(false)
-            render json:{status:409, success:false, message:"Can't add items to the cart that haven't been approved."}
+            render json:{message:"Can't add items to the cart that haven't been approved."}, status: :conflict
             return false
         end
         quantity = params[:quantities] && params[:quantities].length ? params[:quantities].length : 1
@@ -92,16 +92,16 @@ class Api::V1::Cart::CartController < ApplicationController
                 begin
                     q = quantities && quantities[time] && quantities[time] != '1' && quantities[time] != 1 ? Integer(quantities[time],10) : 1
                     rescue
-                        render json:{status: 400, success:false, message:'quantity needs to be a number - (can be either an integer or string)'} 
+                        render json:{message:'quantity needs to be a number - (can be either an integer or string)'}, status: :bad_request
                         return false
                 end
                 begin
                     if quantities[time].to_i >  product.properties[sizes[time]][colors[time]]["quantity"].to_i
-                        render json:{status:409, success:false, message:"#{product.title.to_s + ', ' + sizes[time].to_s + ', ' + colors[time].to_s} only has #{product.properties[sizes[time]][colors[time]]["quantity"]} remaining. You provided: #{quantities[time]}"}
+                        render json:{message:"#{product.title.to_s + ', ' + sizes[time].to_s + ', ' + colors[time].to_s} only has #{product.properties[sizes[time]][colors[time]]["quantity"]} remaining. You provided: #{quantities[time]}"}, status: :bad_request
                         return false
                     end
                     rescue => e
-                        render json:{status:400, success:false, message:"the size and/or color you provided does not exist on that product"}
+                        render json:{message:"the size and/or color you provided does not exist on that product"}, status: :bad_request
                         return false
                 end
                 quantity_hash = {}
@@ -187,13 +187,13 @@ class Api::V1::Cart::CartController < ApplicationController
                         end
                     end
                 end
-                render json:{status:200, success:true, order:order}
+                render json:{order:order}, status: :ok
             else
-                render json:{status:500, success:false}
+                render json:{}, status: :internal_server_error
                 Rails.logger.info(order.errors.inspect)
             end
         else
-            render json:{status:400, success:false, message:'Items parameter is required. Item ids need to be in an array and the items array needs to be the same length as the quantities, colors, and sizes, array.'}
+            render json:{message:'Items parameter is required. Item ids need to be in an array and the items array needs to be the same length as the quantities, colors, and sizes, array.'}, status: :bad_request
         end
     end
     def update
@@ -264,15 +264,15 @@ class Api::V1::Cart::CartController < ApplicationController
                                 end
                             end
                         end
-                        render json:{status:200, success:true, order:order, products:products}
+                        render json:{order:order, products:products}, status: :ok
                     else
                         order.zip_checked
                         order.save
-                        render json:{status:200, success:true}
+                        render json:{}, status: :ok
                     end
                     return
                 else
-                    render json:{status:400, success:false, message:"zip param is required"}
+                    render json:{message:"zip param is required"}, status: :bad_request
                 end
             end
             
@@ -280,7 +280,7 @@ class Api::V1::Cart::CartController < ApplicationController
             if order.user_uuid
                 user = request.headers["Authorization"] ? User.find_by_token(request.headers["Authorization"].split(' ').last) : nil
                 if user && user.uuid != order.user_uuid
-                    render json:{status:401,success:false}
+                    render json:{}, status: :unauthorized
                     return false
                 end
                 if user && user.zip 
@@ -300,7 +300,7 @@ class Api::V1::Cart::CartController < ApplicationController
                 begin
                     q = params[:quantity] && params[:quantity] != '1' && params[:quantity] != 1 ? Integer(params[:quantity],10) : 1
                     rescue
-                        render json:{status: 400, success:false, message:'quantity needs to be a number - (can be either an integer or string)'} 
+                        render json:{message:'quantity needs to be a number - (can be either an integer or string)'}, status: :bad_request
                         return false
                 end
             else 
@@ -310,12 +310,12 @@ class Api::V1::Cart::CartController < ApplicationController
             begin
                 # leave the if in this order, as it's used to check whether the user sent in the correct params will 
                 if params[:quantity].to_i > product.properties[params[:size]][params[:color]]["quantity"].to_i && q != 0
-                    render json:{status:400, success:false, message:"quantity selected is greater than the products currrent quantity"}
+                    render json:{message:"quantity selected is greater than the products currrent quantity"}, status: :bad_request
                     return false
                 end
             rescue => exception
                puts exception
-               render json:{status:400, success:false, message:"size and color need to be actually properties of the product."}  
+               render json:{message:"size and color need to be actually properties of the product."}  , status: :bad_request
                return false
             end
             puts order.quantities
@@ -458,7 +458,7 @@ class Api::V1::Cart::CartController < ApplicationController
                     end
                     order.properties = properties_hash
                 rescue => e
-                    render json:{status:400, success:false, message:"size color and product id need to exist in cart"}
+                    render json:{message:"size color and product id need to exist in cart"}, status: :bad_request
                     return false
                 end
             end
@@ -481,13 +481,13 @@ class Api::V1::Cart::CartController < ApplicationController
                         end
                     end
                 end
-                render json:{status:200, success:true, order:order}
+                render json:{order:order}, status: :bad_request
             else
-                render json:{status:500, success:false}
+                render json:{}, status: :internal_server_error
                 Rails.logger.info(order.errors.inspect)
             end
         else
-            render json:{status:404, success:false}
+            render json:{}, status: :not_found
         end
     end
     def delete

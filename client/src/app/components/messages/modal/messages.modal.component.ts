@@ -128,7 +128,6 @@ export class MessagesModalComponent implements OnInit {
 	    let body = {"receiver" : value.receiver, "body" : value.body}
 	    this.submitSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/messages/new`, body, {headers: headers}).subscribe(data => {
             
-            if(data.json().success){
                 let index = this.outbox_ids.indexOf(data.json().message.conversation_id)
                 if(index === -1){
                     this.outbox.unshift(data.json().message);
@@ -141,11 +140,10 @@ export class MessagesModalComponent implements OnInit {
                 $(`#message-receiver, #message-body`).removeClass('valid');
                 this.message.reset();
                 this._messagesService.change(this.inbox,this.outbox);
-                
-            }
-            else if(data.json().status === 404){
+        }, error=>{
+            if(error.status === 404){
                 Materialize.toast("No User Found By That Name", 3000, 'rounded-failure');
-            } else if(data.json().status === 410){
+            } else if(error.status === 410){
                 Materialize.toast("This User Has Been Banned", 3000, 'rounded-failure');
             }
         });
@@ -216,13 +214,11 @@ export class MessagesModalComponent implements OnInit {
         headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
         this.inboxSubscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/messages/inbox`, {headers: headers}).subscribe(data => {
             
-            if(data.json().success){
             if(this.inbox && data.json().messages.length) this.inbox = this.inbox.concat(data.json().messages);
             else if(data.json().messages.length) this.inbox = data.json().messages;
             this.setIds();
             this.inboxOffset = data.json().offset;
             this.currentPageInbox = (this.inboxOffset / 10);
-            }
             this.pollingInbox = false;
         });
       }
@@ -236,7 +232,6 @@ export class MessagesModalComponent implements OnInit {
         headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
         this.outboxSubscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/messages/outbox`, {headers: headers}).subscribe(data => {
             
-            if(data.json().success){
             if(this.outbox && data.json().messages.length) this.outbox = this.outbox.concat(data.json().messages);
             else if(data.json().messages) this.outbox = data.json().messages;
             for(let i =0; i < data.json().messages;i++){
@@ -245,7 +240,6 @@ export class MessagesModalComponent implements OnInit {
             }
             this.outboxOffset = data.json().offset;
             this.currentPageOutbox = (this.outboxOffset / 10);
-        }
         this.pollingOutbox = false;
         });
       }
@@ -306,14 +300,12 @@ export class MessagesModalComponent implements OnInit {
       let body = {receiver:this.otherUser, body:value}
       
       this.replySubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/messages/new`, body, {headers: headers}).subscribe(data => {
-          
-        if(data.json().success){
+        
           let index = this.outbox_ids.indexOf(data.json().message.conversation_id)
           this.conversation.push(data.json().message);
           this.outbox[index] = data.json().message;
           $('#reply-body').val('');
           $('#reply-body').blur();
-        }
       });
     }
     readConversation(id){

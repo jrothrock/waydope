@@ -102,23 +102,22 @@ export class ProfileApparelComponent implements OnInit {
 		headersInit.append('order', this.optionValues);
 		headersInit.append('time', this.timeValues);
 		headersInit.append('type', this.typesValues);
-		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/users/apparel`,{headers: headersInit}).subscribe(data => {
-			if(data.json().success){
-				this.totalCount = data.json().posts.length;
-				this.offset = this.offset ? this.offset : data.json().offset;
-                this.apparel = data.json().posts;
-				this.setIds();
-				this.total = data.json().count;
-				this.pages = data.json().pages;
-				this.numbers = Array(this.pages).fill(1);
-				this.currentPage = this.currentPage ? this.currentPage : data.json().page;
-				this.loaded = true;
-                setTimeout(()=>{
-                this.getImageWidth();
+		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/users/${this.user}/apparel`,{headers: headersInit}).subscribe(data => {
+			this.totalCount = data.json().posts.length;
+			this.offset = this.offset ? this.offset : data.json().offset;
+			this.apparel = data.json().posts;
+			this.setIds();
+			this.total = data.json().count;
+			this.pages = data.json().pages;
+			this.numbers = Array(this.pages).fill(1);
+			this.currentPage = this.currentPage ? this.currentPage : data.json().page;
+			this.loaded = true;
+			setTimeout(()=>{
+				this.getImageWidth();
 				this.displayAll();
-                },150)
-			} 
-			else if(data.json().status === 404){
+			},150)
+		},error=>{
+			if(error.status === 404){
 				this.loaded = true;
                 setTimeout(()=>{
                     this.displayAll();
@@ -190,17 +189,18 @@ export class ProfileApparelComponent implements OnInit {
 		this.typesValues = values.type ? values.type : null;
 		var headers = new Headers({
 	            'Content-Type': 'application/json',
-	            'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
+	            'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature').anchor,
+				"featured":null, 
+				'options':values.options, 
+				'time':values.time, 
+				'type':values.type
 	    });
-	    var body = {'user':this.user,"featured":null, 'options':values.options, 'time':values.time, 'type':values.type}
-        this.sortSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/users/apparel/sort`, body, {headers: headers}).subscribe(data => {
-        if(data.json().success){
+        this.sortSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/users/${this.user}/apparel`, {headers: headers}).subscribe(data => {
         this.apparel = data.json().posts;
 		this.setIds();
         this.offset = data.json().offset;
         this.currentPage = data.json().page;
         this.setState();
-        }
       });
 	}
   changePage(type,page){
@@ -208,17 +208,19 @@ export class ProfileApparelComponent implements OnInit {
 		if(page != this.currentPage) $('.btn-pagination.active').removeClass('active')
 		var headers = new Headers({
 	            'Content-Type': 'application/json',
-	            'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
+	            'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature'),
+				'offset':pageData[0], 
+				'options':this.optionValues, 
+				'time':this.timeValues, 
+				'type':this.typesValues
 	    });
-	    var body = {'user':this.user,'offset':pageData[0], 'options':this.optionValues, 'time':this.timeValues, 'type':this.typesValues}
-		this.paginateSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/users/apparel/paginate`, body, {headers: headers}).subscribe(data => {
-	    	if(data.json().success){
-	    		this.apparel = data.json().posts;
-				this.setIds();
-	    		this.offset = data.json().offset;
-	    		this.currentPage = pageData[1];
-	    		this.setState();
-	    	}
+	    var body = {}
+		this.paginateSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/users/${this.user}/apparel`, body, {headers: headers}).subscribe(data => {
+			this.apparel = data.json().posts;
+			this.setIds();
+			this.offset = data.json().offset;
+			this.currentPage = pageData[1];
+			this.setState();
 	    });
  }
   getOffset(type,page){
@@ -286,10 +288,9 @@ export class ProfileApparelComponent implements OnInit {
 	              'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 	    });
 	    var body = {"id":id, "liked" : liked, "type" : type}
-	    this.likeSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/likes/new`, body, {headers: headers}).subscribe(data => {
-	      if(data.json().success){
+	    this.likeSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/likes`, body, {headers: headers}).subscribe(data => {
 	      	let post = this.apparel[index]
-	        if(data.json().success && !liked){
+	        if(!liked){
 	            $(`#icon-likes-${id}`).addClass(' liked-icon fa-heart');
 	            $(`#icon-likes-${id}`).removeClass('fa-heart-o');
 	            $(`#likes-button-${id}`).addClass(' liked');
@@ -297,7 +298,7 @@ export class ProfileApparelComponent implements OnInit {
 	            post.likes_count = post.likes_count + 1;
 	            post.user_liked = !post.user_liked;
 	        }
-	        if(data.json().success && liked){
+	        if(liked){
 	            $(`#icon-likes-${id}`).addClass('fa-heart-o');
 	            $(`#icon-likes-${id}`).removeClass('liked-icon fa-heart');
 	            $(`#likes-button-${id}`).removeClass('liked');
@@ -305,12 +306,11 @@ export class ProfileApparelComponent implements OnInit {
 	            post.likes_count = post.likes_count - 1;
 	            post.user_liked = !post.user_liked;
 	        }
-
-	      }
-	      if(data.json().status === 401){
-	          this._modal.setModal('user', this.user, 'apparel');
-	      }
-	    });
+	    },error=>{
+			if(error.status === 401){
+	        	this._modal.setModal('user', this.user, 'apparel');
+	      	}
+		});
 	}
 	setVote(vote,id,type,average_vote,voted){
 		var headers = new Headers({
@@ -319,19 +319,18 @@ export class ProfileApparelComponent implements OnInit {
 		});
 		var body = {"id":id, "type":"apparel", "vote":vote, "already_voted":voted}
     	this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes/vote`, body, {headers: headers}).subscribe(data => {
-    		if(data.json().success){
-				let change;
-				if(vote === 1 && voted) change = voted === 1 ? -1 : 2;
-				else if(vote === 1 && !voted) change = 1;
-				else if(vote === -1 && voted) change = voted === -1 ? +1 : -2;
-				else if(vote === -1 && !voted) change = -1;
-    			this.voteChange(id,average_vote+change,data.json().user_vote)
-				this._voteService.change('apparel',id,average_vote+change,data.json().user_vote);
-    		}
-    		if(data.json().status === 401){
+			let change;
+			if(vote === 1 && voted) change = voted === 1 ? -1 : 2;
+			else if(vote === 1 && !voted) change = 1;
+			else if(vote === -1 && voted) change = voted === -1 ? +1 : -2;
+			else if(vote === -1 && !voted) change = -1;
+			this.voteChange(id,average_vote+change,data.json().user_vote)
+			this._voteService.change('apparel',id,average_vote+change,data.json().user_vote);
+    	},error=>{
+			if(error.status === 401){
           		this._modal.setModal('user', this.user, 'apparel');
       		}
-    	});
+		});
     	// upVoteSubscription.unsubscribe();
 	}
 	getImgSize(imgSrc,offset) {
@@ -385,8 +384,8 @@ export class ProfileApparelComponent implements OnInit {
 		$(newactive).addClass('active-photo');
   }
   transformRating(average_rating){
-    	return `translateX(${average_rating}%)`
-  	}
+    return `translateX(${average_rating}%)`
+  }
   photoZoom(id){
 	if(this.zoomedPhoto) this.zoomedPhoto.destroy();
 	let options = {zoomPosition:3,disableZoom:'false',autoInside:768,zoomSizeWindow:'image'};  

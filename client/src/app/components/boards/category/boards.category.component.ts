@@ -97,8 +97,7 @@ export class BoardsCategoryComponent implements OnInit {
 		headersInit.append('order', this.optionValues);
 		headersInit.append('time', this.timeValues);
 		headersInit.append('type', this.typesValues);
-		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/news/category`,{headers: headersInit}).subscribe(data => {
-			if(data.json().success){
+		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/news/${this.category}`,{headers: headersInit}).subscribe(data => {
 				this.posts = data.json().posts;
 				this.setIds();
 				this.offset = this.offset ? this.offset : data.json().offset;
@@ -110,8 +109,8 @@ export class BoardsCategoryComponent implements OnInit {
 				setTimeout(()=>{
 					this.displayAll();
 				},150)
-			} 
-			else if(data.json().status == 404){
+		},error=>{
+			if(error.status == 404){
 				this.posts = false; //this is done so that the *ngif doesn't have to double bang in the view.
 				this.loaded = true;
 				setTimeout(()=>{
@@ -184,8 +183,7 @@ export class BoardsCategoryComponent implements OnInit {
 	            'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 	    });
 	    var body = {"id":id, "type":"news", "vote":vote, "already_voted":voted}
-	      this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes/vote`, body, {headers: headers}).subscribe(data => {
-	        if(data.json().success){
+	      this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes`, body, {headers: headers}).subscribe(data => {
 			  let change;
 			  if(vote === 1 && voted) change = voted === 1 ? -1 : 2;
 			  else if(vote === 1 && !voted) change = 1;
@@ -193,15 +191,15 @@ export class BoardsCategoryComponent implements OnInit {
 			  else if(vote === -1 && !voted) change = -1;
 	          this.voteChange(id,average_vote+change,data.json().user_vote)
 			  this._voteService.change('boards',id,average_vote+change,data.json().user_vote);
-	        }
-	        else if(data.json().status === 401){
+	      },error=>{
+			if(error.status === 401){
 	              this._modal.setModal('boards',this.category);
-	        } else if (data.json().locked){
+	        } else if (error.json().locked){
 				Materialize.toast("<i class='fa fa-lock'></i> This post has been locked", 3000, 'rounded')
-			} else if(data.json().archived){
+			} else if(error.json().archived){
 				Materialize.toast("<i class='fa fa-archive'></i>  This post has been archived", 3000, 'rounded')
 			}
-	      });
+		  });
 	      // upVoteSubscription.unsubscribe();
 	}
 	getSorting(values){
@@ -213,13 +211,11 @@ export class BoardsCategoryComponent implements OnInit {
 	            'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 	    });
 	    var body = {"featured":null, 'options':values.options, 'time':values.time, 'type':values.type, 'category':this.category}
-		  this.sortSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/news/category/sort`, body, {headers: headers}).subscribe(data => {
-	        if(data.json().success){
+		  this.sortSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/news/${this.category}`, body, {headers: headers}).subscribe(data => {
 	  			this.posts = data.json().posts;
 				  this.setIds();
 	     		this.offset = data.json().offset;
 	     		this.setState();
-	        }
 	      });
 	}
 	getOffset(type,page){
@@ -256,15 +252,13 @@ export class BoardsCategoryComponent implements OnInit {
 	            'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 	    });
 	    var body = {'offset':pageData[0], 'options':this.optionValues, 'time':this.timeValues, 'type':this.typesValues, 'category':this.category}
-	    this.paginateSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/news/category/paginate`, body, {headers: headers}).subscribe(data => {
-	    	if(data.json().success){
-	    		this.posts = data.json().posts;
-				this.setIds();
-	    		this.offset = data.json().offset;
-	    		this.currentPage = pageData[1];
+	    this.paginateSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/news/${this.category}`, body, {headers: headers}).subscribe(data => {
+			this.posts = data.json().posts;
+			this.setIds();
+			this.offset = data.json().offset;
+			this.currentPage = pageData[1];
 
-	    		this.setState();
-	    	}
+			this.setState();
 	    });
 	}
 	displayAll(){

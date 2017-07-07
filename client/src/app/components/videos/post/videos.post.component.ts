@@ -169,72 +169,72 @@ export class VideosPostComponent implements OnInit {
 			spinner = true;
 			$("#loading-spinner-videos-post").fadeIn();
 		},300)
-		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/videos/post`,{headers: headersInit}).subscribe(data => {
-			if(data.json().success){
-				this.title = data.json().video.title;
-				this.created_at = data.json().video.created_at;
-				this.videoId = data.json().video.uuid;
-				this.form = data.json().video.form;
-				this.submitted_by = data.json().video.submitted_by;
-				this.link = this.form ? data.json().video.upload_url : data.json().video.post_link;
-				this.description = data.json().video.description;
-				this.marked = data.json().video.marked;
-				this.likes_count = data.json().video.likes_count;
-				this.link_type = data.json().video.link_type;
-				this.user_liked = data.json().video.user_liked;
-				this.category = data.json().video.main_category;
-				this.user_voted = data.json().video.user_voted;
-				this.average_vote = data.json().video.average_vote;
-				this.post_type = data.json().video.post_type;
-				this.average_rating = data.json().video.average_rating;
-				this.average_rating_count = data.json().video.ratings_count;
-				this.upvotes = data.json().video.upvotes;
-				this.downvotes = data.json().video.downvotes;
-				this.votes_count = data.json().video.votes_count;
-				this.average_vote_width = this.votes_count ? Math.round(((this.upvotes)/(this.votes_count)*100)) : 0;
-				this.has_reported = data.json().video.user_flagged;
-				this.hidden = data.json().video.hidden;
-				this.categories = data.json().video.categories;
-				this.loaded = true;
-				this.locked = data.json().video.locked;
-				this.archived = data.json().video.archived;
-				this.worked = data.json().video.worked;
-				this.nsfw = data.json().video.nsfw;
-				this.has_rated = data.json().video.user_rated;
-				let newTime;
-				if(this.routed) this.post = ['reset'];
-				if(this.routed) this.passedParams = false;
-				if(this.routed) newTime = new Date();
-				let time = this.routed && this.route_time && newTime && (newTime - this.route_time < 250)  ? (250 - (newTime - this.route_time)) : 50; 
-				this.routed = false;
-				this.flagged = data.json().video.flagged;
-				//this settimeout is required to find the div that is initially not there - due to being changed in this.form above.
-				//changing the above so that when there is form will do ajax to do this may be better than unhides.
-				if(spinnerTimeout) clearTimeout(spinnerTimeout);
-				setTimeout(()=>{  
-                  	if(spinner) $("#loading-spinner-videos-post").css({'display':'none'}); $("#videos-post-container").addClass('active-post');
-					$("#videos-post-container").addClass('active-post');
-					if(this.form && this.worked){
-						this.videoJSplayer = videojs('post_video_1', {}, function() {
-						// This is functionally the same as the previous example.
-						});
-					}
-					this.checkDescription();
-					if(this.specific) {
-						this.post = ['videos',this.videoId,this.category,this.specific]; //this is passed to the comments component;
-						this.passedParams = true;
-						setTimeout(()=>{
-						$(".view-all-comments").get(0).scrollIntoView(true);
-						},5)
-					}
-					else this.watchScroll();
-					_setMeta.setPost(data.json().video.title,`${data.json().video.description ? data.json().video.description.substring(0,30) : data.json().video.title}...`,'videos',data.json().video.main_category, null)
-					this.videoPlay();
-				},time)
-			} else if(data.json().status === 404) {
+		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/videos/${this.category}/${this.post}`,{headers: headersInit}).subscribe(data => {
+			this.title = data.json().video.title;
+			this.created_at = data.json().video.created_at;
+			this.videoId = data.json().video.uuid;
+			this.form = data.json().video.form;
+			this.submitted_by = data.json().video.submitted_by;
+			this.link = this.form ? data.json().video.upload_url : data.json().video.post_link;
+			this.description = data.json().video.description;
+			this.marked = data.json().video.marked;
+			this.likes_count = data.json().video.likes_count;
+			this.link_type = data.json().video.link_type;
+			this.user_liked = data.json().video.user_liked;
+			this.category = data.json().video.main_category;
+			this.user_voted = data.json().video.user_voted;
+			this.average_vote = data.json().video.average_vote;
+			this.post_type = data.json().video.post_type;
+			this.average_rating = data.json().video.average_rating;
+			this.average_rating_count = data.json().video.ratings_count;
+			this.upvotes = data.json().video.upvotes;
+			this.downvotes = data.json().video.downvotes;
+			this.votes_count = data.json().video.votes_count;
+			this.average_vote_width = this.votes_count ? Math.round(((this.upvotes)/(this.votes_count)*100)) : 0;
+			this.has_reported = data.json().video.user_flagged;
+			this.hidden = data.json().video.hidden;
+			this.categories = data.json().video.categories;
+			this.loaded = true;
+			this.locked = data.json().video.locked;
+			this.archived = data.json().video.archived;
+			this.worked = data.json().video.worked;
+			this.nsfw = data.json().video.nsfw;
+			this.has_rated = data.json().video.user_rated;
+			let newTime;
+			if(this.routed) this.post = ['reset'];
+			if(this.routed) this.passedParams = false;
+			if(this.routed) newTime = new Date();
+			let time = this.routed && this.route_time && newTime && (newTime - this.route_time < 250)  ? (250 - (newTime - this.route_time)) : 50; 
+			this.routed = false;
+			this.flagged = data.json().video.flagged;
+			//this settimeout is required to find the div that is initially not there - due to being changed in this.form above.
+			//changing the above so that when there is form will do ajax to do this may be better than unhides.
+			if(spinnerTimeout) clearTimeout(spinnerTimeout);
+			setTimeout(()=>{  
+				if(spinner) $("#loading-spinner-videos-post").css({'display':'none'}); $("#videos-post-container").addClass('active-post');
+				$("#videos-post-container").addClass('active-post');
+				if(this.form && this.worked){
+					this.videoJSplayer = videojs('post_video_1', {}, function() {
+					// This is functionally the same as the previous example.
+					});
+				}
+				this.checkDescription();
+				if(this.specific) {
+					this.post = ['videos',this.videoId,this.category,this.specific]; //this is passed to the comments component;
+					this.passedParams = true;
+					setTimeout(()=>{
+					$(".view-all-comments").get(0).scrollIntoView(true);
+					},5)
+				}
+				else this.watchScroll();
+				_setMeta.setPost(data.json().video.title,`${data.json().video.description ? data.json().video.description.substring(0,30) : data.json().video.title}...`,'videos',data.json().video.main_category, null)
+				this.videoPlay();
+			},time)
+		},error=>{
+			if(error.status === 404) {
 				this._sysMessages.setMessages('noVideo');
 				this._router.navigateByUrl('/videos',{ replaceUrl: true });
-			} else if(data.json().status=== 410){
+			} else if(error.status=== 410){
 				this._sysMessages.setMessages('removedPost');
 				this._router.navigateByUrl('/videos',{ replaceUrl: true });
 			} else {
@@ -242,8 +242,8 @@ export class VideosPostComponent implements OnInit {
 			}
 		});
 	}
-	watchScroll(){
-	let component = this;
+    watchScroll(){
+	  let component = this;
       $(window).scroll(function(){
 	     if(!component.passedParams){
 			if ($('.comments') && $(this).scrollTop() > ($('.comments').offset().top - 500)) {
@@ -269,10 +269,8 @@ export class VideosPostComponent implements OnInit {
 	    });
 	    let body = {"id":this.videoId,"type":'videos'}
 	    this.lockSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/admin/posts/lock`, body, {headers: headers}).subscribe(data => {
-          if(data.json().success){
-            this.locked = true;
+			this.locked = true;
 			Materialize.toast("<i class='fa fa-lock'></i> Post Successfully Locked", 3000, 'rounded-success')
-          }
       });
     }
 	removePost(event){
@@ -282,10 +280,8 @@ export class VideosPostComponent implements OnInit {
 	    });
 	    let body = {"id":this.videoId,"type":'videos'}
 		this.removeSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/admin/posts/remove`, body, {headers: headers}).subscribe(data => {
-          if(data.json().success){
             this.locked = true;
 			Materialize.toast("<i class='fa fa-close'></i> Post Successfully Removed", 3000, 'rounded-success')
-          }
       });
 	}
 	setVote(vote){
@@ -294,25 +290,24 @@ export class VideosPostComponent implements OnInit {
 	            'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 	    });
 	    var body = {"id":this.videoId, "type":"videos", "vote":vote}
-		  this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes/vote`, body, {headers: headers}).subscribe(data => {
-	        if(data.json().success){
+		  this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes`, body, {headers: headers}).subscribe(data => {
 				this.voteChange(this.videoId,data.json().vote,data.json().user_vote)
 			  	this._voteService.change('videos',this.videoId,data.json().vote,data.json().user_vote);
 	          	this.upvotes = data.json().upvotes;
 				this.downvotes = data.json().downvotes;
 				this.votes_count = data.json().votes_count;
 				this.average_vote_width = this.votes_count ? Math.round(((this.upvotes)/(this.votes_count)*100)) : 0;
-	        }
-	        if(data.json().status === 401){
-	              this._modal.setModal();
-	        }  else if (data.json().locked){
+	      }, error =>{
+			if(error.status === 401){
+	            this._modal.setModal();
+	        }  else if (error.locked){
 				this.datanotify=[this.videoId,'videos','locked'];
-			} else if(data.json().archived){
+			} else if(error.archived){
 				this.datanotify=[this.videoId,'videos','archived'];
-			} else if(data.json().flagged){
+			} else if(error.flagged){
 				this.datanotify=[this.videoId,'videos','flagged'];
 			}
-	      });
+		  });
 	      // upVoteSubscription.unsubscribe();
 	}
 	videoPlay(){
@@ -323,8 +318,8 @@ export class VideosPostComponent implements OnInit {
 						'Content-Type': 'application/json',
 						'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 				});
-				let body = {"id":this.videoId}
-				this.playSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/videos/post/play`, body, {headers: headers}).subscribe(data => {
+				let body = {}
+				this.playSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/videos/${this.category}/${this.id}/play`, body, {headers: headers}).subscribe(data => {
 				});
 			}
 		})
@@ -354,22 +349,21 @@ export class VideosPostComponent implements OnInit {
 	              'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 	    });
 	    body = {"id":this.videoId, "simpleRating" : parseInt(value.rating), "type" : type, "advancedRating":null}
-	    this.ratingSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/ratings/new`, body, {headers: headers}).subscribe(data => {
-	    	if(data.json().success){
-	    		this.rateOpen = false;
-	    		this.has_rated = true;
-	    		this.average_rating = data.json().average_rating;
-	    		this.average_rating_count = data.json().average_rating_count;
-	    	}
-	    	if(data.json().status === 401){
+	    this.ratingSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/ratings`, body, {headers: headers}).subscribe(data => {
+			this.rateOpen = false;
+			this.has_rated = true;
+			this.average_rating = data.json().average_rating;
+			this.average_rating_count = data.json().average_rating_count;
+		}, error =>{
+			if(error.status === 401){
          		 this._modal.setModal();
-       		}  else if (data.json().locked){
+       		}  else if (error.locked){
 				this.datanotify=[this.videoId,'videos','locked'];
-			} else if(data.json().archived){
+			} else if(error.archived){
 				this.datanotify=[this.videoId,'videos','archived'];
-			} else if(data.json().poor_rating){
+			} else if(error.poor_rating){
 				Materialize.toast("<i class='fa fa-lock'></i> It can't be that bad...", 3000, 'rounded-failure')
-			} else if(data.json().flagged){
+			} else if(error.flagged){
 				this.datanotify=[this.videoId,'videos','flagged'];
 			}
 		})
@@ -386,11 +380,11 @@ export class VideosPostComponent implements OnInit {
 		headers.append('Content-Type', 'application/json');
 		headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
 		this.deleteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/videos/delete`, creds, {headers: headers}).subscribe(data => {
-			if(data.json().success){
-				this._sysMessages.setMessages('deleteVideo');
-				this._router.navigateByUrl(`/videos`);
-			} else if(data.json().status === 401){
-	              this._modal.setModal();
+			this._sysMessages.setMessages('deleteVideo');
+			this._router.navigateByUrl(`/videos`);
+		},error =>{
+			if(error.status === 401){
+	            this._modal.setModal();
 	        }
 		});
   	}
@@ -400,30 +394,28 @@ export class VideosPostComponent implements OnInit {
 	              'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 	    });
 	    let body = {"id":this.videoId, "type" : this.post_type} //'type' for some reason is null for the like, but works for the rating.
-	    this.likeSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/likes/new`, body, {headers: headers}).subscribe(data => {
-	      if(data.json().success){  
-	      	this.likes_count = data.json().likes_count;    
-	        if(!data.json().user_liked){
-	        	$(`#icon-likes-${id}`).addClass(' liked-icon');
-	        	$(`#likes-button-${id}`).addClass(' liked');
-	        }
-	        else if(data.json().user_liked){
-	        	$(`#icon-likes-${id}`).removeClass('likes-icon');
-	        	$(`#likes-button-${id}`).removeClass('liked');
-	        }
-	        this.user_liked = !this.user_liked;
-
-	      }
-	      if(data.json().status === 401){
+	    this.likeSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/likes`, body, {headers: headers}).subscribe(data => {
+			this.likes_count = data.json().likes_count;    
+			if(!data.json().user_liked){
+				$(`#icon-likes-${id}`).addClass(' liked-icon');
+				$(`#likes-button-${id}`).addClass(' liked');
+			}
+			else if(data.json().user_liked){
+				$(`#icon-likes-${id}`).removeClass('likes-icon');
+				$(`#likes-button-${id}`).removeClass('liked');
+			}
+			this.user_liked = !this.user_liked;
+	    },error=>{
+			if(error.status === 401){
 	          this._modal.setModal();
-	      }  else if (data.json().locked){
-            this.datanotify=[this.videoId,'videos','locked'];
-          } else if(data.json().archived){
-            this.datanotify=[this.videoId,'videos','archived'];
-          } else if(data.json().flagged){
-			this.datanotify=[this.videoId,'videos','flagged'];
-		  }
-	    });
+			}  else if (error.json().locked){
+				this.datanotify=[this.videoId,'videos','locked'];
+			} else if(error.json().archived){
+				this.datanotify=[this.videoId,'videos','archived'];
+			} else if(error.json().flagged){
+				this.datanotify=[this.videoId,'videos','flagged'];
+			}
+		});
 	}
 	watchDescription(){
 		$('#show-full-description').click(()=>{
@@ -461,10 +453,8 @@ export class VideosPostComponent implements OnInit {
 	            'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 	    });
 	    var body = {"id":this.id, "type":"videos", "foul":values.foul}
-	    this.reportSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/report/new`, body, {headers: headers}).subscribe(data => {
-	    	if(data.json().success){
-	    		this.has_reported = true;
-	    	}
+	    this.reportSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/report`, body, {headers: headers}).subscribe(data => {
+	    	this.has_reported = true;
 	    })
 	}
 	encode(string){

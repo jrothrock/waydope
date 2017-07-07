@@ -42,21 +42,17 @@ export class ProfileOrderComponent implements OnInit {
   };
   getOrders(){
     var headersInit = new Headers();
-    headersInit.append('order', this.id);
-    headersInit.append('user', this.user);
 		headersInit.append('Authorization', 'Bearer ' + this._auth.getToken()); headersInit.append('Signature', window.localStorage.getItem('signature'))
-		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/users/orders/order`,{headers: headersInit}).subscribe(data => {
-      if(data.json().success){
+		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/users/${this.user}/orders/${this.id}`,{headers: headersInit}).subscribe(data => {
         this.order = data.json().order;
         this.loaded = true;
         this.setQuantities();
         this.setShipped();
         $("#order-container").addClass('active-post');
-      } else {
+    },error=>{
         this._sysMessages.setMessages('unauthroized');
         this._router.navigateByUrl(`/users/${this.user}`);
         this.loaded = true;
-      }
     })
   }
    photoZoom(ic){

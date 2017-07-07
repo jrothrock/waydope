@@ -27,7 +27,7 @@ Rails.application.routes.draw do
           post '/logout', to: 'sessions#destroy', as: 'logout'
 
           namespace :admin do
-            post '/check', to: 'sessions_admin#new', as: 'login_admin'
+            post '/', to: 'sessions_admin#new', as: 'login_admin'
           end
 
         end
@@ -66,227 +66,221 @@ Rails.application.routes.draw do
         end
 
         namespace :users do
-          get '/user', to: 'user#read', as: 'get_user_info'
-          get '/info', to: 'info#read', as: 'get_info'
-          get '/settings', to:'settings#read', as: 'get_settings'
-          get '/notifications', to:'notifications#read', as:'get_notification'
-          get '/notifications/all', to:'notifications#index', as:'get_notifications'
-          post '/notifications/update', to:'notifications#update', as:'update_notifications'
-          get '/messages', to:'messages#read', as:'get_message'
-          get '/messages/all', to:'messages#index', as:'get_messages'
-          post '/messages/update', to:'messages#update', as:'update_messages'
-          post '/settings/update', to:'settings#update', as: 'update_settings'
-          get '/preferences', to:'preferences#read', as: 'get_user_preferences'
-          post '/info/update', to: 'info#update', as: 'update_info'
+          scope '/:user' do 
+            get '/', to: 'user#read', as: 'get_user_info'
+            get '/info', to: 'info#read', as: 'get_info'
+            post '/info', to: 'info#update', as: 'update_info'
+            get '/settings', to:'settings#read', as: 'get_settings'
+            post '/settings', to:'settings#update', as: 'update_settings'
+            get '/notifications', to:'notifications#read', as:'get_notification'
+            post '/notifications', to:'notifications#update', as:'update_notifications'
+            get '/notifications/all', to:'notifications#index', as:'get_notifications'
+            get '/preferences', to:'preferences#read', as: 'get_user_preferences'
+            get '/messages', to:'messages#read', as:'get_message'
+            get '/messages/all', to:'messages#index', as:'get_messages'
 
-          namespace :seller do 
-            get '/paypal', to: 'paypal#read', as: 'get_user_paypal_info'
-            post '/info/update', to:'info#update', as:'update_seller_info'
-            post '/verify', to:'verification#update', as:'user_verify_seller'
-            post '/paypal/update', to: 'paypal#update', as: 'update_user_paypal'
-            post '/stripe/update', to: 'stripe#update', as: 'update_user_stripe'
-            post '/ssn/update', to: 'ssn#update', as:'update_user_ssn'
-          end
+            namespace :orders do
+              scope '/:order' do
+                get '/', to: 'order#read', as: 'get_user_order'
+              end
+              get '/', to: 'orders#read', as: 'get_user_orders' 
+            end
 
-          namespace :actions do
-            post '/verify', to:'verify#update', as: 'verify_email'
-            post '/reset', to:'reset#create', as: 'reset_email'
-            post '/reset/password', to:'reset#update', as: 'reset_password'
-          end
+            namespace :seller do 
+              get '/paypal', to: 'paypal#read', as: 'get_user_paypal_info'
+              post '/info', to:'info#update', as:'update_seller_info'
+              post '/verify', to:'verification#update', as:'user_verify_seller'
+              post '/paypal', to: 'paypal#update', as: 'update_user_paypal'
+              post '/stripe', to: 'stripe#update', as: 'update_user_stripe'
+              post '/ssn', to: 'ssn#update', as:'update_user_ssn'
+            end
 
-          namespace :orders do
-            get '/order', to: 'order#read', as: 'get_user_order'
-            get '/', to: 'orders#read', as: 'get_user_orders' 
-          end
+            namespace :actions do
+              post '/verify', to:'verify#update', as: 'verify_email'
+              post '/reset', to:'reset#create', as: 'reset_email'
+              post '/reset/password', to:'reset#update', as: 'reset_password'
+            end
+            
+            namespace :music do
+              get '/', to: 'music#index', as: 'get_user_music'
+            end
+
+            namespace :comments do
+              get '/', to: 'comments#index', as: 'get_user_comments'
+            end
+
+            namespace :boards do
+              get '/', to: 'boards#index', as: 'get_user_boards'
+            end
           
-          namespace :music do
-            get '/', to: 'music#index', as: 'get_user_music'
-            post '/sort', to: 'music#read', as: 'sort_user_music'
-            post '/paginate', to: 'music#update', as: 'paginate_user_music'
-          end
+            namespace :apparel do
+              get '/', to: 'apparel#index', as: 'get_user_apparel'
+            end
 
-          namespace :comments do
-            get '/', to: 'comments#index', as: 'get_user_comments'
-            post '/sort', to: 'comments#read', as: 'sort_user_comments'
-            post '/paginate', to: 'comments#update', as: 'paginate_user_comments'
-          end
+            namespace :technology do 
+              get '/', to: 'technology#index', as: 'get_user_technology'
+            end
 
-          namespace :boards do
-            get '/', to: 'boards#index', as: 'get_user_boards'
-            post '/sort', to: 'boards#read', as: 'sort_user_boards'
-            post '/paginate', to: 'boards#update', as: 'paginate_user_boards'
+            namespace :videos do
+              get '/', to: 'videos#index', as: 'get_user_videos'
+            end
           end
-        
-          namespace :apparel do
-            get '/', to: 'apparel#index', as: 'get_user_apparel'
-            post '/sort', to: 'apparel#read', as: 'sort_user_apparel'
-            post '/paginate', to: 'apparel#update', as: 'paginate_user_apparel'
-          end
-
-          namespace :technology do 
-            get '/', to: 'technology#index', as: 'get_user_technology'
-            post '/sort', to: 'technology#read', as: 'sort_user_technology'
-            post '/paginate', to: 'technology#update', as: 'paginate_user_technology'
-          end
-
-          namespace :videos do
-            get '/', to: 'videos#index', as: 'get_user_videos'
-            post '/sort', to: 'videos#read', as: 'sort_user_videos'
-            post '/paginate', to: 'videos#update', as: 'paginate_user_videos'
-          end
-
         end
 
         namespace :sellers do
           get '/', to: 'sellers#index', as:'get_seller'
           get '/sale', to: 'sellers#read', as:'get_sale'
-          post '/sale/update', to: 'sellers#update', as:'update_sale'
+          put '/sale', to: 'sellers#update', as:'update_sale'
         end
 
         namespace :track do
           post '/', to: 'tracker#create', as: 'create_tracker'
-          post '/update', to:'tracker#update', as:'update_tracker'
+          put '/', to:'tracker#update', as:'update_tracker'
         end
 
         namespace :comments do
           get '/', to: 'comments#index', as: 'get_comments'
-          get '/comment', to: 'comments#read', as:'get_comment'
-          post '/new', to: 'comments#create', as: 'new_comments'
-          post '/reply/new', to: 'replies#create', as: 'new_reply'
-          post '/reply/edit', to: 'replies#edit', as: 'edit_reply'
-          post '/reply/delete', to: 'replies#delete', as: 'delete_reply'
-          post '/edit', to: 'comments#edit', as: 'edit_comment'
-          post '/delete', to: 'comments#delete', as: 'delete_comment'
+          post '/', to: 'comments#create', as: 'new_comments'
+          scope '/:comment' do
+            get '/', to: 'comments#read', as:'get_comment'
+            put '/', to: 'comments#edit', as: 'edit_comment'
+            delete '/', to: 'comments#delete', as: 'delete_comment'
+            post '/reply', to: 'replies#create', as: 'new_reply'
+            put '/reply', to: 'replies#edit', as: 'edit_reply'
+            delete '/reply', to: 'replies#delete', as: 'delete_reply'
+          end
         end
 
         namespace :photos do
-          post '/delete', to: 'photos#delete', as: 'delete_photo'
-          post '/create', to: 'photos#create', as: 'create_photo'
+          post '/', to: 'photos#create', as: 'create_photo'
+          scope '/:photo' do
+            delete '/', to: 'photos#delete', as: 'delete_photo'
+          end
         end
 
         namespace :music do
-          namespace :s3 do
-            get '/new', to: 'music#create', as:'create_s3_song'
-          end
-          get '/all', to: 'music#index', as: 'all_music'
-          get '/song', to: 'music#read', as: 'get_song'
-          post '/song/play', to:'play#create', as: 'play_song'
+          get '/', to: 'music#index', as: 'all_music'
+          post '/', to: 'music#create', as: 'new_song'
           get '/rest', to: 'all#index', as: 'get_rest_of_all_songs'
-          post '/download', to: 'download#create', as: "create_download"
-          post '/new', to: 'music#create', as: 'new_song'
-          post '/delete', to: 'music#delete', as: 'delete_song'
-          post '/update', to:'music#update', as: 'update_song'
-          post '/sort', to: 'all#read', as:'sort_genres'
-          post '/paginate', to:'all#update', as: 'paginate_genres'
-
-          get '/genre', to: 'genre#index', as: 'get_music_genre'
-          post '/genre/sort', to: 'genre#read', as: 'sort_music_genre'
-          post '/genre/paginate', to: 'genre#update', as: 'paginate_songs'
-
+          scope '/:genre' do
+            get '/', to: 'genre#index', as: 'get_music_genre'
+            scope '/:song' do
+              get '/', to: 'music#read', as: 'get_song'
+              put '/', to:'music#update', as: 'update_song'
+              delete '/', to:'music#update', as: 'delete_song'
+              post '/play', to:'play#create', as: 'play_song'
+              post '/download', to: 'download#create', as: "download_song"
+            end
+          end
         end
 
         namespace :news do
           get '/', to: 'news#index', as: 'get_posts'
-          get '/post', to: 'news#read', as: 'get_post'
+          post '/', to: 'news#create', as: 'new_post'
           get '/rest', to: 'all#index', as: 'get_rest_of_all_news'
-          post '/new', to: 'news#create', as: 'new_post'
-          post '/sort', to: 'all#read', as: 'sort_categories'
-          post '/update', to:'news#update', as: 'update_post'
-          post '/delete', to: 'news#delete', as: 'delete_post'
-          post '/paginate', to:'all#update', as: 'paginate_categories'
-          ###ALL NEWS###
-          get '/all', to: 'all#index', as: 'all_posts'
-          get '/category', to: 'category#index', as: 'get_news_category'
-          post '/category/sort', to: 'category#read', as: 'sort_news_posts'
-          post '/category/paginate', to: 'category#update', as:'page_news_posts'
+          scope '/:category' do
+            get '/', to: 'category#index', as: 'get_news_category'
+            scope '/:post' do
+               get '/', to: 'news#read', as: 'get_post'
+               put '/', to:'news#update', as: 'update_post'
+               delete '/', to: 'news#delete', as: 'delete_post'
+            end
+          end
         end
 
         namespace :videos do
           get '/', to: 'videos#index', as: 'get_videos'
-          get '/post', to: 'videos#read', as: 'get_video'
-          post '/post/play', to:'play#create', as: 'play_video'
+          post '/', to: 'videos#create', as: 'new_video'
           get '/rest', to: 'all#index', as: 'get_rest_of_all_videos'
-          post '/new', to: 'videos#create', as: 'new_video'
-          post '/update', to: 'videos#update', as: 'update_video'
-          post '/delete', to: 'videos#delete', as: 'delete_video'
-          post '/sort', to: 'all#read', as: 'sort_videos_categories'
-          post '/paginate', to:'all#update', as: 'paginate_videos_categories'
-
-          get '/category', to: 'category#index', as: 'get_video_category'
-          post '/category/sort', to: 'category#read', as: 'sort_video_category'
-          post '/category/paginate', to: 'category#update', as: 'paginate_videos'
+          scope '/:category' do
+            get '/', to: 'category#index', as: 'get_video_category'
+            scope '/:video' do
+              get '/', to: 'videos#read', as: 'get_video'
+              put '/', to: 'videos#update', as: 'update_video'
+              delete '/', to: 'videos#delete', as: 'delete_video'
+              post '/post', to:'play#create', as: 'play_video'
+            end
+          end
         end
         
 
         namespace :cart do
           get '/', to:'cart#read', as: 'get_cart'
-          post '/new', to:'cart#create', as: 'new_cart'
-          post '/update', to:'cart#update', as: 'update_cart'
-          post '/delete', to:'cart#delete', as: 'delete_cart'
+          post '/', to:'cart#create', as: 'new_cart'
+          put '/', to:'cart#update', as: 'update_cart'
+          delete '/', to:'cart#delete', as: 'delete_cart'
           post '/payment', to: 'order#update', as: 'cart_payment'
           post '/paypal', to:'paypal#create', as: 'created_paypal'
         end
 
         namespace :apparel do
-          get '/', to: 'all#index', as: 'get_apparel'
-          get '/post', to: 'apparel#read', as: 'get_video'
-          post '/new', to:'apparel#create', as: 'new_apparel'
-          post '/update', to:'apparel#update', as: 'update_apparel'
-          post '/delete', to:'apparel#delete', as: 'delete_apparel'
-          post '/sort', to: 'all#read', as: 'sort_videos_categories'
-          post '/paginate', to:'all#update', as: 'paginate_videos_categories'
-
-          get '/category', to:'category#index', as: 'get_apparel_category'
-          post '/category/sort', to:'category#read', as: 'sort_apparel_category'
-          post '/category/paginate', to:'category#update', as: 'paginate_apparel'
+          get '/', to: 'all#index', as: 'get_all_apparel'
+          post '/', to:'apparel#create', as: 'new_apparel'
+          scope '/:category/' do 
+            get '/', to:'category#index', as: 'get_apparel_category'
+            scope '/:subcategory' do
+            get '/', to:'category#index', as: 'get_apparel_subcategory'
+              scope '/:post' do 
+                get '/', to: 'apparel#read', as: 'get_apparel'
+                put '/', to:'apparel#update', as: 'update_apparel'
+                delete '/', to:'apparel#delete', as: 'delete_apparel'
+              end
+            end
+          end
         end
 
         namespace :technology do
-          get '/', to: 'all#index', as: 'get_technologies'
-          get '/post', to: 'technology#read', as: 'get_technology'
-          post '/new', to:'technology#create', as: 'new_technology'
-          post '/update', to:'technology#update', as: 'update_technology'
-          post '/delete', to:'technology#delete', as: 'delete_technology'
-          post '/sort', to: 'all#read', as: 'sort_technology'
-          post '/paginate', to:'all#update', as: 'paginate_technology'
-
-          get '/category', to:'category#index', as: 'get_technology_category'
-          post '/category/sort', to:'category#read', as: 'sort_technology_category'
-          post '/category/paginate', to:'category#update', as: 'paginate_technology_category'
+          get '/', to: 'all#index', as: 'get_all_technology'
+          post '/', to:'technology#create', as: 'new_technology'
+          scope '/:category' do
+            get '/', to:'category#index', as: 'get_technology_category'
+            scope '/:subcategory' do
+              get '/', to:'category#index', as: 'get_technology_subcategory'
+              scope '/:post' do 
+                get '/', to: 'technology#read', as: 'get_technology'
+                put '/', to:'technology#update', as: 'update_technology'
+                delete '/', to:'technology#delete', as: 'delete_technology'
+              end
+            end
+          end
         end
 
         namespace :messages do
-          get '/inbox', to: 'inbox#read', as: 'get_inbox'
-          get '/outbox', to: 'outbox#read', as: 'get_outbox'
-          get '/read', to:'messages#read', as: 'get_conversation'
-          post '/new', to: 'messages#create', as: 'create_messages'
+          get '/', to:'messages#read', as: 'get_conversation'
+          post '/', to: 'messages#create', as: 'create_messages'
           namespace :conversation do 
             get '/', to: 'messages#read', as: 'get_messages'
+          end
+          scope '/inbox' do
+            get '/', to: 'inbox#read', as: 'get_inbox'
+          end
+          scope '/outbox' do
+            get '/', to: 'outbox#read', as: 'get_outbox'
           end
         end
 
         namespace :contact do
-          post '/new', to: 'messages#create', as: 'new_contact_message'
+          post '/', to: 'messages#create', as: 'new_contact_message'
         end
 
         namespace :likes do
-          post '/new', to: 'likes#create', as: 'new_like'
+          post '/', to: 'likes#create', as: 'new_like'
         end
 
         namespace :report do
-          post '/new', to: 'report#create', as: 'new_flag'
+          post '/', to: 'report#create', as: 'new_flag'
         end
 
         namespace :ratings do 
-          post '/new', to: 'ratings#create', as: 'new_rating'
+          post '/', to: 'ratings#create', as: 'new_rating'
         end
 
         namespace :partners do
-          post '/application/new', to: 'application#create', as: 'new_parter_application'
+          post '/application', to: 'application#create', as: 'new_parter_application'
         end
 
         namespace :votes do
-          post '/vote', to: 'votes#create', as: 'new_vote'
+          post '/', to: 'votes#create', as: 'new_vote'
           # post '/comments/vote', to: 'comments#create', as: 'new_comments_vote'
         end
 

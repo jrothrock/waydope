@@ -117,36 +117,34 @@ export class ProfileComponentUsers implements OnInit {
 		var headers = new Headers();
 		headers.append('user', this.user);
 		headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
-		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/users/user`, {headers: headers}).subscribe(data => {
-			if(data.json().success){
-				this.karma = data.json().user.karma;
-				this.comment_karma = data.json().user.comment_karma;
-				this.music = data.json().user.songs;
-				this.videos = data.json().user.videos;
-				this.comments = data.json().user.comments;
-				this.apparel = data.json().user.apparel;
-				this.technology = data.json().user.technology;
-				if(!data.json().user.good_standing){
-					this.banned = true;
-					$("#user-banned-message").css({'display':'block'}).data('showing',true)
-				}
-				this.setIds();
-				setTimeout(()=>{
-					// this.getImageWidth('apparel');
-					// this.getImageWidth('technology');
-					// this.getRestImageWidth('apparel');
-					// this.getRestImageWidth('technology');
-					
-				},200)
-				this.displayAll();
-				this.loaded = true;
-			} else {
-				let signedin = this._auth.checkSession();
+		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/users/${this.user}`, {headers: headers}).subscribe(data => {
+			this.karma = data.json().user.karma;
+			this.comment_karma = data.json().user.comment_karma;
+			this.music = data.json().user.songs;
+			this.videos = data.json().user.videos;
+			this.comments = data.json().user.comments;
+			this.apparel = data.json().user.apparel;
+			this.technology = data.json().user.technology;
+			if(!data.json().user.good_standing){
+				this.banned = true;
+				$("#user-banned-message").css({'display':'block'}).data('showing',true)
+			}
+			this.setIds();
+			setTimeout(()=>{
+				// this.getImageWidth('apparel');
+				// this.getImageWidth('technology');
+				// this.getRestImageWidth('apparel');
+				// this.getRestImageWidth('technology');
 				
-				if(signedin){
-					this._sysMessages.setMessages("noUser");
-					this.noUser = true;
-				}
+			},200)
+			this.displayAll();
+			this.loaded = true;
+		}, error =>{
+			let signedin = this._auth.checkSession();
+			
+			if(signedin){
+				this._sysMessages.setMessages("noUser");
+				this.noUser = true;
 			}
 		})
 	}
@@ -160,7 +158,6 @@ export class ProfileComponentUsers implements OnInit {
 		id = type === 'comment' ? this.comments[id].uuid : id;
 		var body = {"id":id, "type":type, "vote":vote, "already_voted":voted}
 		this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes/vote`, body, {headers: headers}).subscribe(data => {
-			if(data.json().success){
 				let change;
 				if(vote === 1 && voted) change = voted === 1 ? -1 : 2;
 				else if(vote === 1 && !voted) change = 1;
@@ -172,7 +169,9 @@ export class ProfileComponentUsers implements OnInit {
 					this.comments[index].average_vote = (average_vote + change)
 					this.comments[index].user_voted = data.json().user_vote
 				}
-			} else if(data.json().status === 401){
+			
+		}, error=>{
+			if(error.status === 401){
 				this._modal.setModal('user',this.user);
 			}
 		});
@@ -247,40 +246,39 @@ export class ProfileComponentUsers implements OnInit {
               'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
     });
     var body = {"id":id, "liked" : liked, "type" : type}
-    this.likeSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/likes/new`, body, {headers: headers}).subscribe(data => {
-		if(data.json().success){
-					let post, post_array, view_id, user_liked;
-					user_liked = data.json().user_liked;
-			switch(type){
-				case 'music':
-					post = this.music[index];
-					if(!user_liked){
-						post_array = this.music;
-						view_id = $(`#profile-music-${id}`);
-					}
-					break;
-				case 'videos':
-					post = this.videos[index]
-					if(!user_liked){
-						post_array = this.videos;
-						view_id = $(`#profile-video-${id}`);
-					}
-					break;
-				case 'apparel':
-					post = this.apparel[index]
-					if(!user_liked){
-						post_array = this.apparel;
-						view_id = $(`#profile-apparel-${id}`);
-					}
-					break;
-				case 'technology':
-					post = this.technology[index]
-					if(!user_liked){
-						post_array = this.technology;
-						view_id = $(`#profile-technology-${id}`);
-					}
-					break;
-			}
+    this.likeSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/likes`, body, {headers: headers}).subscribe(data => {
+		let post, post_array, view_id, user_liked;
+		user_liked = data.json().user_liked;
+		switch(type){
+			case 'music':
+				post = this.music[index];
+				if(!user_liked){
+					post_array = this.music;
+					view_id = $(`#profile-music-${id}`);
+				}
+				break;
+			case 'videos':
+				post = this.videos[index]
+				if(!user_liked){
+					post_array = this.videos;
+					view_id = $(`#profile-video-${id}`);
+				}
+				break;
+			case 'apparel':
+				post = this.apparel[index]
+				if(!user_liked){
+					post_array = this.apparel;
+					view_id = $(`#profile-apparel-${id}`);
+				}
+				break;
+			case 'technology':
+				post = this.technology[index]
+				if(!user_liked){
+					post_array = this.technology;
+					view_id = $(`#profile-technology-${id}`);
+				}
+				break;
+		}
        if(post) post.likes_count = data.json().likes_count;
        if(post) post.user_liked = user_liked;
         if(user_liked){
@@ -293,19 +291,20 @@ export class ProfileComponentUsers implements OnInit {
             $(`#icon-likes-${id}-${type}`).removeClass('liked-icon fa-heart');
             $(`#likes-button-${id}-${type}`).removeClass('liked');
             $(`#likes-${id}-${type}`).html(`${value-1}`);
-						if(this.iscurrentUser){
-							setTimeout(()=>{
-								$(view_id).fadeOut(()=>{
-									post_array.splice(index,1);
-								})
-							},150)
-						}
+			if(this.iscurrentUser){
+				setTimeout(()=>{
+					$(view_id).fadeOut(()=>{
+						post_array.splice(index,1);
+					})
+				},150)
+			}
         }
 
-      } else if(data.json().status === 401){
+    }, error => {
+		if(error.status === 401){
 	    		this._modal.setModal('user',this.user);
 	  	}
-    });
+	});
 	}
 	searchArtist(artist){
     this._router.navigateByUrl(`/search?category=All&search=${artist}`);
@@ -351,37 +350,34 @@ export class ProfileComponentUsers implements OnInit {
        	if(index != null) this.wavesurfer[index].setVolume(parseInt($(`#${id}-volume-range`).val())/100)
 	}
   }
-  download(id,title,type){
+  download(genre,url,title,type){
 	if(!this.downloading){
 		this.downloading = true;
 		let headers = new Headers({
 					'Content-Type': 'application/json',
 					'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 		});
-		let body = {"song":id}
-		this.downloadSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/music/download`, body, {headers: headers}).subscribe(data => {
-			if(data.json().success){  
-			
-				// (<any>window).location = data.json().url;
-				if(type === 1){
-					let tag = document.createElement('a');
-					tag.setAttribute('href', data.json().url);
-					tag.setAttribute('target', "_blank");
-					tag.setAttribute('download', title);
-					tag.click();
-				}
-				this.downloading = false;
+		let body ={}
+		this.downloadSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/music/${genre}/${url}/download`, body, {headers: headers}).subscribe(data => {
+			// (<any>window).location = data.json().url;
+			if(type === 1){
+				let tag = document.createElement('a');
+				tag.setAttribute('href', data.json().url);
+				tag.setAttribute('target', "_blank");
+				tag.setAttribute('download', title);
+				tag.click();
 			}
+			this.downloading = false;
 		});
   	}
   }
-  songPlay(id){
+  songPlay(genre,url){
 		let headers = new Headers({
 					'Content-Type': 'application/json',
 					'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 		});
-		let body = {"id":id}
-		this.playSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/music/song/play`, body, {headers: headers}).subscribe(data => {
+		let body = {}
+		this.playSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/music/${genre}/${url}/play`, body, {headers: headers}).subscribe(data => {
 		});
   }
   loop(id){
@@ -566,7 +562,7 @@ export class ProfileComponentUsers implements OnInit {
 			if(song.form===1) url = song.upload_url;
 			setTimeout(()=>{
 				if(url) this.waveSurferCreate(id,url);
-				if(song.form===1) this.songPlay(song.uuid);
+				if(song.form===1) this.songPlay(song.genre,song.url);
 			})
 		}else if(type === 'videos'){
 			if(this.videos[index].form){
@@ -583,16 +579,16 @@ export class ProfileComponentUsers implements OnInit {
 					this.videos[index].clicked = true;
 				}
 			}
-			this.videoPlay(this.videos[index].uuid)
+			this.videoPlay(this.videos[index].main_category,this.videos[index].url)
 		}
 	}
-	videoPlay(id){
+	videoPlay(category,url){
 		let headers = new Headers({
 				'Content-Type': 'application/json',
 				'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 		});
-		let body = {"id":id}
-		this.playVideoSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/videos/post/play`, body, {headers: headers}).subscribe(data => {
+		let body = {}
+		this.playVideoSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/videos/${category}/${url}/play`, body, {headers: headers}).subscribe(data => {
 		});
 	}
 	photoHover(state,id,type){

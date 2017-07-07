@@ -18,9 +18,9 @@ class Api::V1::Contact::MessagesController < ApplicationController
 		message.category = params[:category]
 		message.read = false
 		if message.save!
-			render json: {status:200, success:true}
+			render json: {}, status: :ok
 		else
-			render json: {status:500, success:false}
+			render json: {}, status: :internal_server_error
 		end
 
 	end

@@ -239,6 +239,7 @@ export class TechnologyEditComponent implements OnInit {
     hasSizesSelected:boolean=false;
     hasColorsSelected:boolean=false;
     hasDimensionsSelected:boolean=false;
+    originalSubcategory:string;
     constructor(private _http: Http, private _auth: AuthService, private _backend: BackendService, private _fb: FormBuilder, private _router: Router, private _modal: ModalComponent, private _sysMessages:SystemMessagesComponent){};
 	  ngOnInit(){
       this.uploadTechnology = this._fb.group({
@@ -303,8 +304,7 @@ export class TechnologyEditComponent implements OnInit {
         headersInit.append('maincategory', this.mainCategory);
         headersInit.append('subcategory', this.subCategory);
         headersInit.append('Authorization', 'Bearer ' + this._auth.getToken()); headersInit.append('Signature', window.localStorage.getItem('signature'))
-        this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/technology/post`,{headers: headersInit}).subscribe(data => {
-            if(data.json().success){
+        this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/technology/${this.mainCategory}/${this.subCategory}/${this.id}`,{headers: headersInit}).subscribe(data => {
                 if(this.currentUser !=  data.json().post.submitted_by){
                     this._sysMessages.setMessages('unathorized');
   					        this._router.navigateByUrl(`/technology/${this.mainCategory}/${this.subCategory}/${this.id}`); 
@@ -355,6 +355,7 @@ export class TechnologyEditComponent implements OnInit {
                 if(this.subSelectize && this.subSelectize[0]) this.subSelectize[0].selectize.setValue(this.subCategory);
                 // if(this.categories){this.uploadTechnology.patchValue({genre:this.categories})}
                 this.originalCategory = this.mainCategory;
+                this.originalSubcategory = this.subCategory;
                 $("#quantity").on('keyup change', ()=>{
                     this.quantity = parseFloat($("#quantity").val())
                 })
@@ -459,7 +460,9 @@ export class TechnologyEditComponent implements OnInit {
 
                     }
                 },3) 
-            }
+        },error=>{
+            this._sysMessages.setMessages('noTechnology');
+			this._router.navigateByUrl('/technology', { replaceUrl: true });
         })
     }
     selectIcon(size,dimensions){
@@ -1438,7 +1441,7 @@ export class TechnologyEditComponent implements OnInit {
     photoUpload(){
        var self = this;
        $(`#photo-upload`).fileupload({
-        url: `${self._backend.SERVER_URL}/api/v1/photos/create`,
+        url: `${self._backend.SERVER_URL}/api/v1/photos`,
         formData: {'authorization': `Bearer ${self._auth.getToken()}`, 'photo_upload':1, 'id':self.id},
         dataType: 'json',
         sequentialUploads: true,
@@ -1486,8 +1489,7 @@ export class TechnologyEditComponent implements OnInit {
         var headers = new Headers();
         headers.append('Content-Type', 'application/json');
         headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
-        var creds = {"id": this.id, "upload":true}
-        this.deleteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/technology/delete`, creds, {headers: headers}).subscribe(data => {
+        this.deleteSubscription = this._http.delete(`${this._backend.SERVER_URL}/api/v1/technology/${this.mainCategory}/${this.subCategory}/${this.id}`, {headers: headers}).subscribe(data => {
              this.technologyDelete=true;
              if(this.deleteSubscription) this.deleteSubscription.unsubscribe();
         });
@@ -1509,17 +1511,14 @@ export class TechnologyEditComponent implements OnInit {
         var headers = new Headers();
         headers.append('Content-Type', 'application/json');
         headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
-        var creds = {"photo": id, "product":this.id}
-        this.deletePhotoSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/photos/delete`, creds, {headers: headers}).subscribe(data => {
-            if(data.json().success){
-                let count = parseInt($('#appare-form-photo-container').data('count'));
-                $('.apprel-form-photo-containers').removeClass(`m${count}`)
-                $('.apprel-form-photo-containers').addClass(`m${12/(count-1)}`)
-                $('#appare-form-photo-container').data('count', (count-1))
-                $(`#technology-form-photo-container-${totalId}`).remove();
-                this.photoIds.splice(index,1);
-                this.imageCount -= 1;
-            }
+        this.deletePhotoSubscription = this._http.delete(`${this._backend.SERVER_URL}/api/v1/photos/${id}`, {headers: headers}).subscribe(data => {
+            let count = parseInt($('#appare-form-photo-container').data('count'));
+            $('.apprel-form-photo-containers').removeClass(`m${count}`)
+            $('.apprel-form-photo-containers').addClass(`m${12/(count-1)}`)
+            $('#appare-form-photo-container').data('count', (count-1))
+            $(`#technology-form-photo-container-${totalId}`).remove();
+            this.photoIds.splice(index,1);
+            this.imageCount -= 1;
         });
     }
         addGuide(){
@@ -1590,26 +1589,29 @@ watchFormattingButton(){
         
         headers.append('Content-Type', 'application/json');
         headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
-        this.submitSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/technology/update`, creds, {headers: headers}).subscribe(data => {
-                if(data.json().success){
-                    clearInterval(failedRequest);
-                    if(fadein) clearTimeout(fadein);
-                    this.submitted = true;
-                    this._sysMessages.setMessages('updatedTechnology');
-                    if(this.has_uploaded) Materialize.toast("Please allow a minute for the photo to upload/change", 3500, 'rounded');
-                    this._router.navigateByUrl(`/technology/${this.mainCategory}/${this.subCategory}/${data.json().url}`);
-                } else if (data.json().error) {
+        this.submitSubscription = this._http.put(`${this._backend.SERVER_URL}/api/v1/technology/${this.mainCategory}/${this.subCategory}/${this.id}`, creds, {headers: headers}).subscribe(data => {
+            if(data.json().success){
+                clearInterval(failedRequest);
+                if(fadein) clearTimeout(fadein);
+                this.submitted = true;
+                this._sysMessages.setMessages('updatedTechnology');
+                if(this.has_uploaded) Materialize.toast("Please allow a minute for the photo to upload/change", 3500, 'rounded');
+                this._router.navigateByUrl(`/technology/${this.mainCategory}/${this.subCategory}/${data.json().url}`);
+            } 
+        },error=>{
+            $(`#submit-technology-edit`).css({'display':'none'});
+            $('.waves-ripple').remove();
+            this.submitted = false;
+            if (error.json().error) {
                     // this.unsupported = true;
-                } else if(data.json().status === 401){
+            } else if(error.status === 401){
                 this._modal.setModal('technology','form');
                 clearInterval(failedRequest);
                 if(fadein) clearTimeout(fadein);
             } else {
             // this.error = true;
             }
-            $(`#submit-technology-edit`).css({'display':'none'});
-            $('.waves-ripple').remove();
-            this.submitted = false;
+        
         });
         let failedRequest = setTimeout(()=>{
             $('.waves-ripple').remove();

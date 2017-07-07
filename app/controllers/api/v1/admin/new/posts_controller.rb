@@ -28,9 +28,9 @@ class Api::V1::Admin::New::PostsController < ApplicationController
                 end
             end
 
-            render json: {status: 200, success: true, posts: [comments,news,songs,videos,apparel,technology]}
+            render json: {posts: [comments,news,songs,videos,apparel,technology]}, status: :ok
         else
-            render json: {status: 403, success:false}
+            render json: {}, status: :forbidden
         end
 	end
 
@@ -44,12 +44,12 @@ class Api::V1::Admin::New::PostsController < ApplicationController
                 posts.each do |post|
                     post["time_ago"] = time_ago_in_words(post["created_at"]).gsub('about','') + ' ago'
                 end
-                render json:{status:200, success:true, posts:posts,offset:offset+20}
+                render json:{posts:posts,offset:offset+20}, status: :ok
             else
-                render json:{status:400, success:false, message:"type and offset request headers are required"}
+                render json:{message:"type and offset request headers are required"}, status: :bad_request
             end
 		else
-			render json: {status:403, success: false}
+			render json: {}, status: :forbidden
 		end
 	end
 
@@ -62,15 +62,15 @@ class Api::V1::Admin::New::PostsController < ApplicationController
                 if post                
                     post.read = true
                     post.save
-                    render json:{status:200, success:true}
+                    render json:{}, status: :ok
                 else
-                    render json:{status:404, success:false}
+                    render json:{}, status: :not_found
                 end
             else
-                render json:{status:400, success:false, message:"type parameter is required." }
+                render json:{message:"type parameter is required." }, status: :bad_request
             end
 		else 
-			render json: {status: 403, success:false}
+			render json: {}, status: :forbidden
 		end
 	end
 

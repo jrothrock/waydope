@@ -3,8 +3,8 @@ class Api::V1::Users::Orders::OrderController < ApplicationController
     include ActionView::Helpers::NumberHelper
 	def read
         currentuser = request.headers["Authorization"] ? User.find_by_token(request.headers["Authorization"].split(' ').last) : nil
-        if request.headers["user"] === currentuser.username
-            order = Order.where("uuid = ?", request.headers["order"]).first
+        if params["user"] === currentuser.username
+            order = Order.where("uuid = ?", params["order"]).first
             if order
                 order = order.as_json
                 products = order["properties"] ? Product.where('uuid IN (?)', order["properties"].keys).select_with(App.getGoodColumns('apparel',false,nil,true)).as_json(include: :photos).to_a : nil

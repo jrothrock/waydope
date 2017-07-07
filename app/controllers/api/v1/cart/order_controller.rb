@@ -12,12 +12,12 @@ class Api::V1::Cart::OrderController < ApplicationController
         if order && order != []
         
             if order.user_uuid && !user || user && user.uuid != order.user_uuid
-                render json:{status:401,success:false}
+                render json:{}, status: :unauthorized
                 return false
             end
 
             if params[:paypal] != false && params[:paypal] != true && params[:paypal] != "false" && params[:paypal] != "true"
-                render json:{status:400, success:false, paypal:true, message:"paypal parameter is required, must be either true or false - can be a string, or boolean"}
+                render json:{paypal:true, message:"paypal parameter is required, must be either true or false - can be a string, or boolean"}, status: :bad_request
                 return false
             end
 
@@ -179,7 +179,7 @@ class Api::V1::Cart::OrderController < ApplicationController
                 order.quantities = products_hash
                 order.save
                 Product.rollProductsBack(user,products,products_old_quantities,purchased_already)
-                render json:{status:409, success:false, message:'state has changed, resubmit.', sold_out:sold_out_products, order:order}
+                render json:{message:'state has changed, resubmit.', sold_out:sold_out_products, order:order}, status: :conflic
                 return false
             end
 
@@ -199,7 +199,7 @@ class Api::V1::Cart::OrderController < ApplicationController
                     if order.save
                         if params[:paypal] === true || params[:paypal] === "true"
                             if !params[:paymentID] || !params[:payerID]
-                                render json:{status:500, success:false}
+                                render json:{}, status: :internal_server_error
                                 return false
                             end
                             begin
@@ -276,7 +276,7 @@ class Api::V1::Cart::OrderController < ApplicationController
                                     Rails.logger.info(payment.error.inspect)
                                     ExceptionNotifier.notify_exception(e,
                                                 :env => request.env, :data => {:message => "Paypal Order Payment Has Failed. Error: #{e.inspect}, #{e.backtrace}, Payment:#{payment.error.inspect}"})
-                                    render json:{status:500, success:false, paylpal_fail:true, message:'paypal error', error:payment.error}
+                                    render json:{paylpal_fail:true, message:'paypal error', error:payment.error}, status: :internal_server_error
                                     Product.rollProductsBack(user,products,products_old_quantities,purchased_already)
                                     raise ActiveRecord::Rollback
                             end
@@ -323,7 +323,7 @@ class Api::V1::Cart::OrderController < ApplicationController
 
                                 rescue Stripe::CardError => e
                                     Rails.logger.info(e)
-                                    render json:{status:500, success:false, card_fail:true, message:'card error'}
+                                    render json:{card_fail:true, message:'card error'}, status: :internal_server_error
                                     Product.rollProductsBack(user,products,products_old_quantities,purchased_already)
                                     raise ActiveRecord::Rollback
                                     return false
@@ -331,7 +331,7 @@ class Api::V1::Cart::OrderController < ApplicationController
                                     Rails.logger.info(e)
                                     ExceptionNotifier.notify_exception(e,
                                                 :env => request.env, :data => {:message => "Paypal Stripe Payment Has Failed. Error: #{e.inspect}, #{e.backtrace}"})
-                                    render json:{status:500, success:false, message:"failed in the stripe payment"}
+                                    render json:{message:"failed in the stripe payment"}, status: :internal_server_error
                                     Product.rollProductsBack(user,products,products_old_quantities,purchased_already)
                                     raise ActiveRecord::Rollback
                                     return false
@@ -339,7 +339,7 @@ class Api::V1::Cart::OrderController < ApplicationController
                             order.stripe_payment_id = charge.id
                             order.stripe_payout_ids = transfers
                         end  
-                        render json:{status:200, success:true, order:order.as_json.except("paid_with","stripe_payment_id", "stripe_payout_ids", "paypal_payment_id", "paypal_payouts_id", "tracker_sent", "tracker_updated")}
+                        render json:{order:order.as_json.except("paid_with","stripe_payment_id", "stripe_payout_ids", "paypal_payment_id", "paypal_payouts_id", "tracker_sent", "tracker_updated")}, status: :ok
                         NotifysellerWorker.perform_in(15.seconds)
                         if user.is_a? String
                             user = OpenStruct.new({username: order.firstname, email:order.email})
@@ -352,25 +352,25 @@ class Api::V1::Cart::OrderController < ApplicationController
                             end
                         end
                     else
-                        render json:{status:500, success:false}
+                        render json:{}, status: :internal_server_error
                         Product.rollProductsBack(user,products,products_old_quantities,purchased_already)
                         Rails.logger.info(order.errors.inspect)
                     end
                 rescue => e
-                    # render json:{status:500, success:false}
+                    # render json:{}, status: :internal_server_error
                     puts e
                     ExceptionNotifier.notify_exception(e,
                         :env => request.env, :data => {:message => "Order Has Failed. Error: #{e.inspect}, #{e.backtrace}"})
                     if Rails.env.production?
-                        # render json:{status:500, success:false, error:e}
+                        # render json:{error:e}, status: :internal_server_error
                     else
-                        # render json:{status:500, success:false, error:e, backtrace: e.backtrace}
+                        # render json:{error:e, backtrace: e.backtrace}, status: :internal_server_error
                     end
                     Product.rollProductsBack(user,products,products_old_quantities,purchased_already)
                 end
             end
         else
-            render json:{status:404, success:false}
+            render json:{}, status: :not_found
         end
     end
 end

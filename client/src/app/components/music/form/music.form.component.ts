@@ -67,6 +67,8 @@ export class MusicFormComponent implements OnInit {
   linkTitle:string;
   linkArtist:string;
   linkLink:string;
+  url:string;
+  og_category:string;
 	constructor(private _http: Http, private _backend:BackendService, private _auth: AuthService, private _fb: FormBuilder, private _router: Router, private _sysMessages: SystemMessagesComponent, private _modal: ModalComponent){};
 	ngOnInit(){
     this.uploadLink = this._fb.group({
@@ -117,25 +119,25 @@ export class MusicFormComponent implements OnInit {
         add: function (e, data) {
           var data_add = data;
           $.ajax({
-            url: `${self._backend.SERVER_URL}/api/v1/music/new`,
+            url: `${self._backend.SERVER_URL}/api/v1/music`,
             data: {'authorization': `Bearer ${self._auth.getToken()}`, post_type: 1, file_name:data.files[0].name},
             type: 'POST',
             success: function(data) {
-              
-              if(data.success){
-                
                 self.amz_key = data.key;
                 self.policy = data.policy;
                 self.signature = data.signature;
                 self.store_dir = data.store;
                 self.upload_time = data.time;
+                self.og_category = data.genre;
                 self.upload_date = data.time_date;
+                self.url = data.url;
                 self.key = `${self.store_dir}/${self.file_name}`;
                 self.songId = data.song_id;
                 data_add.submit();
-               }
-               else if(data.status == 415){self.cancelUpload(); self._sysMessages.setMessages('unsupported');}
-               else if(data.status === 401){self.cancelUpload(); self._modal.setModal('music','form'); }
+            },
+            error:function(error){
+               if(error.status == 415){self.cancelUpload(); self._sysMessages.setMessages('unsupported');}
+               else if(error.status === 401){self.cancelUpload(); self._modal.setModal('music','form'); }
             }
           });
         },
@@ -226,9 +228,10 @@ export class MusicFormComponent implements OnInit {
   photoUpload(){
        var self = this;
        $(`#photo-upload`).fileupload({
-        url: `${self._backend.SERVER_URL}/api/v1/music/update`,
+        url: `${self._backend.SERVER_URL}/api/v1/music/${self.og_category}/${self.url}`,
         formData: {'authorization': `Bearer ${self._auth.getToken()}`, 'photo_upload':1, 'song': self.songId},
         dataType: 'json',
+        type: "PUT",
         add: function (e, data) {
             $('#progress-photo-container').css({visibility:"visible"});
             self.uploadComplete = false;
@@ -416,22 +419,22 @@ watchRadios(){
   		headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
   		this.subscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/music/new`, creds, {headers: headers}).subscribe(data => {
           clearTimeout(failedRequest);
-  				if(data.json().success){
-            this.submitted = true;
-  					this._sysMessages.setMessages('submittedMusic');
-  					this._router.navigateByUrl(`/music/${this.mainGenre}/${data.json().url}`);
-  				} else if (data.json().error) {
-  		      this.unsupported = true;
-  				} else if(data.json().status === 401){
-              this._modal.setModal();
-          } else {
-            this.error = true;
-          }
+          this.submitted = true;
+  				this._sysMessages.setMessages('submittedMusic');
+  				this._router.navigateByUrl(`/music/${this.mainGenre}/${data.json().url}`);
           if(fadein) clearTimeout(fadein);
           $('#submit-music-link').css({'display':'none'});
           $('.waves-ripple').remove();
           this.insubmit = false;
-  		});
+  		},error=>{
+          if (error.json().error) {
+  		      this.unsupported = true;
+  				} else if(error.status === 401){
+              this._modal.setModal();
+          } else {
+            this.error = true;
+          }
+      });
       let failedRequest = setTimeout(()=>{
         $('.waves-ripple').remove();
         this.insubmit = false;
@@ -451,23 +454,23 @@ watchRadios(){
     var headers = new Headers();
     headers.append('Content-Type', 'application/json');
     headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
-    this.updateSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/music/update`, creds, {headers: headers}).subscribe(data => {
+    this.updateSubscription = this._http.put(`${this._backend.SERVER_URL}/api/v1/music/${this.og_category}/${this.url}`, creds, {headers: headers}).subscribe(data => {
       clearTimeout(failedRequest)
-      if(data.json().success){
-        this.submitted = true;
-        this._sysMessages.setMessages('submittedSong');
-        this._router.navigateByUrl(`/music/${this.mainGenre}/${data.json().url}`);
-      } else if (data.json().error) {
-        this.unsupported = true;
-      } else if(data.json().status === 401){
-        this._modal.setModal();
-      } else {
-        this.error = true;
-      }
+      this.submitted = true;
+      this._sysMessages.setMessages('submittedSong');
+      this._router.navigateByUrl(`/music/${this.mainGenre}/${data.json().url}`);
       if(fadein) clearTimeout(fadein);
       $('#submit-music-upload').css({'display':'none'});
       $('.waves-ripple').remove();
       this.insubmit = false;
+    },error=>{
+        if (error.json().error) {
+          this.unsupported = true;
+        } else if(error.status === 401){
+          this._modal.setModal();
+        } else {
+          this.error = true;
+        }
     });
     let failedRequest = setTimeout(()=>{
         $('.waves-ripple').remove();
@@ -484,12 +487,12 @@ watchRadios(){
       var creds = {"song": this.songId, "upload":true}
       headers.append('Content-Type', 'application/json');
       headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
-      this.deleteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/music/delete`, creds, {headers: headers}).subscribe(data => {
+      this.deleteSubscription = this._http.delete(`${this._backend.SERVER_URL}/api/v1/music/${this.og_category}/${this.url}`, {headers: headers}).subscribe(data => {
         clearTimeout(deleteRequest);
-        if(data.json().success){
-          this.songDelete = true;
-        }
+        this.songDelete = true;
         if(this.deleteSubscription) this.deleteSubscription.unsubscribe();
+      },error=>{
+
       });
       let deleteRequest = setTimeout(()=>{
           Materialize.toast("Failed to delete song on our end. Please try again.", 3500, 'rounded-failure');

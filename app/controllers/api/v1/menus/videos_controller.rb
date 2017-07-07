@@ -13,6 +13,6 @@ class Api::V1::Menus::VideosController < ApplicationController
 		posts = JSON.parse(posts)
 		videos = Video.userCheck(posts, request.headers["Authorization"])
 		#posts = News_post.userCheck([all,first,second,third,fourth], request.headers["Authorization"])
-		render json:{status:200, success:true, posts:videos}
+		render json:{posts:videos}, status: :ok
 	end
 end

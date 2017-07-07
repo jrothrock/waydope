@@ -113,22 +113,21 @@ export class ProfileVideosComponent implements OnInit {
 		headersInit.append('order', this.optionValues);
 		headersInit.append('time', this.timeValues);
 		headersInit.append('type', this.typesValues);
-		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/users/videos`,{headers: headersInit}).subscribe(data => {
-			if(data.json().success){
-				this.totalCount = data.json().posts.length;
-				this.videos = data.json().posts;
-				this.setIds();
-				this.offset = this.offset ? this.offset : data.json().offset;
-				this.total = data.json().count;
-				this.pages = data.json().pages;
-				this.numbers = Array(this.pages).fill(1);
-				this.currentPage = this.currentPage ? this.currentPage : data.json().page;
-				this.loaded = true;
-				setTimeout(()=>{
-					this.displayAll();
-				},150)
-			} 
-			else if(data.json().status === 404){
+		this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/users/${this.user}/videos`,{headers: headersInit}).subscribe(data => {
+			this.totalCount = data.json().posts.length;
+			this.videos = data.json().posts;
+			this.setIds();
+			this.offset = this.offset ? this.offset : data.json().offset;
+			this.total = data.json().count;
+			this.pages = data.json().pages;
+			this.numbers = Array(this.pages).fill(1);
+			this.currentPage = this.currentPage ? this.currentPage : data.json().page;
+			this.loaded = true;
+			setTimeout(()=>{
+				this.displayAll();
+			},150)
+		},error=>{
+			if(error.status === 404){
 				this.loaded = true;
 				setTimeout(()=>{
 					this.displayAll();
@@ -202,37 +201,35 @@ export class ProfileVideosComponent implements OnInit {
 	    });
 	    var body = {"id":id, "liked" : liked, "type" : type}
 	    this.likeSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/likes/new`, body, {headers: headers}).subscribe(data => {
-	      if(data.json().success){
-	      	let video = this.videos[index];
+			let video = this.videos[index];
 			video.user_liked = data.json().user_liked;
 			video.likes_count = data.json().likes_count;
-	        if(video.user_liked){
-	            $(`#icon-likes-video-${id}`).addClass(' liked-icon fa-heart');
-	            $(`#icon-likes-video-${id}`).removeClass('fa-heart-o');
-	            $(`#likes-button-video-${id}`).addClass(' liked');
-	            $(`#likes-video-${id}`).html(video.likes_count);
-	        }
-	        if(!video.user_liked){
-	            $(`#icon-likes-video-${id}`).addClass('fa-heart-o');
-	            $(`#icon-likes-video-${id}`).removeClass('liked-icon fa-heart');
-	            $(`#likes-button-video-${id}`).removeClass('liked');
-	            $(`#likes-video-${id}`).html(video.likes_count);
-                if(this.iscurrentUser){
-                    setTimeout(()=>{
+			if(video.user_liked){
+				$(`#icon-likes-video-${id}`).addClass(' liked-icon fa-heart');
+				$(`#icon-likes-video-${id}`).removeClass('fa-heart-o');
+				$(`#likes-button-video-${id}`).addClass(' liked');
+				$(`#likes-video-${id}`).html(video.likes_count);
+			}
+			if(!video.user_liked){
+				$(`#icon-likes-video-${id}`).addClass('fa-heart-o');
+				$(`#icon-likes-video-${id}`).removeClass('liked-icon fa-heart');
+				$(`#likes-button-video-${id}`).removeClass('liked');
+				$(`#likes-video-${id}`).html(video.likes_count);
+				if(this.iscurrentUser){
+					setTimeout(()=>{
 						if(!this.videos[index].user_liked){
 							$(`#${id}-videos`).fadeOut(()=>{
 								this.videos.splice(index,1);
 							})
 						}
-                    },1500)
-                }
-	        }
-
-	      }
-	      if(data.json().status === 401){
-	          this._modal.setModal('user', this.user, 'videos');
-	      }
-	    });
+					},1500)
+				}
+			}
+	    },error=>{
+			if(error.status === 401){
+	          	this._modal.setModal('user', this.user, 'videos');
+	      	}
+		});
 	}
 	transformRating(average_rating){
     	return `translateX(${average_rating}%)`
@@ -244,14 +241,13 @@ export class ProfileVideosComponent implements OnInit {
 	    });
 	    var body = {"id":id, "type":"videos", "vote":vote, "already_voted":voted}
 		  this.voteSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/votes/vote`, body, {headers: headers}).subscribe(data => {
-	        if(data.json().success){
 	          this.voteChange(id,data.json().vote,data.json().user_vote)
 			  this._voteService.change('videos',id,data.json().vote,data.json().user_vote);
-	        }
-	        if(data.json().status === 401){
+	      },error=>{
+			  if(error.status === 401){
 	              this._modal.setModal('user', this.user, 'videos');
 	          }
-	      });
+		  });
 	      // upVoteSubscription.unsubscribe();
 	}
 	getSorting(values){
@@ -265,13 +261,13 @@ export class ProfileVideosComponent implements OnInit {
 	    });
 	    var body = {'user':this.user,'options':this.optionValues, 'time':this.timeValues, 'type':this.typesValues}
 	      this.sortSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/users/videos/sort`, body, {headers: headers}).subscribe(data => {
-	        if(data.json().success){
-	     		this.videos = data.json().posts;	
-				this.setIds(); 
-	     		this.offset = data.json().offset;
-	     		this.setState();
-	        }
-	      });
+			this.videos = data.json().posts;	
+			this.setIds(); 
+			this.offset = data.json().offset;
+			this.setState();
+	      },error=>{
+
+		  });
 	}
 	getOffset(type,page){
 		let data = [];
@@ -299,13 +295,13 @@ export class ProfileVideosComponent implements OnInit {
 		}
 		return data;
 	}
-	videoPlay(id){
+	videoPlay(category,url){
 		let headers = new Headers({
 				'Content-Type': 'application/json',
 				'Authorization': 'Bearer ' + this._auth.getToken(),  'Signature': window.localStorage.getItem('signature')
 		});
-		let body = {"id":id}
-		this.playSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/videos/post/play`, body, {headers: headers}).subscribe(data => {
+		let body = {}
+		this.playSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/videos/${category}/${url}/play`, body, {headers: headers}).subscribe(data => {
 		});
 	}
 	changePage(type,page){
@@ -317,14 +313,14 @@ export class ProfileVideosComponent implements OnInit {
 	    });
 	    var body = {'user':this.user,'offset':pageData[0], 'options':this.optionValues, 'time':this.timeValues, 'type':this.typesValues}
 	    this.paginateSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/users/videos/paginate`, body, {headers: headers}).subscribe(data => {
-	    	if(data.json().success){
-	    		this.videos = data.json().posts;
-				this.setIds();
-	    		this.offset = data.json().offset;
-	    		this.currentPage = pageData[1];
-	    		this.setState();
-	    	}
-	    });
+			this.videos = data.json().posts;
+			this.setIds();
+			this.offset = data.json().offset;
+			this.currentPage = pageData[1];
+			this.setState();
+	    },error=>{
+
+		});
 	}
     displayAll(){
             $(`#loading-spinner-user-videos`).css({'display':'none'});
@@ -377,7 +373,7 @@ export class ProfileVideosComponent implements OnInit {
 				this.videos[index].clicked = true;
 			}
 		}
-		this.videoPlay(this.videos[index].uuid)
+		this.videoPlay(this.videos[index].main_category,this.videos[index].url)
 	}
 	initVideo(index,id,autoplay=true){
 		setTimeout(()=>{  

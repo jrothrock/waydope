@@ -64,11 +64,11 @@ class Api::V1::Admin::Bots::PostController < ApplicationController
                     end
                 else
                 ## not sure on the correct status, could be a 400.
-                    render json:{status:409,users:true,success:false}
+                    render json:{success:false}, status: :conflict
                     return false
                 end
             else
-                render json:{status:400, success:false, message:'needs to include vote params'}
+                render json:{message:'needs to include vote params'}, status: :bad_request
                 return false
             end
             if post 
@@ -108,19 +108,19 @@ class Api::V1::Admin::Bots::PostController < ApplicationController
                             puts bot.as_json
                         end
 
-                        render json:{status:200, success:true}
+                        render json:{}, status: :ok
                     else 
-                        render json:{status:409,success:false,users:true}
+                        render json:{users:true}, status: :conflict
                     end
                 else
-                    render json:{status:400, success:false, message:'needs to include comments params'}
+                    render json:{message:'needs to include comments params'}, status: :bad_request
                 end
 
             else
-                render json:{status:404, success:false}
+                render json:{}, status: :not_found
             end
         else
-            render json:{status:403, success:false}
+            render json:{}, status: :forbidden
         end
     end
 end

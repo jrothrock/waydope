@@ -46,22 +46,22 @@ export class PartnerComponent implements OnInit {
 		var body = {"name": values.name,"email":values.email, "website" : values.website, "contact_name" : values.contact_name,"phone" : values.phone,"information" : values.information}
   		headers.append('Content-Type', 'application/json');
   		headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
-  		this.parnerSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/partners/application/new`, body, {headers: headers}).subscribe(data => {
+  		this.parnerSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/partners/application`, body, {headers: headers}).subscribe(data => {
 					clearTimeout(failedRequest);
 					this.submitted = false;
-  				if(data.json().success){
-  					this._sysMessages.setMessages('partner');
-  					this._router.navigateByUrl('/');
-  				} else if (data.json().error) {
-  		     		 this.unsupported = true;
-  				} else {
-            this.error;
-          }
+  				this._sysMessages.setMessages('partner');
+  				this._router.navigateByUrl('/');
 					if(fadein) clearTimeout(fadein);
 					$('#submit-partner').css({'display':'none'});
 					$('.waves-ripple').remove();
 					this.submitted = false;
-  		});
+  		}, error =>{
+				  if (error.json().error) {
+  		     		 this.unsupported = true;
+  				} else {
+            this.error;
+          }
+			});
 			let failedRequest = setTimeout(()=>{
 					$('.waves-ripple').remove();
 					this.submitted = false;

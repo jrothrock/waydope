@@ -9,12 +9,12 @@ class Api::V1::Admin::UsersController < ApplicationController
 				current_page = offset / 100
 				total = users.length ? users.first.total_count : 0
 				pages = total / 100
-				render json: {status: 200, success: true, users:users,total:total,current:current_page,pages:pages,offset:(offset+100)}
+				render json: {users:users,total:total,current:current_page,pages:pages,offset:(offset+100)}, status: :ok
 			else
-				render json: {status: 403, success:false}
+				render json: {}, status: :forbidden
 			end
 		else
-			render json: {status: 403, success:false}
+			render json: {}, status: :forbidden
 		end
 	end
 
@@ -23,17 +23,17 @@ class Api::V1::Admin::UsersController < ApplicationController
 		if request.headers["Authorization"]
 			admin = User.find_by_token(request.headers["Authorization"].split(' ').last)
 			if !admin || !admin.admin
-				render json: {status: 403, success:false}
+				render json: {}, status: :forbidden
 				return
 			end
 			user = User.select('id,username,firstname,lastname,email,good_standing,admin,bio').find(request.headers["id"])
 			if user
-				render json: {status: 200, success: true, user: user}
+				render json: {user: user}, status: :ok
 			else
-				render json: {status: 404, success: false}
+				render json: {}, status: :not_found
 			end
 		else
-			render json: {status:403, success: false}
+			render json: {}, status: :forbidden
 		end
 	end
 
@@ -42,7 +42,7 @@ class Api::V1::Admin::UsersController < ApplicationController
 		if request.headers["Authorization"]
 			admin = User.find_by_token(request.headers["Authorization"].split(' ').last)
 			if !admin || !admin.admin
-				render json: {status: 403, success:false}
+				render json: {}, status: :forbidden
 				return
 			end
 
@@ -50,16 +50,16 @@ class Api::V1::Admin::UsersController < ApplicationController
 			if user
 				user.admin = params[:admin]
 				if user.save
-					render json: {status: 200, success:true}
+					render json: {}, status: :ok
 				else
-					render json: {status: 500, success:false}
+					render json: {}, status: :internal_server_error
 				end
 			else
-				render json: {status: 404, success:false}
+				render json: {}, status: :not_found
 			end
 
 		else 
-			render json: {status: 403, success:false}
+			render json: {}, status: :forbidden
 		end
 	end
 
@@ -67,7 +67,7 @@ class Api::V1::Admin::UsersController < ApplicationController
 		if request.headers["Authorization"]
 			admin = User.find_by_token(request.headers["Authorization"].split(' ').last)
 			if !admin || !admin.admin
-				render json: {status: 403, success:false}
+				render json: {}, status: :forbidden
 				return
 			end
 
@@ -79,10 +79,10 @@ class Api::V1::Admin::UsersController < ApplicationController
 					render json: {status: 500, success: false}
 				end
 			else
-				render json: {status: 404, success:false}
+				render json: {}, status: :not_found
 			end
 		else
-			render json: {status:403, success: false}
+			render json: {}, status: :forbidden
 		end
 	end
 
@@ -90,7 +90,7 @@ class Api::V1::Admin::UsersController < ApplicationController
 		if request.headers["Authorization"]
 			admin = User.find_by_token(request.headers["Authorization"].split(' ').last)
 			if !admin || !admin.admin
-				render json: {status: 403, success:false}
+				render json: {}, status: :forbidden
 				return
 			end
 
@@ -103,10 +103,10 @@ class Api::V1::Admin::UsersController < ApplicationController
 					render json: {status: 500, success: false}
 				end
 			else
-				render json: {status: 404, success:false}
+				render json: {}, status: :not_found
 			end
 		else
-			render json: {status:403, success: false}
+			render json: {}, status: :forbidden
 		end
 	end
 
@@ -114,22 +114,22 @@ class Api::V1::Admin::UsersController < ApplicationController
 		if request.headers["Authorization"]
 			admin = User.find_by_token(request.headers["Authorization"].split(' ').last)
 			if !admin || !admin.admin
-				render json: {status: 403, success:false}
+				render json: {}, status: :forbidden
 				return
 			end
 
 			user = User.unban(params[:user_id])
 			if user
 				if user.save
-					render json: {status: 200, success: true}
+					render json: {}, status: :ok
 				else 
-					render json: {status: 500, success: false}
+					render json: {}, status: :internal_server_error
 				end
 			else
-				render json: {status: 404, success:false}
+				render json: {}, status: :not_found
 			end
 		else
-			render json: {status:403, success: false}
+			render json: {}, status: :forbidden
 		end
 	end
 end

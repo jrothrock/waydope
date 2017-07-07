@@ -314,7 +314,7 @@ export class AppComponent implements OnInit {
     $(window).bind('beforeunload', ()=> {
     headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
       window.localStorage.removeItem("signature")
-      this.watchSessionEndSubscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/track/update`, body, {headers: headers}).subscribe(data => {
+      this.watchSessionEndSubscription = this._http.put(`${this._backend.SERVER_URL}/api/v1/track`, body, {headers: headers}).subscribe(data => {
         });
     });
   }
@@ -557,7 +557,7 @@ export class AppComponent implements OnInit {
         var headers = new Headers();
         headers.append('user', this.currentUser);
         headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
-        this.pollSubscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/users/notifications`, {headers: headers}).subscribe(data => {
+        this.pollSubscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/users/${this.currentUser}/notifications`, {headers: headers}).subscribe(data => {
             
             
             if(data.json().success){
@@ -591,7 +591,7 @@ export class AppComponent implements OnInit {
         var headers = new Headers();
         headers.append('user', this.currentUser);
         headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
-        this.pollMessagesSubscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/users/messages`, {headers: headers}).subscribe(data => {
+        this.pollMessagesSubscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/users/${this.currentUser}/messages`, {headers: headers}).subscribe(data => {
           
             if(data.json().success){
               if(data.json().messages.length && data.json().messages[0].count){
@@ -620,7 +620,7 @@ export class AppComponent implements OnInit {
         var headers = new Headers();
         headers.append('user', this.currentUser);
         headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
-        this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/users/notifications/all`, {headers: headers}).subscribe(data => {
+        this.subscription = this._http.get(`${this._backend.SERVER_URL}/api/v1/users/${this.currentUser}/notifications/all`, {headers: headers}).subscribe(data => {
             if(data.json().success){
               
               if(data.json().notifications.length && data.json().notifications[0].count){
@@ -1239,7 +1239,7 @@ export class AppComponent implements OnInit {
                 headers.append('Content-Type', 'application/json');
                 headers.append('Authorization', 'Bearer ' + this._auth.getToken()); headers.append('Signature', window.localStorage.getItem('signature'))
                 let creds = {} 
-                this.subscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/users/notifications/update`, creds, {headers: headers}).subscribe(data => {
+                this.subscription = this._http.post(`${this._backend.SERVER_URL}/api/v1/users/${this.currentUser}/notifications`, creds, {headers: headers}).subscribe(data => {
                     setTimeout(()=>{
                         if(this.subscription) this.subscription.unsubscribe();
                     },10000)

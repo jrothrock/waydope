@@ -12,6 +12,6 @@ class Api::V1::Menus::ApparelController < ApplicationController
 		end
 		posts = JSON.parse(posts)
 		apparel = Product.userCheck(posts, request.headers["Authorization"])
-		render json:{status:200, success:true, posts:apparel}
+		render json:{posts:apparel}, status: :ok
 	end
 end

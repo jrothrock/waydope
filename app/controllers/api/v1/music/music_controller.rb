@@ -75,22 +75,22 @@ class Api::V1::Music::MusicController < ApplicationController
 				sortedposts << posts[tl...fol].to_a
 
 				ids = all_songs.map{|song|song["id"]}
-				# render json:{status:200, success:true, genres:genres, first:posts[0...fl], second:posts[fl...sl],third:posts[tl...fol],fourth:[fol...posts.length]}
-				render json:{status:200, success:true, genres:genres, songs:sortedposts, page:page, offset: 0, count:count, pages:pages, all:all_songs, music_count:music_count, music_pages:music_pages, music_page: music_page,ids:ids}
+				# render json:{genres:genres, first:posts[0...fl], second:posts[fl...sl],third:posts[tl...fol],fourth:[fol...posts.length]}, status: :ok
+				render json:{genres:genres, songs:sortedposts, page:page, offset: 0, count:count, pages:pages, all:all_songs, music_count:music_count, music_pages:music_pages, music_page: music_page,ids:ids}, status: :ok
 			else 
-				render json:{status:200, success:true, genres:genres, songs:[],page:page, offset: 0, count:count, pages:pages,  all:all_songs, music_count:music_count, music_pages:music_pages, music_page: music_page}
+				render json:{genres:genres, songs:[],page:page, offset: 0, count:count, pages:pages,  all:all_songs, music_count:music_count, music_pages:music_pages, music_page: music_page}, status: :ok
 			end
 		else
-			render json: {status:404,success:false}
+			render json: {}, status: :not_found
 		end
 	end
 
 	def read
 		user = request.headers["Authorization"] ? User.find_by_token(request.headers["Authorization"].split(' ').last) : nil
 		if user && user.admin
-			song = Song.where('url = ? AND main_genre = ?', request.headers["id"], request.headers["genre"]).first
+			song = Song.where('url = ? AND main_genre = ?', params["song"], params["genre"]).first
 		else
-			song = Song.where('url = ? AND main_genre = ?', request.headers["id"], request.headers["genre"]).select_with(App.getGoodColumns('music',false,nil,true)).first
+			song = Song.where('url = ? AND main_genre = ?', params["song"], params["genre"]).select_with(App.getGoodColumns('music',false,nil,true)).first
 		end
 		if song
 			if !song.removed
@@ -107,14 +107,14 @@ class Api::V1::Music::MusicController < ApplicationController
 					song.ratings = nil
 				end
 				song.time_ago = time_ago_in_words(song.created_at) + ' ago'
-				render json: {status:200, success:true, song:song}
+				render json: {song:song}, status: :ok
 				user_id = user ? user.id : nil
 				ViewcountWorker.perform_async(song.uuid,user_id,'music',request.remote_ip)
 			else
-				render json:{status:410, success:false}
+				render json:{}, status: :gone
 			end
 		else
-			render json: {status:404, success:false}
+			render json: {}, status: :not_found
 		end
 	end
 
@@ -129,7 +129,7 @@ class Api::V1::Music::MusicController < ApplicationController
 		elsif params[:authorization]
 			auth = params[:authorization]
 		else
-			render json: {status:401, success:false}
+			render json: {}, status: :unauthorized
 			return false
 		end
 		user = User.find_by_token(auth.split(' ').last)
@@ -186,16 +186,16 @@ class Api::V1::Music::MusicController < ApplicationController
 				song.link = 'na'
 			else 
 				puts 'here1'
-				render json: {status:400,success:false, message:'need post_type parameter'}
+				render json: {message:'need post_type parameter'}, status: :bad_request
 				return false
 			end
 			if  params[:post_type].to_i == 0 && song.link_type === 0
-				render json: {status:415,success:false, error:true, message:'unsupported media type'}
+				render json: {error:true, message:'unsupported media type'}, status: :unsupported_media_type
 				return false
 			end
 			if song.save
 				if song.form === 0
-					render json: {status:200, success:true, id:song.uuid,url:song.url}
+					render json: {id:song.uuid,url:song.url}, status: :created
 				else 
 					@store = song.song.store_dir
 					string_to_sign
@@ -207,10 +207,11 @@ class Api::V1::Music::MusicController < ApplicationController
 						:store=> @store,
 						:time => @time_policy,
 						:time_date => @date_stamp,
-						:song_id => song.uuid
+						:song_id => song.uuid,
+						:genre => song.main_genre,
+						:url => song.url
 					}
 				end
-				puts song.id
 				user_hash = user.songs
 				user_hash[song.uuid] = true
 				user.songs = user_hash
@@ -231,11 +232,11 @@ class Api::V1::Music::MusicController < ApplicationController
 					# Songuploadp1Worker.perform_async
 				end
 			else
-				render json: {status:500, success:false}
+				render json: {}, status: :internal_server_error
 				Rails.logger.info(song.errors.inspect) 
 			end
 		else
-			render json: {status:401, success:false}
+			render json: {}, status: :unauthorized
 		end
 
 	end
@@ -250,7 +251,7 @@ class Api::V1::Music::MusicController < ApplicationController
 		elsif params[:authorization]
 			auth = params[:authorization]
 		else
-			render json: {status:401, success:false}
+			render json: {}, status: :unauthorized
 			return false
 		end
 		user = User.find_by_token(auth.split(' ').last)
@@ -261,11 +262,11 @@ class Api::V1::Music::MusicController < ApplicationController
 					if(song.artwork && song.artwork.url) then song.artwork = params[:file] ? params[:file] : song.artwork end
 					if(!song.artwork || !song.artwork.url) then song.artwork = params[:file] ? params[:file] : nil end 
 					if song.save
-						render json:{status:200,success:true,artwork:song.artwork.url}
+						render json:{artwork:song.artwork.url}, status: :ok
 						SongphotoWorker.perform_async(song.uuid)
 						return true
 					else
-						render json:{status:500,success:false}
+						render json:{}, status: :internal_server_error
 						Rails.logger.info(song.errors.inspect) 
 						return false
 					end
@@ -274,13 +275,13 @@ class Api::V1::Music::MusicController < ApplicationController
 				if params[:edit]
 					if params[:title] != song.title
 						if (Time.now - song.created_at) > (5*60)
-							render json:{status: 400, success:false, title:false, time:true, change:true, message:"title can't be changed after the first five minutes"}
+							render json:{title:false, time:true, change:true, message:"title can't be changed after the first five minutes"}, status: :bad_reqest
 							return false
 						elsif song.title_change && song.title_change > 0
-							render json:{status: 400, success:false, title:false, time:false, change:true, message:"title can only be edited once"}
+							render json:{title:false, time:false, change:true, message:"title can only be edited once"}, status: :bad_reqest
 							return false
 						elsif FuzzyStringMatch::JaroWinkler.create( :native ).getDistance(song.title, params[:title]) < 0.92
-							render json:{status: 400, success:false, title:true, time:false, change:false, message:"title has been altered too much"}
+							render json:{title:true, time:false, change:false, message:"title has been altered too much"}, status: :bad_reqest
 							return false
 						else
 							song.title = params[:title]
@@ -288,7 +289,7 @@ class Api::V1::Music::MusicController < ApplicationController
 						end
 					end
 					if params[:link] && params[:link] != song.original_link
-						render json:{status:400, success:false, new_link:true, message:"can't change the link after it has been uploaded"}
+						render json:{new_link:true, message:"can't change the link after it has been uploaded"}, status: :bad_request
 						return false
 					end
 					song.artist = params[:artist] ? params[:artist] : song.artist
@@ -311,12 +312,12 @@ class Api::V1::Music::MusicController < ApplicationController
 					song.categorized = false
 					## tough one with the description. If people delete description then it may send in null -
 					if song.save
-						render json:{status:200, success:true, url: song.url}
+						render json:{url: song.url}, status: :ok
 						SongcategorizeWorker.perform_async
 						if song.worked then PurgecacheWorker.perform_async(song.post_type,song.uuid) end
 						return true
 					else
-						render json:{status:500, success:false}
+						render json:{}, status: :internal_server_error
 						Rails.logger.info(song.errors.inspect)
 						return false 
 					end
@@ -340,20 +341,20 @@ class Api::V1::Music::MusicController < ApplicationController
 				if song.form then song.link = params[:key] end
 				song.categorized = false #just in case.
 				if song.save
-					render json:{status:200, success:true, url:song.url}
+					render json:{url:song.url}, status: :ok
 					if song.form
 						 SonguploadWorker.perform_async
 					end
 					SongcategorizeWorker.perform_async
 				else
-					render json:{status:500, success:false}
+					render json:{}, status: :internal_server_error
 					Rails.logger.info(song.errors.inspect) 
 				end
 			else
-				render json:{status:404, success:false, id:params[:song]}
+				render json:{id:params[:song]}, status: :not_found
 			end
 		else
-			render json:{status:401, success:false}
+			render json:{}, status: :unauthorized
 		end
 	end
 
@@ -363,12 +364,12 @@ class Api::V1::Music::MusicController < ApplicationController
 			song = params[:song] ? Song.where("uuid = ?", params[:song]).first : nil
 
 				if !song
-					render json: {status: 404, success:false}
+					render json: {}, status: :not_found
 					return false
 				end
 
 				if song.user_id != user.id
-					render json: {status: 401, success:false}
+					render json: {}, status: :unauthorized
 					return false
 				end
 
@@ -376,10 +377,10 @@ class Api::V1::Music::MusicController < ApplicationController
 					song.in_deletion = true
 					song.deleted = true
 					if song.save
-						render json: {status:200, success:true}
+						render json: {}, status: :ok
 						SongdeleteWorker.perform_async
 					else
-						render json: {status:500, success:false }
+						render json: {}, status: :internal_server_error
 						Rails.logger.info(song.errors.inspect)
 					end
 				end
@@ -395,10 +396,10 @@ class Api::V1::Music::MusicController < ApplicationController
 					song.submitted_by = '[Deleted]'
 					song.user_id = 0		
 					if song.save
-						render json:{status:200, success:true, hidden:song.hidden}
+						render json:{hidden:song.hidden}, status: :ok
 						SongdeleteWorker.perform_async
 					else
-						render json:{status:500, success:false}
+						render json:{}, status: :internal_server_error
 						Rails.logger.info(song.errors.inspect)
 					end
 				end

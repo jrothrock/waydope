@@ -8,7 +8,7 @@ class Api::V1::Users::Orders::OrdersController < ApplicationController
             offset = 0
         end
         currentuser = request.headers["Authorization"] ? User.find_by_token(request.headers["Authorization"].split(' ').last) : nil
-        if currentuser && request.headers["user"] === currentuser.username
+        if currentuser && params["user"] === currentuser.username
             sanitized_query = Order.escape_sql(["SELECT count(*) OVER () AS count, o.* FROM orders o WHERE o.user_uuid = ? AND o.status = 2 GROUP BY o.id ORDER BY created_at DESC OFFSET ? LIMIT 5", currentuser.uuid,offset])
             orders = Order.find_by_sql(sanitized_query)
             if orders
